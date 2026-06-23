@@ -30,7 +30,7 @@ const login = async (req, res) => {
   const token = jwt.sign(
     { usuario: process.env.ADMIN_USER, rol: 'admin' },
     process.env.JWT_SECRET,
-    { expiresIn: '12h' }
+    { expiresIn: '30d' }
   );
 
   res.json({ token, usuario: process.env.ADMIN_USER });
