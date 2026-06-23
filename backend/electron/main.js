@@ -22,7 +22,7 @@ if (!gotTheLock) {
 }
 
 const userDataPath = app.getPath('userData');
-const pgDataDir = path.join(userDataPath, isDev ? 'pgdata_dev' : 'pgdata_prod');
+const pgDataDir = path.join(userDataPath, isDev ? 'pgdata_dev' : 'pgdata_prod_v2');
 const pgBinDir = isDev
     ? path.join(__dirname, '../postgres-portable/bin')
     : path.join(process.resourcesPath, 'postgres-portable', 'bin');
@@ -137,26 +137,31 @@ async function createDatabase() {
 
 async function runMigrationsAndSeed(appRootPath) {
     console.log('📍 Sincronizando esquema de base de datos (prisma db push)...');
-    const prismaBin = isDev
-        ? path.join(__dirname, '../node_modules/.bin/prisma')
-        : path.join(process.resourcesPath, 'app', 'node_modules', '.bin', 'prisma');
     const schemaPath = isDev
-        ? path.join(__dirname, '../prisma/schema.prisma')
-        : path.join(process.resourcesPath, 'app', 'prisma', 'schema.prisma');
+        ? path.join(__dirname, '../prisma/schema.sql')
+        : path.join(process.resourcesPath, 'app', 'prisma', 'schema.sql');
+    const psqlPath = path.join(pgBinDir, 'psql.exe');
 
-    await new Promise((resolve) => {
-        const push = spawn(process.execPath, [prismaBin, 'db', 'push', '--schema', schemaPath, '--accept-data-loss'], {
-            env: { ...process.env },
-            cwd: appRootPath,
-            windowsHide: true
+    console.log('📍 Ejecutando sincronización de esquema (schema.sql)...');
+    if (fs.existsSync(schemaPath)) {
+        await new Promise((resolve) => {
+            const psql = spawn(psqlPath, [
+                '-U', DB_USER,
+                '-h', 'localhost',
+                '-p', PG_PORT.toString(),
+                '-d', DB_NAME,
+                '-f', schemaPath
+            ], { windowsHide: true });
+            psql.stdout.on('data', d => console.log('[SCHEMA]', d.toString().trim()));
+            psql.stderr.on('data', d => console.log('[SCHEMA-ERR]', d.toString().trim()));
+            psql.on('close', (code) => {
+                console.log('✅ Schema creado, código:', code);
+                resolve();
+            });
         });
-        push.stdout.on('data', d => console.log('[PRISMA-PUSH]', d.toString().trim()));
-        push.stderr.on('data', d => console.log('[PRISMA-PUSH-ERR]', d.toString().trim()));
-        push.on('close', (code) => {
-            console.log('✅ Schema sincronizado, código:', code);
-            resolve();
-        });
-    });
+    } else {
+        console.log('⚠️ No se encontró schema.sql en:', schemaPath);
+    }
 
     if (isFirstInstall) {
         console.log('📍 Primera instalación — aplicando datos iniciales (seed)...');
