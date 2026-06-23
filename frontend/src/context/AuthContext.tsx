@@ -15,7 +15,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [usuario, setUsuario] = useState<string | null>(() => localStorage.getItem('hb_user'));
 
   const login = async (usr: string, password: string) => {
-    const res = await fetch('http://localhost:5000/api/auth/login', {
+    const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ usuario: usr, password })
@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Verificar sesión al arrancar
   useEffect(() => {
     if (!token) return;
-    fetch('http://localhost:5000/api/auth/verify', {
+    fetch('/api/auth/verify', {
       headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => {
       if (!res.ok) logout();
