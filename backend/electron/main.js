@@ -295,7 +295,8 @@ function startExpressServer() {
             JWT_SECRET: process.env.JWT_SECRET || 'hotel-boutique-secret-2026',
             ADMIN_USER: userSettings.adminUser,
             ADMIN_PASS: userSettings.adminPass,
-            SETTINGS_PATH: settingsPath
+            SETTINGS_PATH: settingsPath,
+            PG_BIN_DIR: pgBinDir
         },
         cwd: appRootPath,
         stdio: ['ignore', 'pipe', 'pipe'],

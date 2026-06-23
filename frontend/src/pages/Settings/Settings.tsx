@@ -5,6 +5,7 @@ import './Settings.css';
 import { apiFetch } from '../../utils/apiFetch';
 import { TiposEspacioSettings } from './TiposEspacioSettings';
 import { SecuritySettings } from './SecuritySettings';
+import { BackupRestoreSettings } from './BackupRestoreSettings';
 
 interface ConfigData {
   nombre_hotel: string;
@@ -183,6 +184,7 @@ export const Settings: React.FC = () => {
 
         <TiposEspacioSettings />
         <SecuritySettings />
+        <BackupRestoreSettings />
       </div>
     </div>
   );
