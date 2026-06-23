@@ -22,7 +22,7 @@ if (!gotTheLock) {
 }
 
 const userDataPath = app.getPath('userData');
-const pgDataDir = path.join(userDataPath, isDev ? 'pgdata_dev' : 'pgdata_prod_v2');
+const pgDataDir = path.join(userDataPath, isDev ? 'pgdata_dev' : 'pgdata_prod_v3');
 const pgBinDir = isDev
     ? path.join(__dirname, '../postgres-portable/bin')
     : path.join(process.resourcesPath, 'postgres-portable', 'bin');
@@ -136,13 +136,14 @@ async function createDatabase() {
 }
 
 async function runMigrationsAndSeed(appRootPath) {
-    console.log('📍 Sincronizando esquema de base de datos (prisma db push)...');
+    const psqlPath = path.join(pgBinDir, 'psql.exe');
+
+    // 1. Aplicar schema.sql (idempotente: CREATE TABLE IF NOT EXISTS)
     const schemaPath = isDev
         ? path.join(__dirname, '../prisma/schema.sql')
         : path.join(process.resourcesPath, 'app', 'prisma', 'schema.sql');
-    const psqlPath = path.join(pgBinDir, 'psql.exe');
 
-    console.log('📍 Ejecutando sincronización de esquema (schema.sql)...');
+    console.log('📍 Aplicando schema de base de datos...');
     if (fs.existsSync(schemaPath)) {
         await new Promise((resolve) => {
             const psql = spawn(psqlPath, [
@@ -155,7 +156,7 @@ async function runMigrationsAndSeed(appRootPath) {
             psql.stdout.on('data', d => console.log('[SCHEMA]', d.toString().trim()));
             psql.stderr.on('data', d => console.log('[SCHEMA-ERR]', d.toString().trim()));
             psql.on('close', (code) => {
-                console.log('✅ Schema creado, código:', code);
+                console.log('✅ Schema aplicado, código:', code);
                 resolve();
             });
         });
@@ -163,12 +164,31 @@ async function runMigrationsAndSeed(appRootPath) {
         console.log('⚠️ No se encontró schema.sql en:', schemaPath);
     }
 
-    if (isFirstInstall) {
-        console.log('📍 Primera instalación — aplicando datos iniciales (seed)...');
+    // 2. Detectar si el seed ya fue aplicado (consultar si la tabla espacio tiene filas)
+    const needsSeed = await new Promise((resolve) => {
+        let output = '';
+        const psql = spawn(psqlPath, [
+            '-U', DB_USER,
+            '-h', 'localhost',
+            '-p', PG_PORT.toString(),
+            '-d', DB_NAME,
+            '-t', '-c', 'SELECT COUNT(*) FROM espacio'
+        ], { windowsHide: true });
+        psql.stdout.on('data', d => { output += d.toString(); });
+        psql.on('close', () => {
+            const count = parseInt(output.trim()) || 0;
+            console.log(`📍 Espacios en BD: ${count}`);
+            resolve(count === 0);
+        });
+        psql.on('error', () => resolve(true)); // Si falla, mejor intentar el seed
+    });
+
+    // 3. Aplicar seed si la BD está vacía
+    if (needsSeed) {
+        console.log('📍 BD vacía — aplicando datos iniciales (seed)...');
         const seedPath = isDev
             ? path.join(__dirname, '../prisma/seed.sql')
             : path.join(process.resourcesPath, 'app', 'prisma', 'seed.sql');
-        const psqlPath = path.join(pgBinDir, 'psql.exe');
 
         if (fs.existsSync(seedPath)) {
             await new Promise((resolve) => {
@@ -178,7 +198,7 @@ async function runMigrationsAndSeed(appRootPath) {
                     '-p', PG_PORT.toString(),
                     '-d', DB_NAME,
                     '-f', seedPath
-                ]);
+                ], { windowsHide: true });
                 psql.stdout.on('data', d => console.log('[SEED]', d.toString().trim()));
                 psql.stderr.on('data', d => console.log('[SEED-ERR]', d.toString().trim()));
                 psql.on('close', (code) => {
@@ -189,6 +209,8 @@ async function runMigrationsAndSeed(appRootPath) {
         } else {
             console.log('⚠️ No se encontró seed.sql en:', seedPath);
         }
+    } else {
+        console.log('✅ BD ya tiene datos — omitiendo seed');
     }
 }
 

@@ -28,6 +28,7 @@ const createCuentaEspacio = async (req, res) => {
         nombre_producto,
         cantidad: parseInt(cantidad),
         valor_unitario: parseFloat(valor_unitario),
+        valor_total: parseInt(cantidad) * parseFloat(valor_unitario),
         anotaciones
       },
       include: { reserva: { include: { espacio: true, huesped: true } } }
@@ -93,6 +94,7 @@ const updateCuentaEspacio = async (req, res) => {
         nombre_producto,
         cantidad: parseInt(cantidad),
         valor_unitario: parseFloat(valor_unitario),
+        valor_total: parseInt(cantidad) * parseFloat(valor_unitario),
         anotaciones
       }
     });
@@ -160,7 +162,8 @@ const createCuentaPersona = async (req, res) => {
         id_reserva: id_reserva ? parseInt(id_reserva) : null,
         descripcion,
         cantidad: parseInt(cantidad),
-        valor_unitario: parseFloat(valor_unitario)
+        valor_unitario: parseFloat(valor_unitario),
+        valor_total: parseInt(cantidad) * parseFloat(valor_unitario)
       },
       include: { huesped: true, reserva: { include: { espacio: true } } }
     });
@@ -208,7 +211,7 @@ const updateCuentaPersona = async (req, res) => {
   try {
     const updated = await prisma.cuenta_persona.update({
       where: { id_item_persona: parseInt(id) },
-      data: { descripcion, cantidad: parseInt(cantidad), valor_unitario: parseFloat(valor_unitario) }
+      data: { descripcion, cantidad: parseInt(cantidad), valor_unitario: parseFloat(valor_unitario), valor_total: parseInt(cantidad) * parseFloat(valor_unitario) }
     });
     res.json(updated);
   } catch (error) {

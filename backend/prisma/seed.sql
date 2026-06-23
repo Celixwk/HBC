@@ -1,4 +1,4 @@
-﻿-- Seed file generated automatically
+-- Seed file generated automatically
 -- Contains: room configuration, hotel config, space types, gasto categories
 -- Does NOT contain: reservations, guests, bills, inventory movements
 SET client_encoding = 'UTF8';
@@ -30,9 +30,9 @@ INSERT INTO tipo_espacio_config (id, nombre, precio_base, recargo_pareja, recarg
 SELECT setval('tipo_espacio_config_id_seq', (SELECT MAX(id) FROM tipo_espacio_config));
 
 -- Categorias de gastos
-INSERT INTO categoria_gasto (id, nombre, activo) VALUES (1, 'Servicios PÃºblicos', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO categoria_gasto (id, nombre, activo) VALUES (1, 'Servicios Públicos', true) ON CONFLICT (id) DO NOTHING;
 INSERT INTO categoria_gasto (id, nombre, activo) VALUES (2, 'Mantenimiento', true) ON CONFLICT (id) DO NOTHING;
-INSERT INTO categoria_gasto (id, nombre, activo) VALUES (3, 'NÃ³mina', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO categoria_gasto (id, nombre, activo) VALUES (3, 'Nómina', true) ON CONFLICT (id) DO NOTHING;
 INSERT INTO categoria_gasto (id, nombre, activo) VALUES (4, 'Arriendo', true) ON CONFLICT (id) DO NOTHING;
 INSERT INTO categoria_gasto (id, nombre, activo) VALUES (5, 'Marketing', true) ON CONFLICT (id) DO NOTHING;
 INSERT INTO categoria_gasto (id, nombre, activo) VALUES (6, 'Otros', true) ON CONFLICT (id) DO NOTHING;
