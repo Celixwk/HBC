@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma *)",
+      "Bash(node -e ' *)",
+      "Bash(npm start *)",
+      "Bash(npm run *)",
+      "Bash(Start-Sleep -Seconds 4)",
+      "Bash(curl -s http://localhost:5000/api/espacios)",
+      "PowerShell(curl -s http://localhost:5000/api/espacios 2>&1)",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":5000 \")",
+      "Bash(findstr LISTENING)",
+      "Bash(findstr \":5174 \")",
+      "Bash(curl -s -X POST http://localhost:5000/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"username\\\\\":\\\\\"admin\\\\\",\\\\\"password\\\\\":\\\\\"hotel2026\\\\\"}\")",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:5000/api/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"usuario\\\\\":\\\\\"admin\\\\\",\\\\\"password\\\\\":\\\\\"hotel2026\\\\\"}\")",
+      "Bash(set TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiYWRtaW4iLCJyb2wiOiJhZG1pbiIsImlhdCI6MTc3OTUwMDkxMCwiZXhwIjoxNzc5NTQ0MTEwfQ.lddDWVqRLfGxb34rVM7bi2RQTOle5xwQ9EPq0bKrAJw)",
+      "Bash(curl -s http://localhost:5000/api/espacios -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiYWRtaW4iLCJyb2wiOiJhZG1pbiIsImlhdCI6MTc3OTUwMDkxMCwiZXhwIjoxNzc5NTQ0MTEwfQ.lddDWVqRLfGxb34rVM7ki2RQTOle5xwQ9EPq0bKrAJw\")",
+      "Bash(set T=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c3VhcmlvIjoiYWRtaW4iLCJyb2wiOiJhZG1pbiIsImlhdCI6MTc3OTUwMDkxMCwiZXhwIjoxNzc5NTQ0MTEwfQ.lddDWVqRLfGxb34rVM7ki2RQTOle5xwQ9EPq0bKrAJw)",
+      "Bash(curl -s \"http://localhost:5000/api/inventario/productos\" -H \"Authorization: Bearer %T%\")"
+    ]
+  }
+}

@@ -1,0 +1,226 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model cuenta_espacio {
+  id_item         Int       @id @default(autoincrement())
+  id_reserva      Int
+  nombre_producto String    @db.VarChar(150)
+  cantidad        Int       @default(1)
+  valor_unitario  Decimal   @db.Decimal(12, 2)
+  valor_total     Decimal?  @default(dbgenerated("((cantidad)::numeric * valor_unitario)")) @db.Decimal(12, 2)
+  estado          String?   @default("pendiente") @db.VarChar(20)
+  metodo_pago     String?   @db.VarChar(50)
+  fecha_registro  DateTime? @default(now()) @db.Timestamp(6)
+  anotaciones     String?
+  reserva         reserva   @relation(fields: [id_reserva], references: [id_reserva], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_reserva], map: "idx_cuenta_espacio_reserva")
+}
+
+model cuenta_persona {
+  id_item_persona Int       @id @default(autoincrement())
+  id_huesped      Int?
+  nombre_persona  String    @db.VarChar(150)
+  id_reserva      Int?
+  fecha           DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  descripcion     String    @db.VarChar(200)
+  cantidad        Int       @default(1)
+  valor_unitario  Decimal   @db.Decimal(12, 2)
+  valor_total     Decimal?  @default(dbgenerated("((cantidad)::numeric * valor_unitario)")) @db.Decimal(12, 2)
+  estado          String?   @default("pendiente") @db.VarChar(20)
+  metodo_pago     String?   @db.VarChar(50)
+  fecha_registro  DateTime? @default(now()) @db.Timestamp(6)
+  huesped         huesped?  @relation(fields: [id_huesped], references: [id_huesped], onDelete: NoAction, onUpdate: NoAction)
+  reserva         reserva?  @relation(fields: [id_reserva], references: [id_reserva], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_huesped], map: "idx_cuenta_persona_huesped")
+  @@index([id_reserva], map: "idx_cuenta_persona_reserva")
+}
+
+model espacio {
+  id_espacio         Int                  @id @default(autoincrement())
+  numero             String               @unique @db.VarChar(10)
+  tipo_espacio       String               @db.VarChar(20)
+  tipo_habitacion    String?              @db.VarChar(20)
+  capacidad_personas Int?
+  precio_persona_1   Decimal?             @db.Decimal(12, 2)
+  precio_persona_2   Decimal?             @db.Decimal(12, 2)
+  precio_adicional   Decimal?             @default(80000) @db.Decimal(12, 2)
+  estado_limpieza    String?              @default("limpia") @db.VarChar(20)
+  activo             Boolean?             @default(true)
+  tiene_minibar      Boolean?             @default(false)
+  inventario_minibar inventario_minibar[]
+  reserva            reserva[]
+}
+
+model huesped {
+  id_huesped      Int              @id @default(autoincrement())
+  nombre_completo String           @db.VarChar(150)
+  telefono        String?          @db.VarChar(20)
+  documento       String?          @db.VarChar(30)
+  tipo_documento  String?          @db.VarChar(20)
+  procedencia     String?          @db.VarChar(100)
+  firma           String?
+  fecha_creacion  DateTime?        @default(now()) @db.Timestamp(6)
+  cuenta_persona  cuenta_persona[]
+  reserva         reserva[]
+}
+
+model inventario_minibar {
+  id_inventario       Int       @id @default(autoincrement())
+  id_espacio          Int
+  nombre_producto     String    @db.VarChar(150)
+  cantidad            Int       @default(0)
+  precio_unitario     Decimal   @db.Decimal(12, 2)
+  fecha_vencimiento   DateTime? @db.Date
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(6)
+  espacio             espacio   @relation(fields: [id_espacio], references: [id_espacio], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([id_espacio], map: "idx_minibar_espacio")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model reserva {
+  id_reserva       Int              @id @default(autoincrement())
+  id_huesped       Int
+  id_espacio       Int
+  tipo_reserva     String           @default("alojamiento") @db.VarChar(15)
+  dni_tipo         String?          @default("reserva") @db.VarChar(20)
+  check_in         DateTime?        @db.Date
+  check_out        DateTime?        @db.Date
+  cantidad_adultos Int?             @default(1)
+  cantidad_ninos   Int?             @default(0)
+  fecha_evento     DateTime?        @db.Date
+  hora_inicio      DateTime?        @db.Time(6)
+  hora_fin         DateTime?        @db.Time(6)
+  estado_reserva   String           @default("activa") @db.VarChar(20)
+  monto_total      Decimal?         @db.Decimal(12, 2)
+  estado_pago      String?          @default("pendiente") @db.VarChar(20)
+  metodo_pago      String?          @db.VarChar(50)
+  monto_pagado     Decimal?         @default(0) @db.Decimal(12, 2)
+  anotaciones      String?
+  firma            String?
+  fecha_creacion   DateTime?        @default(now()) @db.Timestamp(6)
+  cuenta_espacio   cuenta_espacio[]
+  cuenta_persona   cuenta_persona[]
+  espacio          espacio          @relation(fields: [id_espacio], references: [id_espacio], onDelete: NoAction, onUpdate: NoAction)
+  huesped          huesped          @relation(fields: [id_huesped], references: [id_huesped], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([check_in], map: "idx_reserva_checkin")
+  @@index([check_out], map: "idx_reserva_checkout")
+  @@index([id_espacio], map: "idx_reserva_espacio")
+  @@index([estado_reserva], map: "idx_reserva_estado")
+  @@index([id_huesped], map: "idx_reserva_huesped")
+}
+model configuracion_hotel {
+  id                  Int       @id @default(autoincrement())
+  nombre_hotel        String?   @db.VarChar(200)
+  direccion           String?   @db.VarChar(300)
+  telefono            String?   @db.VarChar(50)
+  nit                 String?   @db.VarChar(50)
+  email               String?   @db.VarChar(100)
+  ciudad              String?   @db.VarChar(100)
+  hora_check_in       String?   @default("15:00") @db.VarChar(10)
+  hora_check_out      String?   @default("13:00") @db.VarChar(10)
+  fecha_actualizacion DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model tipo_espacio_config {
+  id                       Int       @id @default(autoincrement())
+  nombre                   String    @unique @db.VarChar(50)
+  precio_base              Decimal   @db.Decimal(12, 2)
+  recargo_pareja           Decimal   @db.Decimal(12, 2)
+  recargo_adicional        Decimal   @db.Decimal(12, 2)
+  max_personas_adicionales Int       @default(1)
+}
+
+model categoria_inventario {
+  id_categoria   Int                   @id @default(autoincrement())
+  nombre         String                @unique @db.VarChar(80)
+  activo         Boolean               @default(true)
+  fecha_creacion DateTime              @default(now()) @db.Timestamp(6)
+}
+
+model proveedor {
+  id_proveedor   Int                   @id @default(autoincrement())
+  nombre         String                @db.VarChar(200)
+  nit            String?               @db.VarChar(30)
+  telefono       String?               @db.VarChar(30)
+  email          String?               @db.VarChar(100)
+  direccion      String?               @db.VarChar(300)
+  ciudad         String?               @db.VarChar(100)
+  contacto       String?               @db.VarChar(150)
+  notas          String?
+  activo         Boolean               @default(true)
+  fecha_creacion DateTime              @default(now()) @db.Timestamp(6)
+  productos      producto_inventario[]
+}
+
+model producto_inventario {
+  id_producto    Int                     @id @default(autoincrement())
+  nombre         String                  @db.VarChar(200)
+  descripcion    String?
+  categoria      String                  @db.VarChar(50)
+  unidad_medida  String                  @default("unidad") @db.VarChar(30)
+  precio_costo   Decimal                 @default(0) @db.Decimal(12, 2)
+  precio_venta   Decimal                 @default(0) @db.Decimal(12, 2)
+  stock_actual   Decimal                 @default(0) @db.Decimal(12, 3)
+  stock_minimo   Decimal                 @default(0) @db.Decimal(12, 3)
+  id_proveedor   Int?
+  activo         Boolean                 @default(true)
+  fecha_creacion DateTime                @default(now()) @db.Timestamp(6)
+  proveedor      proveedor?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: SetNull)
+  movimientos    movimiento_inventario[]
+
+  @@index([categoria], map: "idx_producto_categoria")
+  @@index([id_proveedor], map: "idx_producto_proveedor")
+}
+
+model movimiento_inventario {
+  id_movimiento   Int                 @id @default(autoincrement())
+  id_producto     Int
+  tipo            String              @db.VarChar(10)
+  motivo          String              @db.VarChar(30)
+  cantidad        Decimal             @db.Decimal(12, 3)
+  stock_antes     Decimal             @db.Decimal(12, 3)
+  stock_despues   Decimal             @db.Decimal(12, 3)
+  precio_unitario Decimal             @default(0) @db.Decimal(12, 2)
+  referencia_id   Int?
+  referencia_tipo String?             @db.VarChar(30)
+  notas           String?
+  fecha           DateTime            @default(now()) @db.Timestamp(6)
+  producto        producto_inventario @relation(fields: [id_producto], references: [id_producto], onDelete: Cascade)
+
+  @@index([id_producto], map: "idx_movimiento_producto")
+  @@index([fecha], map: "idx_movimiento_fecha")
+}
+
+model gasto_operativo {
+  id_gasto         Int       @id @default(autoincrement())
+  categoria        String    @db.VarChar(60)
+  descripcion      String    @db.VarChar(300)
+  monto            Decimal   @db.Decimal(12, 2)
+  fecha            DateTime  @db.Date
+  comprobante      String?   @db.VarChar(100)
+  proveedor_nombre String?   @db.VarChar(200)
+  es_recurrente    Boolean   @default(false)
+  dia_recurrente   Int?
+  notas            String?
+  activo           Boolean   @default(true)
+  fecha_creacion   DateTime  @default(now()) @db.Timestamp(6)
+
+  @@index([fecha], map: "idx_gasto_fecha")
+  @@index([categoria], map: "idx_gasto_categoria")
+}
+
+model categoria_gasto {
+  id      Int     @id @default(autoincrement())
+  nombre  String  @unique @db.VarChar(60)
+  activo  Boolean @default(true)
+}
