@@ -4,6 +4,7 @@ import { Button } from '../../components/Button/Button';
 import './Settings.css';
 import { apiFetch } from '../../utils/apiFetch';
 import { TiposEspacioSettings } from './TiposEspacioSettings';
+import { SecuritySettings } from './SecuritySettings';
 
 interface ConfigData {
   nombre_hotel: string;
@@ -181,6 +182,7 @@ export const Settings: React.FC = () => {
         </form>
 
         <TiposEspacioSettings />
+        <SecuritySettings />
       </div>
     </div>
   );

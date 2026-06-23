@@ -40,4 +40,40 @@ const verifySession = (req, res) => {
   res.json({ ok: true, usuario: req.user.usuario });
 };
 
-module.exports = { login, verifySession };
+const fs = require('fs');
+
+const updateCredentials = (req, res) => {
+  const { currentPassword, newUsuario, newPassword } = req.body;
+
+  if (currentPassword !== process.env.ADMIN_PASS) {
+    return res.status(401).json({ error: 'La contraseña actual es incorrecta.' });
+  }
+
+  if (!newUsuario || !newPassword) {
+    return res.status(400).json({ error: 'El nuevo usuario y contraseña son requeridos.' });
+  }
+
+  try {
+    const settingsPath = process.env.SETTINGS_PATH;
+    if (settingsPath && fs.existsSync(settingsPath)) {
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      settings.adminUser = newUsuario;
+      settings.adminPass = newPassword;
+      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+
+      // Update env variables for current process
+      process.env.ADMIN_USER = newUsuario;
+      process.env.ADMIN_PASS = newPassword;
+      adminHashCache = null;
+
+      res.json({ success: true, message: 'Credenciales actualizadas correctamente.' });
+    } else {
+      res.status(500).json({ error: 'No se pudo encontrar el archivo de configuración.' });
+    }
+  } catch (error) {
+    console.error('Error actualizando credenciales:', error);
+    res.status(500).json({ error: 'Error interno al actualizar credenciales.' });
+  }
+};
+
+module.exports = { login, verifySession, updateCredentials };

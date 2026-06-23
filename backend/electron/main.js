@@ -23,6 +23,18 @@ if (!gotTheLock) {
 
 const userDataPath = app.getPath('userData');
 const pgDataDir = path.join(userDataPath, isDev ? 'pgdata_dev' : 'pgdata_prod_v3');
+const settingsPath = path.join(userDataPath, 'settings.json');
+let userSettings = { adminUser: 'admin', adminPass: 'hotel2026' };
+try {
+    if (fs.existsSync(settingsPath)) {
+        userSettings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } else {
+        fs.writeFileSync(settingsPath, JSON.stringify(userSettings, null, 2));
+    }
+} catch (err) {
+    console.error('Error leyendo settings.json:', err);
+}
+
 const pgBinDir = isDev
     ? path.join(__dirname, '../postgres-portable/bin')
     : path.join(process.resourcesPath, 'postgres-portable', 'bin');
@@ -281,8 +293,9 @@ function startExpressServer() {
             DATABASE_URL: process.env.DATABASE_URL,
             FRONTEND_PATH: frontendPath,
             JWT_SECRET: process.env.JWT_SECRET || 'hotel-boutique-secret-2026',
-            ADMIN_USER: process.env.ADMIN_USER || 'admin',
-            ADMIN_PASS: process.env.ADMIN_PASS || 'hotel2026'
+            ADMIN_USER: userSettings.adminUser,
+            ADMIN_PASS: userSettings.adminPass,
+            SETTINGS_PATH: settingsPath
         },
         cwd: appRootPath,
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -387,6 +400,18 @@ async function createWindow() {
         mainWindow.once('ready-to-show', () => {
             mainWindow.show();
             mainWindow.focus();
+        });
+
+        mainWindow.on('close', (e) => {
+            const choice = dialog.showMessageBoxSync(mainWindow, {
+                type: 'question',
+                buttons: ['Sí', 'No'],
+                title: 'Confirmar Salida',
+                message: '¿Seguro que quieres salir de la aplicación?'
+            });
+            if (choice === 1) {
+                e.preventDefault();
+            }
         });
 
         mainWindow.on('closed', () => {
