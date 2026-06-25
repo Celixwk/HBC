@@ -1,0 +1,129 @@
+.gastos-container { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.gastos-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.gastos-header-actions { display: flex; gap: 8px; align-items: center; }
+
+.page-title { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0; }
+.page-subtitle { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+
+.gastos-alert {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 8px; font-size: 13px;
+}
+.gastos-alert.error   { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #f87171; }
+.gastos-alert.success { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); color: #34d399; }
+
+/* Resumen por categoría */
+.gastos-resumen-cats {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.gasto-cat-card {
+  flex: 1; min-width: 120px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s;
+  border-left: 3px solid var(--cat-color, #6b7280);
+}
+.gasto-cat-card:hover { background: rgba(255,255,255,0.05); }
+.gasto-cat-card.active { background: rgba(255,255,255,0.06); border-color: var(--cat-color, #6b7280); }
+.gasto-cat-card.total-card { border-left-color: #ef4444; }
+.gcat-nombre { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.gcat-monto  { display: block; font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
+
+/* Filtros */
+.filter-input {
+  padding: 7px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+.filter-input:focus { outline: none; border-color: var(--primary); }
+.filter-select {
+  padding: 7px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+}
+.filter-select:focus { outline: none; border-color: var(--primary); }
+.filters-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+
+/* Tabla */
+.gastos-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.gastos-table th {
+  padding: 10px 14px; text-align: left;
+  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-muted); border-bottom: 1px solid var(--border-medium); white-space: nowrap;
+}
+.gastos-table td { padding: 11px 14px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+.gastos-table tr:hover td { background: rgba(255,255,255,0.02); }
+.gastos-table tfoot td { padding: 12px 14px; border-top: 1px solid var(--border-medium); }
+
+.gasto-recurrente td:first-child::before {
+  content: ''; display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background: #8b5cf6; margin-right: 6px; vertical-align: middle;
+}
+
+.gasto-cat-badge {
+  display: inline-block; padding: 2px 9px; border-radius: 20px;
+  font-size: 0.72rem; font-weight: 600;
+}
+
+.recurrente-tag {
+  display: inline-flex; align-items: center; gap: 3px;
+  margin-left: 8px; padding: 1px 7px; border-radius: 10px;
+  background: rgba(139,92,246,0.12); color: #a78bfa; font-size: 0.7rem;
+}
+
+.gastos-total-row td { background: rgba(239,68,68,0.04) !important; }
+
+/* Iconos */
+.icon-btn {
+  background: none; border: none; cursor: pointer;
+  padding: 5px 7px; border-radius: 6px;
+  color: var(--text-muted); transition: all 0.15s;
+  display: inline-flex; align-items: center;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.08); color: var(--text-primary); }
+.icon-btn.danger:hover { background: rgba(239,68,68,0.12); color: #f87171; }
+
+/* Panel Gestión de Categorías */
+.cat-manager-panel {
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.cat-manager-header {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.cat-manager-list {
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 240px; overflow-y: auto;
+}
+.cat-manager-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 6px;
+  background: rgba(255,255,255,0.02);
+  transition: background 0.15s;
+}
+.cat-manager-item:hover { background: rgba(255,255,255,0.05); }
+.cat-manager-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.cat-manager-name {
+  flex: 1; font-size: 0.85rem; color: var(--text-primary);
+}
+.cat-manager-add {
+  display: flex; gap: 8px; align-items: center;
+  padding-top: 8px; border-top: 1px solid var(--border-light);
+}
+
+/* Modal form */
+.gastos-form { display: flex; flex-direction: column; gap: 14px; }
+.recurrente-toggle { padding: 12px 14px; background: rgba(139,92,246,0.06); border-radius: 8px; border: 1px solid rgba(139,92,246,0.15); }
+.toggle-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-primary); }
+.toggle-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; }

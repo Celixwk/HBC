@@ -1,0 +1,57 @@
+.signature-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.signature-hint {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.existing-signature {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.signature-preview {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-medium);
+  background: rgba(255,255,255,0.05);
+  max-height: 100px;
+  object-fit: contain;
+}
+
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.signature-canvas {
+  width: 100% !important;
+  height: 200px !important;
+  border-radius: var(--radius-md);
+  border: 2px dashed var(--primary);
+  cursor: crosshair;
+  touch-action: none;
+  background: #ffffff;
+}
+
+.canvas-label {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.signature-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.flex { display: flex; }

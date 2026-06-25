@@ -1,0 +1,31 @@
+.edit-reserva-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.edit-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  gap: 12px;
+}
+
+.edit-actions-right {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .edit-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .edit-actions-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

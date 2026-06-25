@@ -1,0 +1,178 @@
+.timeline-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-darker);
+}
+
+.timeline-scroll-area {
+  overflow: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+.timeline-header {
+  display: flex;
+  border-bottom: 1px solid var(--border-medium);
+  background: rgba(24, 26, 32, 0.97);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  width: max-content;
+  min-width: 100%;
+}
+
+.timeline-corner {
+  width: 150px;
+  min-width: 150px;
+  padding: 16px;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-right: 1px solid var(--border-medium);
+  display: flex;
+  align-items: center;
+  position: sticky;
+  left: 0;
+  z-index: 30;
+  background: rgba(24, 26, 32, 1);
+}
+
+.timeline-days {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.timeline-day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  min-width: 60px;
+}
+
+.timeline-day-header.today {
+  color: var(--primary);
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.timeline-day-header.today .day-number {
+  background: rgba(79, 70, 229, 0.25);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-name {
+  font-size: 11px;
+  text-transform: capitalize;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.day-number {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ── LEGEND ─────────────────────────────────────────────────── */
+.cal-legend {
+  display: flex;
+  gap: 20px;
+  padding: 8px 16px 8px 166px;
+  background: rgba(18, 20, 26, 0.8);
+  border-bottom: 1px solid var(--border-light);
+  flex-wrap: wrap;
+}
+
+.cal-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.cal-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── BODY ───────────────────────────────────────────────────── */
+.timeline-body {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  min-width: 100%;
+}
+
+.timeline-row {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  height: 56px; /* matches cal-cell height */
+  min-height: 56px;
+}
+
+.timeline-room-info {
+  width: 150px;
+  min-width: 150px;
+  padding: 12px 16px;
+  border-right: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: rgba(24, 26, 32, 1);
+  position: sticky;
+  left: 0;
+  z-index: 10;
+}
+
+.room-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.room-type {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: capitalize;
+  margin-top: 2px;
+}
+
+/* ── CALENDAR GRID ──────────────────────────────────────────── */
+.cal-grid {
+  display: grid;
+  flex: 1;
+  align-items: stretch;
+}
+
+/* Each cell is relative + fixed height to contain absolute blocks */
+.cal-cell {
+  border-right: 1px solid rgba(255,255,255,0.06);
+  min-width: 60px;
+  position: relative;
+  height: 56px; /* fixed so absolute children have a reference */
+}
+
+.cal-cell-today {
+  background: rgba(79, 70, 229, 0.04);
+}
+
+/* Blocks are absolutely positioned inside the cell */
+.cal-block {
+  /* actual styles set inline via JSX */
+  box-sizing: border-box;
+  transition: filter 0.15s ease;
+}

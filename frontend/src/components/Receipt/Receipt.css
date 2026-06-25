@@ -1,0 +1,125 @@
+.receipt-container {
+  padding: 20px;
+  background-color: white;
+  color: black;
+  font-family: 'Courier New', Courier, monospace;
+  max-width: 400px;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.receipt-header {
+  text-align: center;
+  border-bottom: 2px dashed #ccc;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.receipt-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 0 5px 0;
+}
+
+.receipt-hotel-name {
+  font-size: 1rem;
+  margin: 0 0 10px 0;
+}
+
+.receipt-details {
+  font-size: 0.85rem;
+  text-align: left;
+}
+
+.receipt-details p {
+  margin: 2px 0;
+}
+
+.receipt-guest-info {
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  border-bottom: 2px dashed #ccc;
+  padding-bottom: 10px;
+}
+
+.receipt-guest-info p {
+  margin: 3px 0;
+}
+
+.receipt-table {
+  width: 100%;
+  font-size: 0.85rem;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+  table-layout: fixed;
+}
+
+.receipt-table .col-desc  { width: 42%; }
+.receipt-table .col-cant  { width: 14%; }
+.receipt-table .col-unit  { width: 22%; }
+.receipt-table .col-total { width: 22%; }
+
+.receipt-table th {
+  border-bottom: 1px solid #ccc;
+  padding: 0 4px 5px 4px;
+  text-align: left;
+  font-size: 0.8rem;
+}
+
+.receipt-table td {
+  padding: 5px 4px;
+  border-bottom: 1px dotted #eee;
+  word-wrap: break-word;
+}
+
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+.firma-line {
+  margin-top: 20px !important;
+}
+
+.receipt-totals {
+  border-top: 2px dashed #ccc;
+  padding-top: 10px;
+  margin-bottom: 20px;
+}
+
+.receipt-totals-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.grand-total {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 5px;
+  border-top: 1px solid #000;
+  padding-top: 5px;
+}
+
+.receipt-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  margin-top: 30px;
+  border-top: 2px dashed #ccc;
+  padding-top: 15px;
+}
+
+.receipt-footer p {
+  margin: 10px 0;
+}
+
+@media print {
+  body {
+    background-color: white !important;
+  }
+  .receipt-container {
+    border: none;
+    max-width: 100%;
+    box-shadow: none;
+  }
+}

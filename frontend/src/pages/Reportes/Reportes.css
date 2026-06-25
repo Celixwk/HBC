@@ -1,0 +1,164 @@
+.reportes-container { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+.rep-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; }
+.rep-header-actions { display: flex; gap: 8px; }
+
+.page-title   { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin: 0 0 4px 0; }
+.page-subtitle { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+
+.rep-alert {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 8px; font-size: 13px;
+  background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #f87171;
+}
+
+/* Selector período */
+.rep-periodo { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.rep-periodo-inputs { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.rep-periodo-inputs label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.filter-input {
+  padding: 7px 10px; background: var(--bg-elevated); border: 1px solid var(--border-medium);
+  border-radius: 8px; color: var(--text-primary); font-size: 0.85rem;
+}
+.filter-input:focus { outline: none; border-color: var(--primary); }
+
+.rep-meses-quick { display: flex; gap: 6px; flex-wrap: wrap; }
+.mes-quick-btn {
+  padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-medium);
+  background: none; color: var(--text-muted); font-size: 0.78rem; cursor: pointer; transition: all 0.15s;
+}
+.mes-quick-btn:hover { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--primary); }
+
+/* KPIs */
+.rep-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.rep-kpi {
+  padding: 20px; border-radius: 12px; display: flex; gap: 14px; align-items: flex-start;
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06);
+}
+.rep-kpi .kpi-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.rep-kpi.ingresos     .kpi-icon { background: rgba(16,185,129,0.12); color: #34d399; }
+.rep-kpi.gastos       .kpi-icon { background: rgba(239,68,68,0.12);  color: #f87171; }
+.rep-kpi.utilidad-pos .kpi-icon { background: rgba(99,102,241,0.12); color: #818cf8; }
+.rep-kpi.utilidad-neg .kpi-icon { background: rgba(239,68,68,0.12);  color: #f87171; }
+.rep-kpi.costo-ventas .kpi-icon { background: rgba(245,158,11,0.12); color: #fbbf24; }
+
+.kpi-label  { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+.kpi-valor  { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.kpi-sub    { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+.kpi-margen { font-size: 0.78rem; font-weight: 600; margin-top: 4px; }
+.kpi-margen.pos { color: #34d399; }
+.kpi-margen.neg { color: #f87171; }
+
+/* Gráfico barras */
+.rep-chart-panel { padding: 20px; }
+.rep-section-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.85rem; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 16px;
+}
+.ingresos-title { color: #34d399; }
+.gastos-title   { color: #f87171; }
+
+.rep-bars {
+  display: flex; align-items: flex-end; gap: 16px;
+  height: 150px; padding-bottom: 4px;
+}
+.rep-bar-group { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 4px; min-width: 50px; }
+.rep-bar-pair  { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+.rep-bar       { width: 18px; border-radius: 4px 4px 0 0; transition: height 0.4s; }
+.ingresos-bar  { background: rgba(16,185,129,0.6); }
+.gastos-bar    { background: rgba(239,68,68,0.5); }
+.rep-bar-label { font-size: 0.72rem; color: var(--text-muted); }
+.rep-bar-utilidad { font-size: 0.68rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rep-bar-utilidad.pos { color: #34d399; }
+.rep-bar-utilidad.neg { color: #f87171; }
+.rep-bar-legend { display: flex; gap: 16px; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
+.legend-ing { color: #34d399; }
+.legend-gas { color: #f87171; }
+
+/* P&L Grid */
+.rep-pnl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 768px) { .rep-pnl-grid { grid-template-columns: 1fr; } }
+
+.rep-pnl-col { padding: 20px; }
+
+.pnl-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 10px; border-radius: 6px; margin-bottom: 2px; font-size: 0.85rem;
+}
+.pnl-sub   { color: var(--text-secondary); }
+.pnl-pending { color: var(--text-muted); font-style: italic; font-size: 0.8rem; }
+.pnl-total {
+  margin-top: 8px; padding: 10px 12px;
+  background: rgba(255,255,255,0.04); border-top: 1px solid var(--border-medium);
+  font-weight: 700; font-size: 0.9rem; border-radius: 0 0 6px 6px;
+}
+.gastos-total { color: #f87171; }
+.pnl-resultado {
+  margin-top: 4px; padding: 12px; border-radius: 8px;
+  font-weight: 700; font-size: 1rem;
+}
+.resultado-pos { background: rgba(16,185,129,0.1); color: #34d399; border: 1px solid rgba(16,185,129,0.2); }
+.resultado-neg { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+
+.pnl-cat-row:hover { background: rgba(255,255,255,0.04); }
+.pnl-count { font-size: 0.72rem; color: var(--text-muted); margin-left: 4px; }
+.pnl-item {
+  padding: 4px 20px; color: var(--text-muted); font-size: 0.78rem;
+  background: rgba(255,255,255,0.01);
+}
+
+/* Tabla detalle */
+.rep-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.rep-table th { padding: 10px 16px; text-align: left; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border-medium); }
+.rep-table td { padding: 10px 16px; border-bottom: 1px solid var(--border-light); vertical-align: middle; }
+.rep-table tr:last-child td { border-bottom: none; }
+.rep-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.rep-tipo-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600;
+}
+.rep-tipo-badge.hospedaje { background: rgba(16,185,129,0.12); color: #34d399; }
+.rep-tipo-badge.consumo   { background: rgba(99,102,241,0.12); color: #818cf8; }
+
+/* Tabs */
+.rep-tabs {
+  display: flex; gap: 4px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px; padding: 4px;
+}
+.rep-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 16px; border-radius: 7px; border: none;
+  background: none; color: var(--text-muted);
+  font-size: 0.83rem; font-weight: 500; cursor: pointer;
+  transition: all 0.15s;
+}
+.rep-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.rep-tab.active { background: var(--primary); color: #fff; }
+
+/* Comparativa anual */
+.rep-comparativa-grid {
+  display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 14px;
+}
+@media (max-width: 900px) { .rep-comparativa-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .rep-comparativa-grid { grid-template-columns: 1fr; } }
+
+.rep-comp-total { padding: 20px; }
+.rep-comp-card  { padding: 16px 18px; }
+.rep-comp-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.rep-comp-value { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.rep-comp-sub   { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
+.rep-comp-var   { display: inline-flex; align-items: center; gap: 2px; font-size: 0.78rem; font-weight: 700; margin-top: 6px; padding: 2px 7px; border-radius: 10px; }
+.rep-comp-var.pos { background: rgba(16,185,129,0.1); color: #34d399; }
+.rep-comp-var.neg { background: rgba(239,68,68,0.1);  color: #f87171; }
+
+/* Tabla anual tfoot */
+.rep-table tfoot td { padding: 12px 16px; background: rgba(255,255,255,0.03); }
+
+/* Print desactivado — usar botones PDF/Excel */
+@media print { .reportes-container { display: none; } }
