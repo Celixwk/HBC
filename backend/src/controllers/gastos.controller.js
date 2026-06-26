@@ -68,6 +68,28 @@ const deleteCategoria = async (req, res) => {
   }
 };
 
+const updateCategoria = async (req, res) => {
+  const { id } = req.params;
+  const { nombre } = req.body;
+  if (!nombre || !nombre.trim())
+    return res.status(400).json({ error: 'El nombre es obligatorio' });
+  try {
+    const cat = await prisma.categoria_gasto.findUnique({ where: { id: parseInt(id) } });
+    if (!cat) return res.status(404).json({ error: 'Categoría no encontrada' });
+    // Actualizar también los gastos que usaban el nombre anterior
+    const nombreAnterior = cat.nombre;
+    const nombreNuevo = nombre.trim();
+    await prisma.$transaction([
+      prisma.categoria_gasto.update({ where: { id: parseInt(id) }, data: { nombre: nombreNuevo } }),
+      prisma.gasto_operativo.updateMany({ where: { categoria: nombreAnterior }, data: { categoria: nombreNuevo } })
+    ]);
+    res.json({ message: 'Categoría renombrada', nombre: nombreNuevo });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al renombrar categoría' });
+  }
+};
+
 // ── CRUD Gastos ─────────────────────────────────────────────────────────
 const getGastos = async (req, res) => {
   const { desde, hasta, categoria } = req.query;
@@ -210,4 +232,4 @@ const generarRecurrentes = async (req, res) => {
   }
 };
 
-module.exports = { getCategorias, createCategoria, deleteCategoria, getGastos, createGasto, updateGasto, deleteGasto, generarRecurrentes };
+module.exports = { getCategorias, createCategoria, deleteCategoria, updateCategoria, getGastos, createGasto, updateGasto, deleteGasto, generarRecurrentes };

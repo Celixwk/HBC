@@ -309,8 +309,8 @@ const CargosEspacio: React.FC = () => {
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span className="font-medium">{reserva.huesped?.nombre_completo}</span>
                   {reserva.anotaciones && (
-                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={reserva.anotaciones}>
-                      Nota: {reserva.anotaciones}
+                    <span style={{ fontSize: '12px', color: '#f59e0b', fontStyle: 'italic', maxWidth: '350px', wordBreak: 'break-word', whiteSpace: 'pre-wrap', lineHeight: '1.3' }}>
+                      📝 {reserva.anotaciones}
                     </span>
                   )}
                 </div>

@@ -324,8 +324,8 @@ const getHistorialHabitaciones = async (req, res) => {
       const totalExtras = extras
         .filter(item => item.estado === 'pagado')
         .reduce((acc, item) => acc + parseFloat(item.valor_total || 0), 0);
-      // El monto de habitación solo cuenta si la reserva está marcada como pagada
-      const montoHabitacion = r.estado_pago === 'pagado' ? parseFloat(r.monto_total || 0) : 0;
+      // El monto de habitación siempre se muestra (independiente del estado de pago)
+      const montoHabitacion = parseFloat(r.monto_total || 0);
       const totalGeneral = montoHabitacion + totalExtras;
 
       // Tipo de ocupación

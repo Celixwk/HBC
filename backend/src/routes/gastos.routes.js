@@ -4,6 +4,7 @@ const c       = require('../controllers/gastos.controller');
 
 router.get('/categorias',         c.getCategorias);
 router.post('/categorias',        c.createCategoria);
+router.put('/categorias/:id',     c.updateCategoria);
 router.delete('/categorias/:id',  c.deleteCategoria);
 router.get('/',                   c.getGastos);
 router.post('/',                  c.createGasto);

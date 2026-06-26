@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit2, Trash2, Loader2, Receipt, AlertCircle, Repeat, Tags, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Receipt, AlertCircle, Repeat, Tags, X, Check } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
 import { format, parseISO } from 'date-fns';
@@ -79,6 +79,8 @@ export const Gastos: React.FC = () => {
   const [savingCat, setSavingCat] = useState(false);
   const [deletingCat, setDeletingCat] = useState<number | null>(null);
   const [catError, setCatError]   = useState('');
+  const [renamingCat, setRenamingCat] = useState<CatItem | null>(null);
+  const [renameValue, setRenameValue] = useState('');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -136,6 +138,29 @@ export const Gastos: React.FC = () => {
       fetchData();
     } catch (e: any) { setCatError(e.message); }
     finally { setDeletingCat(null); }
+  };
+
+  const startRename = (item: CatItem) => {
+    setRenamingCat(item);
+    setRenameValue(item.nombre);
+    setCatError('');
+  };
+
+  const handleRenameCat = async () => {
+    if (!renamingCat || !renameValue.trim()) return;
+    setSavingCat(true); setCatError('');
+    try {
+      const res = await apiFetch(`/gastos/categorias/${renamingCat.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: renameValue.trim() })
+      });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+      setRenamingCat(null);
+      showSuccess(`Categoría renombrada a "${renameValue.trim()}"`);
+      fetchData();
+    } catch (e: any) { setCatError(e.message); }
+    finally { setSavingCat(false); }
   };
 
   // ── Gastos CRUD ─────────────────────────────────────────────────────────
@@ -258,18 +283,47 @@ export const Gastos: React.FC = () => {
           </div>
           {catError && <div className="gastos-alert error" style={{ margin: '0 0 10px 0' }}><AlertCircle size={13} />{catError}</div>}
           <div className="cat-manager-list">
-            {categorias.map(nombre => (
-              <div key={nombre} className="cat-manager-item">
-                <span className="cat-manager-dot" style={{ background: catColor(nombre, categorias) }} />
-                <span className="cat-manager-name">{nombre}</span>
-                <button
-                  className="icon-btn danger"
-                  title="Eliminar categoría"
-                  onClick={() => handleDeleteCat(catItems.find(c => c.nombre === nombre)!)}
-                  disabled={deletingCat !== null}
-                >
-                  <Trash2 size={13} />
-                </button>
+            {catItems.map(item => (
+              <div key={item.id} className="cat-manager-item">
+                <span className="cat-manager-dot" style={{ background: catColor(item.nombre, categorias) }} />
+                {renamingCat?.id === item.id ? (
+                  <>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={renameValue}
+                      onChange={e => setRenameValue(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') handleRenameCat(); if (e.key === 'Escape') setRenamingCat(null); }}
+                      autoFocus
+                      style={{ flex: 1, padding: '4px 8px', fontSize: '0.85rem' }}
+                    />
+                    <button className="icon-btn" title="Guardar" onClick={handleRenameCat} disabled={savingCat}>
+                      <Check size={13} style={{ color: '#10b981' }} />
+                    </button>
+                    <button className="icon-btn" title="Cancelar" onClick={() => setRenamingCat(null)}>
+                      <X size={13} />
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <span className="cat-manager-name">{item.nombre}</span>
+                    <button
+                      className="icon-btn"
+                      title="Renombrar categoría"
+                      onClick={() => startRename(item)}
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                    <button
+                      className="icon-btn danger"
+                      title="Eliminar categoría"
+                      onClick={() => handleDeleteCat(item)}
+                      disabled={deletingCat !== null}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </>
+                )}
               </div>
             ))}
           </div>
