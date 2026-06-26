@@ -140,7 +140,6 @@ export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, item
           <p><strong>Habitación:</strong> {tipoHab} {reserva.espacio?.numero}</p>
           <p><strong>Fechas:</strong> {fmtLocalDate(reserva.check_in)} al {fmtLocalDate(reserva.check_out)} ({noches} {noches === 1 ? 'noche' : 'noches'})</p>
           <p><strong>Personas:</strong> {reserva.cantidad_adultos} {reserva.cantidad_adultos === 1 ? 'Adulto' : 'Adultos'}{(reserva.cantidad_ninos || 0) > 0 ? `, ${reserva.cantidad_ninos} Niño${reserva.cantidad_ninos > 1 ? 's' : ''}` : ''}</p>
-          {reserva.anotaciones && <p><strong>Notas:</strong> {reserva.anotaciones}</p>}
         </div>
 
         <table className="receipt-table">

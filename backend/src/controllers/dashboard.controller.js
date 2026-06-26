@@ -382,12 +382,15 @@ const getDashboardStats = async (req, res) => {
         where: { estado_reserva: { notIn: ['cancelada', 'no_show'] }, check_out: { gte: manana, lte: mananaEnd } },
         include: { huesped: { select: { nombre_completo: true } }, espacio: { select: { numero: true } } }
       }),
-      // Reservas activas/confirmadas con pago pendiente
+      // Reservas activas/confirmadas con pago pendiente y que hacen check-out mañana
       prisma.reserva.findMany({
-        where: { estado_reserva: { in: ['activa', 'confirmada'] }, estado_pago: { not: 'pagado' } },
+        where: { 
+          estado_reserva: { in: ['activa', 'confirmada'] }, 
+          estado_pago: { not: 'pagado' },
+          check_out: { gte: manana, lte: mananaEnd }
+        },
         include: { huesped: { select: { nombre_completo: true } }, espacio: { select: { numero: true } } },
-        orderBy: { check_in: 'asc' },
-        take: 5
+        orderBy: { check_in: 'asc' }
       }),
       // Minibar con vencimiento en los próximos 7 días
       prisma.inventario_minibar.findMany({

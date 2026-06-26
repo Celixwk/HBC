@@ -107,7 +107,10 @@ export const Gastos: React.FC = () => {
 
   // ── Gestión de categorías ──────────────────────────────────────────────
   const handleAddCat = async () => {
-    if (!nuevaCat.trim()) return;
+    if (!nuevaCat.trim()) {
+      setCatError('Por favor escribe un nombre para la categoría');
+      return;
+    }
     setSavingCat(true); setCatError('');
     try {
       const res = await apiFetch('/gastos/categorias', {
@@ -280,7 +283,7 @@ export const Gastos: React.FC = () => {
               onKeyDown={e => { if (e.key === 'Enter') handleAddCat(); }}
               style={{ flex: 1 }}
             />
-            <Button variant="primary" size="sm" onClick={handleAddCat} disabled={savingCat || !nuevaCat.trim()}>
+            <Button variant="primary" size="sm" onClick={handleAddCat} disabled={savingCat}>
               {savingCat ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
               Agregar
             </Button>

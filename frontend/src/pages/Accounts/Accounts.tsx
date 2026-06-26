@@ -306,7 +306,14 @@ const CargosEspacio: React.FC = () => {
             <div className="room-section-header" onClick={() => setCollapsed(c => ({ ...c, [reserva.id_reserva]: !c[reserva.id_reserva] }))}>
               <div className="room-section-title">
                 <span className="room-badge">Hab. {reserva.espacio?.numero}</span>
-                <span className="font-medium">{reserva.huesped?.nombre_completo}</span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="font-medium">{reserva.huesped?.nombre_completo}</span>
+                  {reserva.anotaciones && (
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={reserva.anotaciones}>
+                      Nota: {reserva.anotaciones}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="room-section-meta flex items-center gap-4">
                 {totalPendiente > 0 && (
