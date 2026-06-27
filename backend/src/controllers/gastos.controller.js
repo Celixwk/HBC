@@ -98,11 +98,13 @@ const getGastos = async (req, res) => {
     if (categoria) where.categoria = categoria;
     if (desde || hasta) {
       where.fecha = {};
-      if (desde) where.fecha.gte = new Date(desde);
+      if (desde) {
+        const [y1, m1, d1] = desde.substring(0, 10).split('-');
+        where.fecha.gte = new Date(Date.UTC(y1, m1 - 1, d1));
+      }
       if (hasta) {
-        const h = new Date(hasta);
-        h.setHours(23, 59, 59, 999);
-        where.fecha.lte = h;
+        const [y2, m2, d2] = hasta.substring(0, 10).split('-');
+        where.fecha.lte = new Date(Date.UTC(y2, m2 - 1, d2, 23, 59, 59, 999));
       }
     }
     const gastos = await prisma.gasto_operativo.findMany({

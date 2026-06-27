@@ -153,11 +153,13 @@ const getMovimientos = async (req, res) => {
     if (tipo) where.tipo = tipo;
     if (fecha_desde || fecha_hasta) {
       where.fecha = {};
-      if (fecha_desde) where.fecha.gte = new Date(fecha_desde);
+      if (fecha_desde) {
+        const [y1, m1, d1] = fecha_desde.substring(0, 10).split('-');
+        where.fecha.gte = new Date(y1, m1 - 1, d1, 0, 0, 0, 0);
+      }
       if (fecha_hasta) {
-        const hasta = new Date(fecha_hasta);
-        hasta.setHours(23, 59, 59, 999);
-        where.fecha.lte = hasta;
+        const [y2, m2, d2] = fecha_hasta.substring(0, 10).split('-');
+        where.fecha.lte = new Date(y2, m2 - 1, d2, 23, 59, 59, 999);
       }
     }
 

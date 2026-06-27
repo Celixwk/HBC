@@ -7,9 +7,16 @@ const getPnL = async (req, res) => {
   const { desde, hasta } = req.query;
   if (!desde || !hasta) return res.status(400).json({ error: 'Se requieren los parámetros desde y hasta' });
 
-  const inicio = new Date(desde);
-  const fin    = new Date(hasta);
-  fin.setHours(23, 59, 59, 999);
+  const [y1, m1, d1] = desde.split('-');
+  const [y2, m2, d2] = hasta.split('-');
+  
+  // Límites para campos @db.Date (UTC)
+  const inicioDate = new Date(Date.UTC(y1, m1 - 1, d1));
+  const finDate    = new Date(Date.UTC(y2, m2 - 1, d2, 23, 59, 59, 999));
+
+  // Límites para campos @db.Timestamp (Local)
+  const inicioTime = new Date(y1, m1 - 1, d1, 0, 0, 0, 0);
+  const finTime    = new Date(y2, m2 - 1, d2, 23, 59, 59, 999);
 
   try {
     const [reservasPagadas, cargosEspacioPagados, cargosPersonaPagados,
@@ -18,32 +25,32 @@ const getPnL = async (req, res) => {
         where: {
           estado_reserva: { notIn: ['cancelada', 'no_show'] },
           estado_pago: 'pagado',
-          check_in: { gte: inicio, lte: fin }
+          check_in: { gte: inicioDate, lte: finDate }
         },
         include: { espacio: { select: { numero: true, tipo_habitacion: true } }, huesped: { select: { nombre_completo: true } } }
       }),
       prisma.cuenta_espacio.findMany({
-        where: { fecha_registro: { gte: inicio, lte: fin }, estado: 'pagado' },
+        where: { fecha_registro: { gte: inicioTime, lte: finTime }, estado: 'pagado' },
         include: {
           reserva: { include: { espacio: { select: { numero: true } }, huesped: { select: { nombre_completo: true } } } }
         }
       }),
       prisma.cuenta_persona.findMany({
-        where: { fecha_registro: { gte: inicio, lte: fin }, estado: 'pagado' },
+        where: { fecha_registro: { gte: inicioTime, lte: finTime }, estado: 'pagado' },
         include: {
           huesped: { select: { nombre_completo: true } }
         }
       }),
       prisma.reserva.findMany({
-        where: { estado_reserva: { in: ['activa', 'confirmada'] }, estado_pago: { not: 'pagado' }, check_in: { gte: inicio, lte: fin } },
+        where: { estado_reserva: { in: ['activa', 'confirmada'] }, estado_pago: { not: 'pagado' }, check_in: { gte: inicioDate, lte: finDate } },
         select: { monto_total: true }
       }),
       prisma.cuenta_espacio.findMany({
-        where: { fecha_registro: { gte: inicio, lte: fin }, estado: 'pendiente' },
+        where: { fecha_registro: { gte: inicioTime, lte: finTime }, estado: 'pendiente' },
         select: { valor_total: true }
       }),
       prisma.cuenta_persona.findMany({
-        where: { fecha_registro: { gte: inicio, lte: fin }, estado: 'pendiente' },
+        where: { fecha_registro: { gte: inicioTime, lte: finTime }, estado: 'pendiente' },
         select: { valor_total: true }
       })
     ]);
@@ -84,11 +91,11 @@ const getPnL = async (req, res) => {
 
     const [gastosOperativos, comprasInventario] = await Promise.all([
       prisma.gasto_operativo.findMany({
-        where: { activo: true, fecha: { gte: inicio, lte: fin } },
+        where: { activo: true, fecha: { gte: inicioDate, lte: finDate } },
         orderBy: { fecha: 'asc' }
       }),
       prisma.movimiento_inventario.findMany({
-        where: { tipo: 'entrada', motivo: 'compra', fecha: { gte: inicio, lte: fin }, precio_unitario: { gt: 0 } },
+        where: { tipo: 'entrada', motivo: 'compra', fecha: { gte: inicioTime, lte: finTime }, precio_unitario: { gt: 0 } },
         include: { producto: { select: { nombre: true, categoria: true } } }
       })
     ]);
@@ -97,7 +104,7 @@ const getPnL = async (req, res) => {
       where: {
         tipo: 'salida',
         motivo: { in: ['consumo_habitacion', 'consumo_persona'] },
-        fecha: { gte: inicio, lte: fin }
+        fecha: { gte: inicioTime, lte: finTime }
       },
       include: { producto: { select: { nombre: true, categoria: true, precio_costo: true } } }
     });
@@ -183,15 +190,20 @@ const getResumenMeses = async (req, res) => {
 
   try {
     for (let i = meses - 1; i >= 0; i--) {
-      const inicio = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth() - i, 1));
-      const fin    = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth() - i + 1, 0, 23, 59, 59, 999));
+      // Límites para @db.Date (UTC)
+      const inicioDate = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth() - i, 1));
+      const finDate    = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth() - i + 1, 0, 23, 59, 59, 999));
+      
+      // Límites para @db.Timestamp (Local)
+      const inicioTime = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1, 0, 0, 0, 0);
+      const finTime    = new Date(hoy.getFullYear(), hoy.getMonth() - i + 1, 0, 23, 59, 59, 999);
 
       const [reservas, cargosEsp, cargosPerr, gastos, compras] = await Promise.all([
-        prisma.reserva.findMany({ where: { estado_pago: 'pagado', check_in: { gte: inicio, lte: fin } }, select: { monto_total: true } }),
-        prisma.cuenta_espacio.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicio, lte: fin } }, select: { valor_total: true } }),
-        prisma.cuenta_persona.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicio, lte: fin } }, select: { valor_total: true } }),
-        prisma.gasto_operativo.findMany({ where: { activo: true, fecha: { gte: inicio, lte: fin } }, select: { monto: true } }),
-        prisma.movimiento_inventario.findMany({ where: { tipo: 'entrada', motivo: 'compra', fecha: { gte: inicio, lte: fin } }, select: { precio_unitario: true, cantidad: true } })
+        prisma.reserva.findMany({ where: { estado_pago: 'pagado', check_in: { gte: inicioDate, lte: finDate } }, select: { monto_total: true } }),
+        prisma.cuenta_espacio.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicioTime, lte: finTime } }, select: { valor_total: true } }),
+        prisma.cuenta_persona.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicioTime, lte: finTime } }, select: { valor_total: true } }),
+        prisma.gasto_operativo.findMany({ where: { activo: true, fecha: { gte: inicioDate, lte: finDate } }, select: { monto: true } }),
+        prisma.movimiento_inventario.findMany({ where: { tipo: 'entrada', motivo: 'compra', fecha: { gte: inicioTime, lte: finTime } }, select: { precio_unitario: true, cantidad: true } })
       ]);
 
       const totalIngresos = reservas.reduce((s, r) => s + parseFloat(r.monto_total || 0), 0)
@@ -200,7 +212,7 @@ const getResumenMeses = async (req, res) => {
                           + compras.reduce((s, m) => s + parseFloat(m.precio_unitario) * parseFloat(m.cantidad), 0);
 
       resultado.push({
-        mes: `${MESES_CORTOS[inicio.getUTCMonth()]} ${String(inicio.getUTCFullYear()).slice(2)}`,
+        mes: `${MESES_CORTOS[inicioDate.getUTCMonth()]} ${String(inicioDate.getUTCFullYear()).slice(2)}`,
         ingresos: totalIngresos,
         gastos: totalGastos,
         utilidad: totalIngresos - totalGastos
@@ -222,20 +234,26 @@ const getResumenAnual = async (req, res) => {
     const mesesConDatos = [];
 
     for (let m = 0; m < 12; m++) {
-      const inicio = new Date(Date.UTC(anio, m, 1));
-      const fin    = new Date(Date.UTC(anio, m + 1, 0, 23, 59, 59, 999));
-      if (inicio > hoy) break;
+      // Límites para @db.Date (UTC)
+      const inicioDate = new Date(Date.UTC(anio, m, 1));
+      const finDate    = new Date(Date.UTC(anio, m + 1, 0, 23, 59, 59, 999));
+      
+      // Límites para @db.Timestamp (Local)
+      const inicioTime = new Date(anio, m, 1, 0, 0, 0, 0);
+      const finTime    = new Date(anio, m + 1, 0, 23, 59, 59, 999);
+      
+      if (inicioDate > hoy) break;
 
       const [reservas, cargosEsp, cargosPerr, gastos, compras, numReservas] = await Promise.all([
         prisma.reserva.findMany({
-          where: { estado_reserva: { notIn: ['cancelada','no_show'] }, estado_pago: 'pagado', check_in: { gte: inicio, lte: fin } },
+          where: { estado_reserva: { notIn: ['cancelada','no_show'] }, estado_pago: 'pagado', check_in: { gte: inicioDate, lte: finDate } },
           select: { monto_total: true }
         }),
-        prisma.cuenta_espacio.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicio, lte: fin } }, select: { valor_total: true } }),
-        prisma.cuenta_persona.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicio, lte: fin } }, select: { valor_total: true } }),
-        prisma.gasto_operativo.findMany({ where: { activo: true, fecha: { gte: inicio, lte: fin } }, select: { monto: true } }),
-        prisma.movimiento_inventario.findMany({ where: { tipo: 'entrada', motivo: 'compra', fecha: { gte: inicio, lte: fin } }, select: { precio_unitario: true, cantidad: true } }),
-        prisma.reserva.count({ where: { estado_reserva: { notIn: ['cancelada','no_show'] }, check_in: { gte: inicio, lte: fin } } })
+        prisma.cuenta_espacio.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicioTime, lte: finTime } }, select: { valor_total: true } }),
+        prisma.cuenta_persona.findMany({ where: { estado: 'pagado', fecha_registro: { gte: inicioTime, lte: finTime } }, select: { valor_total: true } }),
+        prisma.gasto_operativo.findMany({ where: { activo: true, fecha: { gte: inicioDate, lte: finDate } }, select: { monto: true } }),
+        prisma.movimiento_inventario.findMany({ where: { tipo: 'entrada', motivo: 'compra', fecha: { gte: inicioTime, lte: finTime } }, select: { precio_unitario: true, cantidad: true } }),
+        prisma.reserva.count({ where: { estado_reserva: { notIn: ['cancelada','no_show'] }, check_in: { gte: inicioDate, lte: finDate } } })
       ]);
 
       const hospedaje     = reservas.reduce((s, r) => s + parseFloat(r.monto_total || 0), 0);
@@ -275,12 +293,14 @@ const getResumenAnual = async (req, res) => {
 
     // Si enero, el anterior es diciembre del año pasado
     if (!mesAnterior && mesActualIdx === 0) {
-      const iaAnt = new Date(Date.UTC(anio - 1, 11, 1));
-      const faAnt = new Date(Date.UTC(anio - 1, 12, 0, 23, 59, 59, 999));
+      const iaAntDate = new Date(Date.UTC(anio - 1, 11, 1));
+      const faAntDate = new Date(Date.UTC(anio - 1, 12, 0, 23, 59, 59, 999));
+      const iaAntTime = new Date(anio - 1, 11, 1, 0, 0, 0, 0);
+      const faAntTime = new Date(anio - 1, 12, 0, 23, 59, 59, 999);
       const [rA, ceA, cpA] = await Promise.all([
-        prisma.reserva.findMany({ where: { estado_pago: 'pagado', check_in: { gte: iaAnt, lte: faAnt } }, select: { monto_total: true } }),
-        prisma.cuenta_espacio.findMany({ where: { estado: 'pagado', fecha_registro: { gte: iaAnt, lte: faAnt } }, select: { valor_total: true } }),
-        prisma.cuenta_persona.findMany({ where: { estado: 'pagado', fecha_registro: { gte: iaAnt, lte: faAnt } }, select: { valor_total: true } }),
+        prisma.reserva.findMany({ where: { estado_pago: 'pagado', check_in: { gte: iaAntDate, lte: faAntDate } }, select: { monto_total: true } }),
+        prisma.cuenta_espacio.findMany({ where: { estado: 'pagado', fecha_registro: { gte: iaAntTime, lte: faAntTime } }, select: { valor_total: true } }),
+        prisma.cuenta_persona.findMany({ where: { estado: 'pagado', fecha_registro: { gte: iaAntTime, lte: faAntTime } }, select: { valor_total: true } }),
       ]);
       const hAnt = rA.reduce((s, r) => s + parseFloat(r.monto_total || 0), 0);
       const cAnt = [...ceA, ...cpA].reduce((s, c) => s + parseFloat(c.valor_total || 0), 0);
