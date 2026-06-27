@@ -29,4 +29,10 @@ router.patch('/:id/huesped', reservasController.updateReservaHuesped);
 // Corregir monto_total (usado cuando el precio de config difiere del almacenado)
 router.patch('/:id/monto', reservasController.updateReservaMonto);
 
+// Reactivar una reserva completada (volver a activa)
+router.put('/:id/reactivar', reservasController.reactivarReserva);
+
+// Extender estadía (nueva fecha de check_out y nuevo monto)
+router.put('/:id/extender', reservasController.extenderReserva);
+
 module.exports = router;

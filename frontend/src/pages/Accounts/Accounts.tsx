@@ -308,6 +308,34 @@ const CargosEspacio: React.FC = () => {
     }
   };
 
+  const handleExtender = async (e: React.MouseEvent, reserva: any) => {
+    e.stopPropagation();
+    const nuevaFecha = window.prompt(
+      `Extender estadía de ${reserva.huesped?.nombre_completo} (Hab. ${reserva.espacio?.numero})\n\nIngresa la nueva fecha de Check-Out (YYYY-MM-DD):`,
+      ''
+    );
+    if (!nuevaFecha || nuevaFecha.trim() === '') return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha.trim())) {
+      alert('Formato de fecha inválido. Usa YYYY-MM-DD (ej: 2026-07-05)');
+      return;
+    }
+    const nuevoMonto = window.prompt(
+      `¿Cuál es el nuevo monto total del alojamiento?\n(Deja en blanco para mantener el actual: $${parseFloat(reserva.monto_total || '0').toLocaleString()})`,
+      String(parseFloat(reserva.monto_total || '0'))
+    );
+    if (nuevoMonto === null) return; // Cancelado
+    try {
+      await apiFetch(`/reservas/${reserva.id_reserva}/extender`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ check_out: nuevaFecha.trim(), monto_total: nuevoMonto || undefined })
+      });
+      await fetchItems();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const grouped: Record<number, { reserva: any; items: any[] }> = {};
   reservas.forEach(r => { grouped[r.id_reserva] = { reserva: r, items: [] }; });
   items.forEach(item => {
@@ -375,6 +403,15 @@ const CargosEspacio: React.FC = () => {
                     style={{ padding: '4px 8px' }}
                   >
                     <Printer size={16} /> Imprimir
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={(e: React.MouseEvent) => handleExtender(e, reserva)}
+                    style={{ color: '#a78bfa', borderColor: 'transparent', padding: '4px 8px' }}
+                    title="Extender la fecha de salida y/o el monto"
+                  >
+                    ⟳ Extender
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -828,12 +865,23 @@ const HistorialHabitaciones: React.FC = () => {
   const [error, setError] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
 
-  useEffect(() => {
+  const fetchItems = () => {
+    setLoading(true);
     apiFetch('/cuentas/historial/habitaciones')
       .then(res => { if (!res.ok) throw new Error(); return res.json(); })
       .then(data => { setItems(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
-  }, []);
+  };
+
+  useEffect(() => { fetchItems(); }, []);
+
+  const handleReactivar = async (idReserva: number) => {
+    if (!window.confirm('¿Volver a activar esta reserva?\n\nAparecerá nuevamente en "Cargos Habitación" para que puedas gestionar el pago y los consumos.')) return;
+    try {
+      await apiFetch(`/reservas/${idReserva}/reactivar`, { method: 'PUT' });
+      fetchItems();
+    } catch (e) { console.error(e); }
+  };
 
   if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" size={36} /></div>;
   if (error) return <div className="text-center p-8 text-muted">Error al cargar el historial de habitaciones.</div>;
@@ -887,6 +935,18 @@ const HistorialHabitaciones: React.FC = () => {
                 }}>
                   {r.estado_reserva}
                 </span>
+                {/* Botón Reactivar: solo si está completada y el pago no fue marcado como pagado */}
+                {r.estado_reserva === 'completada' && r.estado_pago !== 'pagado' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleReactivar(r.id_reserva); }}
+                    style={{ color: '#f59e0b', borderColor: '#f59e0b55', padding: '4px 10px', fontSize: '12px' }}
+                    title="Reactivar esta reserva para cobrar desde Cuentas"
+                  >
+                    ↩ Reactivar
+                  </Button>
+                )}
                 {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
               </div>
             </div>

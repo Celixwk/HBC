@@ -345,6 +345,7 @@ const getHistorialHabitaciones = async (req, res) => {
         check_in: r.check_in,
         check_out: r.check_out,
         estado_reserva: r.estado_reserva,
+        estado_pago: r.estado_pago || 'pendiente',
         tipo_ocupacion: tipoOcupacion,
         cantidad_adultos: adultos,
         cantidad_ninos: ninos,

@@ -320,6 +320,53 @@ const updateReservaMonto = async (req, res) => {
   }
 };
 
+const reactivarReserva = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const reserva = await prisma.reserva.findUnique({ where: { id_reserva: parseInt(id) } });
+    if (!reserva) return res.status(404).json({ error: 'Reserva no encontrada' });
+
+    const updated = await prisma.reserva.update({
+      where: { id_reserva: parseInt(id) },
+      data: {
+        estado_reserva: 'activa',
+        // Si el pago estaba 'completada' pero no pagado, dejamos estado_pago como estaba
+      },
+      include: { espacio: true, huesped: true }
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error('Error al reactivar reserva:', error);
+    res.status(500).json({ error: 'Error al reactivar la reserva' });
+  }
+};
+
+const extenderReserva = async (req, res) => {
+  const { id } = req.params;
+  const { check_out, monto_total } = req.body;
+  try {
+    if (!check_out) return res.status(400).json({ error: 'Se requiere la nueva fecha de check_out' });
+
+    const [y, m, d] = check_out.split('-');
+    const parsedCheckOut = new Date(Date.UTC(y, m - 1, d));
+
+    const data = { check_out: parsedCheckOut };
+    if (monto_total !== undefined && monto_total !== null && monto_total !== '') {
+      data.monto_total = parseFloat(monto_total);
+    }
+
+    const updated = await prisma.reserva.update({
+      where: { id_reserva: parseInt(id) },
+      data,
+      include: { espacio: true, huesped: true }
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error('Error al extender reserva:', error);
+    res.status(500).json({ error: 'Error al extender la reserva' });
+  }
+};
+
 module.exports = {
   getReservas,
   createReserva,
@@ -329,5 +376,7 @@ module.exports = {
   updateReservaEstado,
   updateReservaPago,
   updateReservaHuesped,
-  updateReservaMonto
+  updateReservaMonto,
+  reactivarReserva,
+  extenderReserva
 };
