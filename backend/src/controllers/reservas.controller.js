@@ -3,29 +3,7 @@ const prisma = require('../config/prisma');
 // Obtener todas las reservas (con auto-mark de no-show y completadas)
 const getReservas = async (req, res) => {
   try {
-    const hoy = new Date();
-    const inicioDia = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
-    const finDia    = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59, 59, 999);
-
-    // Hora actual en minutos (para comparar con horarios de check-in/out)
-    const minutoActual = hoy.getHours() * 60 + hoy.getMinutes();
-    const CHECKOUT_MIN = 13 * 60; // 1:00 PM
-    const CHECKIN_MIN  = 15 * 60; // 3:00 PM
-
-    // 1. Auto-marcar como 'completada':
-    //    - check_out anterior a hoy (ya venció), O
-    //    - check_out es hoy y ya pasó la 1 PM (hora de salida)
-    const limitCompletada = (minutoActual >= CHECKOUT_MIN) ? finDia : inicioDia;
-
-    await prisma.reserva.updateMany({
-      where: {
-        estado_reserva: { in: ['activa', 'confirmada'] },
-        check_out: { lt: limitCompletada }
-      },
-      data: { estado_reserva: 'completada' }
-    });
-
-    // (El auto-mark de no-show fue removido por solicitud del usuario para permitir control manual)
+    // (El auto-mark de completadas y no-show fue removido por solicitud del usuario para permitir control manual)
 
     // 3. Retornar todas (excluyendo no_show y canceladas del calendario — el front las filtrará)
     const reservas = await prisma.reserva.findMany({

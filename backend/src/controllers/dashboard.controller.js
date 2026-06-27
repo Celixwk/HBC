@@ -7,24 +7,8 @@ const getDashboardStats = async (req, res) => {
   try {
     const today = new Date();
 
-    // ── Auto-marcado previo (igual que en getReservas) ──────────────
-    const _inicio = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const _fin    = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
-    const _min    = today.getHours() * 60 + today.getMinutes();
-    const _pasoCheckOut = _min >= 13 * 60; // 1:00 PM
-    const _pasoCheckIn  = _min >= 15 * 60; // 3:00 PM
-
-    // Marcar completadas si check_out pasó (o check_out = hoy y ya es la 1 PM)
-    await prisma.reserva.updateMany({
-      where: {
-        estado_reserva: { in: ['activa', 'confirmada'] },
-        check_out: { lt: _pasoCheckOut ? _fin : _inicio }
-      },
-      data: { estado_reserva: 'completada' }
-    });
-
     // No-show: solo se marca MANUALMENTE desde la vista de huéspedes
-    // (auto-marcado eliminado para permitir llegadas tardías)
+    // (auto-marcado eliminado para permitir llegadas tardías y checkout manual)
     // ───────────────────────────────────────────────────────────────
     // Fechas Mes Actual (Usando UTC para que coincida con Prisma @db.Date)
     const startOfCurrentMonth = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1));
@@ -372,9 +356,10 @@ const getDashboardStats = async (req, res) => {
     const ocupacionPorTipo = Object.entries(ocupacionPorTipoMap).map(([tipo, count]) => ({ tipo, count }));
 
     // 8. Alertas
-    const manana = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
-    const mananaEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1, 23, 59, 59, 999);
-    const en7Dias = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7, 23, 59, 59, 999);
+    const manana = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 1));
+    const mananaEnd = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 1, 23, 59, 59, 999));
+    const en7Dias = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 7, 23, 59, 59, 999));
+    const todayStart = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
 
     const [checkOutsManana, pagosPendientes, minibarVencimiento, reservasNoShow] = await Promise.all([
       // Check-outs mañana (excluye no_show)

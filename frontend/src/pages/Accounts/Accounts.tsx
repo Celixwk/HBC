@@ -258,13 +258,45 @@ const CargosEspacio: React.FC = () => {
     await fetchItems();
   };
 
-  const handleFinalizar = async (e: React.MouseEvent, idReserva: number) => {
+  const handleFinalizar = async (e: React.MouseEvent, reserva: any, itemsToUpdate: any[], totalPendiente: number) => {
     e.stopPropagation();
-    if (!window.confirm('¿Confirmas finalizar esta estadía? La reserva desaparecerá de las cuentas activas.')) return;
+    
+    let marcarPagado = false;
+    let metodoPago = undefined;
+
+    if (totalPendiente > 0) {
+      if (!window.confirm(`⚠️ Esta habitación aún tiene un saldo pendiente de $${totalPendiente.toLocaleString()}.\n\n¿Deseas marcar todo lo pendiente como PAGADO y finalizar la estadía?`)) return;
+      marcarPagado = true;
+      const input = window.prompt("¿Método de pago? (Ej: Efectivo, Tarjeta, Transferencia)", "Efectivo");
+      if (input === null) return; // Cancelado
+      metodoPago = input || 'Efectivo';
+    } else {
+      if (!window.confirm('¿Confirmas finalizar esta estadía? La reserva desaparecerá de las cuentas activas.')) return;
+    }
     
     setLoading(true);
     try {
-      await apiFetch(`/reservas/${idReserva}/estado`, {
+      if (marcarPagado) {
+        // 1. Update items
+        const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
+        for (const item of pending) {
+          await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'pagado' })
+          });
+        }
+        // 2. Update room cost if it's pending
+        if (reserva.estado_pago !== 'pagado' && reserva.estado_pago !== 'anulado') {
+          await apiFetch(`/reservas/${reserva.id_reserva}/pago`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado_pago: 'pagado', metodo_pago: metodoPago, monto_pagado: parseFloat(reserva.monto_total || '0') })
+          });
+        }
+      }
+
+      await apiFetch(`/reservas/${reserva.id_reserva}/estado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ estado_reserva: 'completada' })
@@ -347,7 +379,7 @@ const CargosEspacio: React.FC = () => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={(e: React.MouseEvent) => handleFinalizar(e, reserva.id_reserva)}
+                    onClick={(e: React.MouseEvent) => handleFinalizar(e, reserva, roomItems, totalPendiente)}
                     style={{ color: 'var(--primary)', borderColor: 'transparent', padding: '4px 8px' }}
                   >
                     Finalizar Hab.
