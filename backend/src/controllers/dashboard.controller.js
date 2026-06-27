@@ -355,11 +355,10 @@ const getDashboardStats = async (req, res) => {
     });
     const ocupacionPorTipo = Object.entries(ocupacionPorTipoMap).map(([tipo, count]) => ({ tipo, count }));
 
-    // 8. Alertas
+    // 8. Alertas (todayStart ya está declarado arriba, línea 120)
     const manana = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 1));
     const mananaEnd = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 1, 23, 59, 59, 999));
     const en7Dias = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 7, 23, 59, 59, 999));
-    const todayStart = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
 
     const [checkOutsManana, pagosPendientes, minibarVencimiento, reservasNoShow] = await Promise.all([
       // Check-outs mañana (excluye no_show)
