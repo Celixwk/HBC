@@ -75,7 +75,7 @@ function EditableRow<T extends { [key: string]: any }>({
   };
 
   const handleChangeStatus = async (estado: string) => {
-    if (!window.confirm(`¿Marcar este cargo como ${estado}?`)) return;
+    // Sin confirm: actúa directamente para evitar bloqueos en Electron
     try {
       await apiFetch(`/cuentas/${apiPath}/${item[idKey]}/estado`, {
         method: 'PATCH',
@@ -149,12 +149,25 @@ function EditableRow<T extends { [key: string]: any }>({
 }
 
 // ─── Cargos a Habitación ──────────────────────────────────────────────────────
+
+// Modal de pago interno (evita window.prompt/confirm que Electron bloquea)
+type PayModalState = {
+  mode: 'pago_habitacion' | 'pago_todo' | 'anular_todo' | 'finalizar' | 'extender' | null;
+  reserva: any;
+  items: any[];
+  totalPendiente: number;
+};
+
 const CargosEspacio: React.FC = () => {
   const [items, setItems] = useState<any[]>([]);
   const [reservas, setReservas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
-  
+  const [payModal, setPayModal] = useState<PayModalState>({ mode: null, reserva: null, items: [], totalPendiente: 0 });
+  const [payMetodo, setPayMetodo] = useState('Efectivo');
+  const [extFecha, setExtFecha] = useState('');
+  const [extMonto, setExtMonto] = useState('');
+
   // Receipt State
   const [receiptData, setReceiptData] = useState<{ reserva: any, items: any[] } | null>(null);
 
@@ -177,75 +190,43 @@ const CargosEspacio: React.FC = () => {
 
   const handleBulkStatus = async (e: React.MouseEvent, itemsToUpdate: any[], estado: string, reserva: any) => {
     e.stopPropagation();
-    const actionName = estado === 'pagado' ? 'Pagados' : 'Anulados';
-    if (!window.confirm(`¿Marcar todos los cargos pendientes como ${actionName}?`)) return;
-    
-    let metodoPago = undefined;
     if (estado === 'pagado') {
-      const input = window.prompt("¿Método de pago? (Ej: Efectivo, Tarjeta, Transferencia)", "Efectivo");
-      if (input === null) return; // Cancelado
-      metodoPago = input || 'Efectivo';
-    }
-
-    setLoading(true);
-    try {
-      // 1. Update items
-      const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
-      for (const item of pending) {
-        await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado })
-        });
-      }
-      
-      // 2. Update room cost if it's pending
-      if (reserva.estado_pago !== 'pagado' && reserva.estado_pago !== 'anulado') {
-        let montoPagado = undefined;
-        if (estado === 'pagado') {
-          montoPagado = parseFloat(reserva.monto_total || '0');
-        } else if (estado === 'anulado') {
-          montoPagado = 0;
+      setPayMetodo('Efectivo');
+      setPayModal({ mode: 'pago_todo', reserva, items: itemsToUpdate, totalPendiente: 0 });
+    } else {
+      // Anular: sin modal, directo
+      setLoading(true);
+      try {
+        const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
+        for (const item of pending) {
+          await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'anulado' })
+          });
         }
-        await apiFetch(`/reservas/${reserva.id_reserva}/pago`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ estado_pago: estado, metodo_pago: metodoPago, monto_pagado: montoPagado })
-        });
-      }
-
-      await fetchItems();
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
+        if (reserva.estado_pago !== 'anulado') {
+          await apiFetch(`/reservas/${reserva.id_reserva}/pago`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado_pago: 'anulado', monto_pagado: 0 })
+          });
+        }
+        await fetchItems();
+      } catch (err) { console.error(err); setLoading(false); }
     }
   };
 
-  const handleRoomStatus = async (idReserva: number, estado: string, montoTotal: number = 0) => {
-    if (!window.confirm(`¿Marcar el alojamiento como ${estado}?`)) return;
-
-    let metodoPago = undefined;
-    let montoPagado = undefined;
+  const handleRoomStatus = (e: React.MouseEvent | null, idReserva: number, estado: string, montoTotal: number = 0, reserva: any) => {
+    if (e) e.stopPropagation();
     if (estado === 'pagado') {
-      const input = window.prompt("¿Método de pago? (Ej: Efectivo, Tarjeta, Transferencia)", "Efectivo");
-      if (input === null) return; // Cancelado
-      metodoPago = input || 'Efectivo';
-      montoPagado = montoTotal;
-    } else if (estado === 'anulado') {
-      montoPagado = 0;
-    }
-
-    setLoading(true);
-    try {
-      await apiFetch(`/reservas/${idReserva}/pago`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado_pago: estado, metodo_pago: metodoPago, monto_pagado: montoPagado })
-      });
-      await fetchItems();
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
+      setPayMetodo('Efectivo');
+      setPayModal({ mode: 'pago_habitacion', reserva, items: [], totalPendiente: montoTotal });
+    } else {
+      // Anular directo sin modal
+      setLoading(true);
+      apiFetch(`/reservas/${idReserva}/pago`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado_pago: 'anulado', monto_pagado: 0 })
+      }).then(() => fetchItems()).catch(err => { console.error(err); setLoading(false); });
     }
   };
 
@@ -258,82 +239,75 @@ const CargosEspacio: React.FC = () => {
     await fetchItems();
   };
 
-  const handleFinalizar = async (e: React.MouseEvent, reserva: any, itemsToUpdate: any[], totalPendiente: number) => {
+  const handleFinalizar = (e: React.MouseEvent, reserva: any, itemsToUpdate: any[], totalPendiente: number) => {
     e.stopPropagation();
-    
-    let marcarPagado = false;
-    let metodoPago = undefined;
+    setPayMetodo('Efectivo');
+    setPayModal({ mode: 'finalizar', reserva, items: itemsToUpdate, totalPendiente });
+  };
 
-    if (totalPendiente > 0) {
-      if (!window.confirm(`⚠️ Esta habitación aún tiene un saldo pendiente de $${totalPendiente.toLocaleString()}.\n\n¿Deseas marcar todo lo pendiente como PAGADO y finalizar la estadía?`)) return;
-      marcarPagado = true;
-      const input = window.prompt("¿Método de pago? (Ej: Efectivo, Tarjeta, Transferencia)", "Efectivo");
-      if (input === null) return; // Cancelado
-      metodoPago = input || 'Efectivo';
-    } else {
-      if (!window.confirm('¿Confirmas finalizar esta estadía? La reserva desaparecerá de las cuentas activas.')) return;
-    }
-    
+  const handleExtender = (e: React.MouseEvent, reserva: any) => {
+    e.stopPropagation();
+    setExtFecha('');
+    setExtMonto(String(parseFloat(reserva.monto_total || '0')));
+    setPayModal({ mode: 'extender', reserva, items: [], totalPendiente: 0 });
+  };
+
+  // Ejecutar la acción confirmada desde el modal
+  const executeModalAction = async () => {
+    const { mode, reserva, items: modalItems, totalPendiente } = payModal;
+    setPayModal(p => ({ ...p, mode: null }));
     setLoading(true);
     try {
-      if (marcarPagado) {
-        // 1. Update items
-        const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
+      if (mode === 'pago_habitacion') {
+        await apiFetch(`/reservas/${reserva.id_reserva}/pago`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado_pago: 'pagado', metodo_pago: payMetodo, monto_pagado: parseFloat(reserva.monto_total || '0') })
+        });
+      } else if (mode === 'pago_todo') {
+        const pending = modalItems.filter(i => i.estado === 'pendiente' || !i.estado);
         for (const item of pending) {
           await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ estado: 'pagado' })
           });
         }
-        // 2. Update room cost if it's pending
-        if (reserva.estado_pago !== 'pagado' && reserva.estado_pago !== 'anulado') {
+        if (reserva.estado_pago !== 'pagado') {
           await apiFetch(`/reservas/${reserva.id_reserva}/pago`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado_pago: 'pagado', metodo_pago: metodoPago, monto_pagado: parseFloat(reserva.monto_total || '0') })
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado_pago: 'pagado', metodo_pago: payMetodo, monto_pagado: parseFloat(reserva.monto_total || '0') })
           });
         }
+      } else if (mode === 'finalizar') {
+        if (totalPendiente > 0) {
+          const pending = modalItems.filter(i => i.estado === 'pendiente' || !i.estado);
+          for (const item of pending) {
+            await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
+              method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ estado: 'pagado' })
+            });
+          }
+          if (reserva.estado_pago !== 'pagado') {
+            await apiFetch(`/reservas/${reserva.id_reserva}/pago`, {
+              method: 'PUT', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ estado_pago: 'pagado', metodo_pago: payMetodo, monto_pagado: parseFloat(reserva.monto_total || '0') })
+            });
+          }
+        }
+        await apiFetch(`/reservas/${reserva.id_reserva}/estado`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado_reserva: 'completada' })
+        });
+      } else if (mode === 'extender') {
+        if (!extFecha || !/^\d{4}-\d{2}-\d{2}$/.test(extFecha)) {
+          setLoading(false); return;
+        }
+        await apiFetch(`/reservas/${reserva.id_reserva}/extender`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ check_out: extFecha, monto_total: extMonto || undefined })
+        });
       }
-
-      await apiFetch(`/reservas/${reserva.id_reserva}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado_reserva: 'completada' })
-      });
       await fetchItems();
-    } catch (err) {
-      console.error(err);
-      setLoading(false);
-    }
-  };
-
-  const handleExtender = async (e: React.MouseEvent, reserva: any) => {
-    e.stopPropagation();
-    const nuevaFecha = window.prompt(
-      `Extender estadía de ${reserva.huesped?.nombre_completo} (Hab. ${reserva.espacio?.numero})\n\nIngresa la nueva fecha de Check-Out (YYYY-MM-DD):`,
-      ''
-    );
-    if (!nuevaFecha || nuevaFecha.trim() === '') return;
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha.trim())) {
-      alert('Formato de fecha inválido. Usa YYYY-MM-DD (ej: 2026-07-05)');
-      return;
-    }
-    const nuevoMonto = window.prompt(
-      `¿Cuál es el nuevo monto total del alojamiento?\n(Deja en blanco para mantener el actual: $${parseFloat(reserva.monto_total || '0').toLocaleString()})`,
-      String(parseFloat(reserva.monto_total || '0'))
-    );
-    if (nuevoMonto === null) return; // Cancelado
-    try {
-      await apiFetch(`/reservas/${reserva.id_reserva}/extender`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ check_out: nuevaFecha.trim(), monto_total: nuevoMonto || undefined })
-      });
-      await fetchItems();
-    } catch (err) {
-      console.error(err);
-    }
+    } catch (err) { console.error(err); setLoading(false); }
   };
 
   const grouped: Record<number, { reserva: any; items: any[] }> = {};
@@ -456,10 +430,10 @@ const CargosEspacio: React.FC = () => {
                         <td>
                           <div className="row-actions">
                             {reserva.estado_pago !== 'pagado' && (
-                              <button className="icon-action save" style={{ color: '#10b981' }} onClick={() => handleRoomStatus(reserva.id_reserva, 'pagado', parseFloat(reserva.monto_total || '0'))} title="Marcar Alojamiento como Pagado"><Check size={14} /></button>
+                              <button className="icon-action save" style={{ color: '#10b981' }} onClick={(e) => handleRoomStatus(e, reserva.id_reserva, 'pagado', parseFloat(reserva.monto_total || '0'), reserva)} title="Marcar Alojamiento como Pagado"><Check size={14} /></button>
                             )}
                             {reserva.estado_pago !== 'anulado' && (
-                              <button className="icon-action cancel" style={{ color: '#ef4444' }} onClick={() => handleRoomStatus(reserva.id_reserva, 'anulado')} title="Anular Alojamiento"><X size={14} /></button>
+                              <button className="icon-action cancel" style={{ color: '#ef4444' }} onClick={(e) => handleRoomStatus(e, reserva.id_reserva, 'anulado', 0, reserva)} title="Anular Alojamiento"><X size={14} /></button>
                             )}
                           </div>
                         </td>
@@ -493,6 +467,64 @@ const CargosEspacio: React.FC = () => {
         );
       })}
       {entries.length === 0 && <p className="text-muted text-center p-8">No hay reservas. Crea una reserva primero.</p>}
+
+      {/* Modal de Pago / Acciones (sin window.confirm/prompt) */}
+      {payModal.mode && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
+          <div style={{
+            background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '16px',
+            padding: '28px 32px', minWidth: '360px', maxWidth: '480px', boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
+          }}>
+            {payModal.mode === 'extender' ? (
+              <>
+                <h3 style={{ margin: '0 0 8px', color: 'var(--text-primary)' }}>Extender Estadía</h3>
+                <p style={{ margin: '0 0 16px', color: 'var(--text-muted)', fontSize: '14px' }}>
+                  Hab. {payModal.reserva?.espacio?.numero} — {payModal.reserva?.huesped?.nombre_completo}
+                </p>
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>Nueva fecha de Check-Out (YYYY-MM-DD)</label>
+                <input type="date" value={extFecha} onChange={e => setExtFecha(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface-2)', color: 'var(--text-primary)', marginBottom: '12px', boxSizing: 'border-box' }} />
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>Nuevo monto total alojamiento</label>
+                <input type="number" value={extMonto} onChange={e => setExtMonto(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface-2)', color: 'var(--text-primary)', marginBottom: '20px', boxSizing: 'border-box' }} />
+              </>
+            ) : (
+              <>
+                <h3 style={{ margin: '0 0 8px', color: 'var(--text-primary)' }}>
+                  {payModal.mode === 'finalizar' && payModal.totalPendiente > 0 ? '⚠️ Finalizar con saldo pendiente' :
+                   payModal.mode === 'finalizar' ? 'Finalizar Estadía' :
+                   payModal.mode === 'pago_habitacion' ? 'Marcar Alojamiento como Pagado' :
+                   'Marcar Todo como Pagado'}
+                </h3>
+                {payModal.mode === 'finalizar' && payModal.totalPendiente > 0 && (
+                  <p style={{ margin: '0 0 12px', color: '#f59e0b', fontSize: '14px' }}>
+                    Saldo pendiente: ${payModal.totalPendiente.toLocaleString()}. Se marcará como pagado al finalizar.
+                  </p>
+                )}
+                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>Método de pago</label>
+                <select value={payMetodo} onChange={e => setPayMetodo(e.target.value)}
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface-2)', color: 'var(--text-primary)', marginBottom: '20px', boxSizing: 'border-box' }}>
+                  <option>Efectivo</option>
+                  <option>Tarjeta</option>
+                  <option>Transferencia</option>
+                  <option>Nequi</option>
+                  <option>Daviplata</option>
+                  <option>Otro</option>
+                </select>
+              </>
+            )}
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setPayModal(p => ({ ...p, mode: null }))}
+                style={{ padding: '8px 20px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={executeModalAction}
+                style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Confirmar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Impresión */}
       {receiptData && (
@@ -528,9 +560,6 @@ const CargosPersona: React.FC = () => {
 
   const handleBulkStatus = async (e: React.MouseEvent, itemsToUpdate: any[], estado: string) => {
     e.stopPropagation();
-    const actionName = estado === 'pagado' ? 'Pagados' : 'Anulados';
-    if (!window.confirm(`¿Marcar todos los cargos pendientes como ${actionName}?`)) return;
-    
     setLoading(true);
     try {
       const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
@@ -876,7 +905,6 @@ const HistorialHabitaciones: React.FC = () => {
   useEffect(() => { fetchItems(); }, []);
 
   const handleReactivar = async (idReserva: number) => {
-    if (!window.confirm('¿Volver a activar esta reserva?\n\nAparecerá nuevamente en "Cargos Habitación" para que puedas gestionar el pago y los consumos.')) return;
     try {
       await apiFetch(`/reservas/${idReserva}/reactivar`, { method: 'PUT' });
       fetchItems();

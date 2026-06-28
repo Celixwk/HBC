@@ -25,7 +25,10 @@ const getPnL = async (req, res) => {
         where: {
           estado_reserva: { notIn: ['cancelada', 'no_show'] },
           estado_pago: 'pagado',
-          check_in: { gte: inicioDate, lte: finDate }
+          OR: [
+            { check_in:  { gte: inicioDate, lte: finDate } },
+            { check_out: { gte: inicioDate, lte: finDate } }
+          ]
         },
         include: { espacio: { select: { numero: true, tipo_habitacion: true } }, huesped: { select: { nombre_completo: true } } }
       }),
