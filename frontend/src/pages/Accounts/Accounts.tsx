@@ -168,10 +168,18 @@ const CargosEspacio: React.FC = () => {
   const [extFecha, setExtFecha] = useState('');
   const [extMonto, setExtMonto] = useState('');
 
-  // Receipt State
   const [receiptData, setReceiptData] = useState<{ reserva: any, items: any[] } | null>(null);
+  const [metodosPago, setMetodosPago] = useState<string[]>([]);
 
-  useEffect(() => { fetchItems(); }, []);
+  useEffect(() => {
+    fetchItems();
+    const metodosGuardados = localStorage.getItem('hbc_metodos_pago');
+    if (metodosGuardados) {
+      setMetodosPago(JSON.parse(metodosGuardados));
+    } else {
+      setMetodosPago(['Efectivo', 'Tarjeta', 'Transferencia', 'Nequi', 'Daviplata', 'Otro']);
+    }
+  }, []);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -507,12 +515,9 @@ const CargosEspacio: React.FC = () => {
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>Método de pago</label>
                 <select value={payMetodo} onChange={e => setPayMetodo(e.target.value)}
                   style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface-2)', color: 'var(--text-primary)', marginBottom: '20px', boxSizing: 'border-box' }}>
-                  <option>Efectivo</option>
-                  <option>Tarjeta</option>
-                  <option>Transferencia</option>
-                  <option>Nequi</option>
-                  <option>Daviplata</option>
-                  <option>Otro</option>
+                  {metodosPago.map((metodo, idx) => (
+                    <option key={idx} value={metodo} style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>{metodo}</option>
+                  ))}
                 </select>
               </>
             )}
