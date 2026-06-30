@@ -45,6 +45,7 @@ export const Guests: React.FC = () => {
   const [editGuest, setEditGuest] = useState<Huesped | null>(null);
   const [page, setPage] = useState(1);
   const [showRegistry, setShowRegistry] = useState(false);
+  const [usarFirma, setUsarFirma] = useState(() => localStorage.getItem('hbc_usar_firma') === '1');
 
   useEffect(() => {
     fetchGuests();
@@ -65,7 +66,6 @@ export const Guests: React.FC = () => {
   };
 
   const handleReactivar = async (idReserva: number) => {
-    if (!window.confirm('¿Reactivar esta reserva? El huésped volverá a aparecer como activo.')) return;
     try {
       const res = await apiFetch(`/reservas/${idReserva}/estado`, {
         method: 'PUT',
@@ -75,16 +75,29 @@ export const Guests: React.FC = () => {
       if (!res.ok) throw new Error('Error al reactivar');
       fetchGuests();
     } catch (err: any) {
-      alert(err.message);
+      console.error(err.message);
+    }
+  };
+
+  // Registrar ingreso sin firma (marca el check-in manualmente)
+  const handleCheckInManual = async (row: GuestRow) => {
+    try {
+      const res = await apiFetch(`/huespedes/${row.id_huesped}/firma`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ firma: 'CHECK-IN_MANUAL' })
+      });
+      if (!res.ok) throw new Error('Error al registrar ingreso');
+      fetchGuests();
+    } catch (err: any) {
+      console.error(err.message);
     }
   };
 
   const handleDeleteRow = async (row: GuestRow) => {
-    if (!window.confirm(`¿Eliminar esta estadía de ${row.nombre_completo}? También se eliminará del calendario.`)) return;
     try {
       let res;
       if (row._reserva?.id_reserva) {
-        // Borrar por reserva — el backend borra al huésped si no le quedan más
         res = await apiFetch(`/reservas/${row._reserva.id_reserva}`, { method: 'DELETE' });
       } else {
         res = await apiFetch(`/huespedes/${row.id_huesped}`, { method: 'DELETE' });
@@ -93,7 +106,7 @@ export const Guests: React.FC = () => {
       if (!res.ok) throw new Error(data.error || 'Error al eliminar');
       fetchGuests();
     } catch (err: any) {
-      alert(err.message);
+      console.error(err.message);
     }
   };
 
@@ -136,12 +149,26 @@ export const Guests: React.FC = () => {
           <h1 className="page-title">Historial de Personas</h1>
           <p className="page-subtitle">Registro de todos los huéspedes del hotel</p>
         </div>
-        <button
-          onClick={() => setShowRegistry(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border-medium)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px' }}
-        >
-          <ClipboardList size={16} /> Registro de Firmas
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none' }}>
+            <input 
+              type="checkbox" 
+              checked={usarFirma}
+              onChange={(e) => {
+                setUsarFirma(e.target.checked);
+                localStorage.setItem('hbc_usar_firma', e.target.checked ? '1' : '0');
+              }}
+              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+            />
+            Habilitar Firma Digital
+          </label>
+          <button
+            onClick={() => setShowRegistry(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border-medium)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '13px' }}
+          >
+            <ClipboardList size={16} /> Registro de Firmas
+          </button>
+        </div>
       </div>
 
       <div className="guests-content glass-panel">
@@ -180,9 +207,10 @@ export const Guests: React.FC = () => {
                 {pagedRows.map((row, idx) => {
                   const res = row._reserva;
                   const esNoShow = res?.estado_reserva === 'no_show';
-                  const firmadoEnReserva = !!(res?.firma);
+                  const esCheckInManual = res?.firma === 'CHECK-IN_MANUAL';
+                  const firmadoEnReserva = !!(res?.firma) && !esCheckInManual;
                   // Solo bloqueado si no tiene reserva alguna — siempre se puede firmar si existe reserva
-                  const bloqueado = !firmadoEnReserva && !res;
+                  const bloqueado = !res;
 
                   return (
                   <tr key={`${row.id_huesped}-${res?.id_reserva ?? idx}`}
@@ -226,13 +254,75 @@ export const Guests: React.FC = () => {
                             <RotateCcw size={14} />
                           </button>
                         )}
-                        <button
-                          className={`firma-btn ${firmadoEnReserva ? 'has-firma' : ''} ${bloqueado ? 'firma-btn-locked' : ''}`}
-                          onClick={() => !bloqueado && setSigGuest(row)}
-                          title={firmadoEnReserva ? 'Ver firma registrada' : bloqueado ? 'Sin reserva activa' : 'Agregar firma de entrada'}
-                        >
-                          {firmadoEnReserva ? <><CheckCircle size={14} /> Firmado</> : bloqueado ? <><PenLine size={14} /> Bloqueado</> : <><PenLine size={14} /> Firmar</>}
-                        </button>
+                        {/* 1. Ya tiene ingreso manual */}
+                        {esCheckInManual && (
+                          <span
+                            title="Ingreso registrado manualmente"
+                            style={{
+                              color: '#10b981',
+                              background: 'rgba(16,185,129,0.1)',
+                              border: '1px solid rgba(16,185,129,0.3)',
+                              borderRadius: '6px',
+                              padding: '4px 8px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <CheckCircle size={13} /> Ingresó
+                          </span>
+                        )}
+
+                        {/* 2. Ya tiene firma real */}
+                        {firmadoEnReserva && (
+                          <button
+                            className="firma-btn has-firma"
+                            onClick={() => setSigGuest(row)}
+                            title="Ver firma registrada"
+                          >
+                            <CheckCircle size={14} /> Firmado
+                          </button>
+                        )}
+
+                        {/* 3. Aún no tiene nada -> Mostrar opción según el switch */}
+                        {!res?.firma && (
+                          <>
+                            <button
+                              className="edit-guest-btn"
+                              onClick={() => !bloqueado && handleCheckInManual(row)}
+                              disabled={bloqueado}
+                              title={bloqueado ? 'Sin reserva activa' : 'Registrar ingreso sin firma'}
+                              style={{
+                                color: bloqueado ? 'var(--text-muted)' : '#10b981',
+                                background: bloqueado ? 'rgba(0,0,0,0.05)' : 'rgba(16,185,129,0.1)',
+                                border: `1px solid ${bloqueado ? 'var(--border-medium)' : 'rgba(16,185,129,0.3)'}`,
+                                borderRadius: '6px',
+                                padding: '4px 8px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: bloqueado ? 'not-allowed' : 'pointer',
+                                opacity: bloqueado ? 0.6 : 1
+                              }}
+                            >
+                              <CheckCircle size={13} /> {bloqueado ? 'Bloqueado' : 'Ya Llegó'}
+                            </button>
+
+                            {usarFirma && (
+                              <button
+                                className={`firma-btn ${bloqueado ? 'firma-btn-locked' : ''}`}
+                                onClick={() => !bloqueado && setSigGuest(row)}
+                                title={bloqueado ? 'Sin reserva activa' : 'Agregar firma de entrada'}
+                              >
+                                <PenLine size={14} /> {bloqueado ? 'Bloqueado' : 'Firmar'}
+                              </button>
+                            )}
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
