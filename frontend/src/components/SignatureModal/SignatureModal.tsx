@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { SignaturePad } from './SignaturePad';
 import type { SignaturePadHandle } from './SignaturePad';
 import { Modal } from '../Modal/Modal';
@@ -10,7 +10,7 @@ import { apiFetch } from '../../utils/apiFetch';
 interface SignatureModalProps {
   isOpen: boolean;
   onClose: () => void;
-  huesped: { id_huesped: number; nombre_completo: string; firma?: string | null };
+  huesped: { id_huesped: number; nombre_completo: string; firma?: string | null; _reserva?: { id_reserva: number } | null };
   onSaved: () => void;
 }
 
@@ -39,7 +39,7 @@ export const SignatureModal: React.FC<SignatureModalProps> = ({ isOpen, onClose,
       const res = await apiFetch(`/huespedes/${huesped.id_huesped}/firma`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firma: firmaBase64 })
+        body: JSON.stringify({ firma: firmaBase64, id_reserva: huesped._reserva?.id_reserva })
       });
 
       if (!res.ok) {

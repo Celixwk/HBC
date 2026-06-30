@@ -85,7 +85,7 @@ export const Guests: React.FC = () => {
       const res = await apiFetch(`/huespedes/${row.id_huesped}/firma`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firma: 'CHECK-IN_MANUAL' })
+        body: JSON.stringify({ firma: 'CHECK-IN_MANUAL', id_reserva: row._reserva?.id_reserva })
       });
       if (!res.ok) throw new Error('Error al registrar ingreso');
       fetchGuests();

@@ -60,18 +60,27 @@ const createHuesped = async (req, res) => {
 
 const updateFirma = async (req, res) => {
   const { id } = req.params;
-  const { firma } = req.body;
+  const { firma, id_reserva } = req.body;
   try {
     const idHuesped = parseInt(id);
 
-    // Buscar la reserva activa/confirmada más próxima del huésped (sin restricción de fecha, permitiendo firma anticipada)
-    const reservaHoy = await prisma.reserva.findFirst({
-      where: {
-        id_huesped: idHuesped,
-        estado_reserva: { in: ['activa', 'confirmada'] }
-      },
-      orderBy: { check_in: 'desc' }
-    });
+    let reservaHoy;
+
+    if (id_reserva) {
+      // Actualizar una reserva específica si se proporciona su ID
+      reservaHoy = await prisma.reserva.findUnique({
+        where: { id_reserva: parseInt(id_reserva) }
+      });
+    } else {
+      // Buscar la reserva activa/confirmada más próxima del huésped (fallback)
+      reservaHoy = await prisma.reserva.findFirst({
+        where: {
+          id_huesped: idHuesped,
+          estado_reserva: { in: ['activa', 'confirmada'] }
+        },
+        orderBy: { check_in: 'desc' }
+      });
+    }
 
     if (!reservaHoy) {
       return res.status(403).json({
