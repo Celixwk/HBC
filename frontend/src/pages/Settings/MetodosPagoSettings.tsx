@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../../components/Button/Button';
-import { Plus, Trash2, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, CreditCard } from 'lucide-react';
 
 export const MetodosPagoSettings = () => {
   const [metodos, setMetodos] = useState<string[]>([]);
@@ -52,54 +52,56 @@ export const MetodosPagoSettings = () => {
   };
 
   return (
-    <div className="settings-section">
-      <h3>Métodos de Pago</h3>
-      <p className="text-muted" style={{ marginBottom: '20px' }}>
+    <div className="settings-section" style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div className="settings-section-title" style={{ marginBottom: '8px' }}>
+        <CreditCard size={16} /> Métodos de Pago
+      </div>
+      <p className="text-muted" style={{ marginBottom: '24px', fontSize: '13px' }}>
         Administra las opciones que aparecerán en la lista de métodos de pago al finalizar una reserva o registrar un gasto.
       </p>
 
-      <div className="glass-panel" style={{ padding: '20px', marginBottom: '24px' }}>
-        <form onSubmit={handleAgregar} style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '20px' }}>
+      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
+        <form onSubmit={handleAgregar} style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginBottom: '24px', maxWidth: '500px' }}>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>Nuevo método de pago</label>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Nuevo método de pago</label>
             <input
               type="text"
-              className="input-field"
+              className="form-input"
               placeholder="Ej. Bitcoin, Zelle, etc."
               value={nuevoMetodo}
               onChange={(e) => setNuevoMetodo(e.target.value)}
-              style={{ width: '100%' }}
             />
           </div>
-          <Button type="submit" variant="primary">
+          <Button type="submit" variant="primary" style={{ padding: '10px 16px', height: '42px' }}>
             <Plus size={16} /> Agregar
           </Button>
         </form>
 
-        <div className="list-container" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div className="list-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {metodos.map((metodo, index) => (
-            <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border-light)' }}>
+            <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-medium)', transition: 'all 0.2s' }}>
               {editando?.index === index ? (
-                <form onSubmit={handleGuardarEdicion} style={{ display: 'flex', gap: '10px', flex: 1 }}>
+                <form onSubmit={handleGuardarEdicion} style={{ display: 'flex', gap: '10px', flex: 1, maxWidth: '400px' }}>
                   <input
                     type="text"
-                    className="input-field"
+                    className="form-input"
                     value={editando.valor}
                     onChange={(e) => setEditando({ ...editando, valor: e.target.value })}
                     autoFocus
-                    style={{ flex: 1, padding: '4px 8px' }}
+                    style={{ flex: 1 }}
                   />
-                  <Button type="submit" variant="primary" style={{ padding: '4px 8px' }}>Guardar</Button>
-                  <Button type="button" variant="ghost" onClick={() => setEditando(null)} style={{ padding: '4px 8px' }}>Cancelar</Button>
+                  <Button type="submit" variant="primary" size="sm">Guardar</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setEditando(null)}>Cancelar</Button>
                 </form>
               ) : (
                 <>
-                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{metodo}</span>
+                  <span style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '14px' }}>{metodo}</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
-                      className="icon-action"
+                      className="icon-action edit"
                       onClick={() => setEditando({ index, valor: metodo })}
                       title="Editar"
+                      style={{ color: 'var(--primary)' }}
                     >
                       <Edit2 size={16} />
                     </button>
@@ -107,6 +109,7 @@ export const MetodosPagoSettings = () => {
                       className="icon-action delete"
                       onClick={() => handleEliminar(index)}
                       title="Eliminar"
+                      style={{ color: '#ef4444' }}
                     >
                       <Trash2 size={16} />
                     </button>

@@ -514,9 +514,9 @@ const CargosEspacio: React.FC = () => {
                 )}
                 <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>Método de pago</label>
                 <select value={payMetodo} onChange={e => setPayMetodo(e.target.value)}
-                  style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'var(--surface-2)', color: 'var(--text-primary)', marginBottom: '20px', boxSizing: 'border-box' }}>
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', backgroundColor: '#1e1e24', color: '#ffffff', marginBottom: '20px', boxSizing: 'border-box', outline: 'none' }}>
                   {metodosPago.map((metodo, idx) => (
-                    <option key={idx} value={metodo} style={{ background: 'var(--surface)', color: 'var(--text-primary)' }}>{metodo}</option>
+                    <option key={idx} value={metodo} style={{ backgroundColor: '#1e1e24', color: '#ffffff', padding: '8px' }}>{metodo}</option>
                   ))}
                 </select>
               </>
