@@ -107,14 +107,14 @@ const updateCuentaEspacio = async (req, res) => {
 
 const cambiarEstadoCuentaEspacio = async (req, res) => {
   const { id } = req.params;
-  const { estado } = req.body;
+  const { estado, metodo_pago } = req.body;
   try {
     if (!['pendiente', 'pagado', 'anulado'].includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
     const updated = await prisma.cuenta_espacio.update({
       where: { id_item: parseInt(id) },
-      data: { estado }
+      data: { estado, metodo_pago: estado === 'pagado' ? (metodo_pago || null) : null }
     });
     res.json(updated);
   } catch (error) {
@@ -222,14 +222,14 @@ const updateCuentaPersona = async (req, res) => {
 
 const cambiarEstadoCuentaPersona = async (req, res) => {
   const { id } = req.params;
-  const { estado } = req.body;
+  const { estado, metodo_pago } = req.body;
   try {
     if (!['pendiente', 'pagado', 'anulado'].includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
     const updated = await prisma.cuenta_persona.update({
       where: { id_item_persona: parseInt(id) },
-      data: { estado }
+      data: { estado, metodo_pago: estado === 'pagado' ? (metodo_pago || null) : null }
     });
     res.json(updated);
   } catch (error) {

@@ -513,6 +513,42 @@ ${td(String(totales.numReservas),`${S.b};background:#E4F2E4;color:#4B5F73;font-w
                 </div>
               </div>
 
+              {/* Desglose por Método de Pago */}
+              {Object.keys(pnl.ingresos.porMetodoPago as Record<string,number>).length > 0 && (
+                <div className="glass-panel" style={{padding:'20px'}}>
+                  <div className="rep-section-title" style={{marginBottom:'16px',display:'flex',alignItems:'center',gap:'8px'}}>
+                    <DollarSign size={15}/> Ingresos por Método de Pago
+                  </div>
+                  <div style={{display:'flex',flexWrap:'wrap',gap:'12px'}}>
+                    {Object.entries(pnl.ingresos.porMetodoPago as Record<string,number>).sort((a,b)=>b[1]-a[1]).map(([metodo, monto]) => {
+                      const porcentaje = pnl.ingresos.total > 0 ? ((monto / pnl.ingresos.total) * 100).toFixed(1) : '0.0';
+                      return (
+                        <div key={metodo} style={{
+                          background:'rgba(255,255,255,0.04)',
+                          border:'1px solid var(--border-medium)',
+                          borderRadius:'12px',
+                          padding:'16px 20px',
+                          minWidth:'160px',
+                          flex:'1',
+                          display:'flex',
+                          flexDirection:'column',
+                          gap:'6px'
+                        }}>
+                          <span style={{fontSize:'12px',color:'var(--text-muted)',fontWeight:500,textTransform:'uppercase',letterSpacing:'0.05em'}}>{metodo}</span>
+                          <span style={{fontSize:'20px',fontWeight:700,color:'#10b981'}}>${fmt(monto as number)}</span>
+                          <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                            <div style={{flex:1,height:'4px',background:'var(--border-medium)',borderRadius:'2px'}}>
+                              <div style={{width:`${porcentaje}%`,height:'100%',background:'#10b981',borderRadius:'2px'}}/>
+                            </div>
+                            <span style={{fontSize:'12px',color:'var(--text-muted)',minWidth:'36px'}}>{porcentaje}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {pnl.ingresos.detalle.length > 0 && (
                 <div className="glass-panel" style={{padding:0,overflow:'hidden'}}>
                   <div className="rep-section-title" style={{padding:'16px 20px',borderBottom:'1px solid var(--border-light)'}}>

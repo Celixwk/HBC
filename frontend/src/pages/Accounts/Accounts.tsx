@@ -276,7 +276,7 @@ const CargosEspacio: React.FC = () => {
         for (const item of pending) {
           await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
             method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ estado: 'pagado' })
+            body: JSON.stringify({ estado: 'pagado', metodo_pago: payMetodo })
           });
         }
         if (reserva.estado_pago !== 'pagado') {
@@ -291,7 +291,7 @@ const CargosEspacio: React.FC = () => {
           for (const item of pending) {
             await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
               method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ estado: 'pagado' })
+              body: JSON.stringify({ estado: 'pagado', metodo_pago: payMetodo })
             });
           }
           if (reserva.estado_pago !== 'pagado') {
@@ -553,7 +553,19 @@ const CargosPersona: React.FC = () => {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [receiptPersona, setReceiptPersona] = useState<{ nombre: string; items: any[] } | null>(null);
 
-  useEffect(() => { fetchItems(); }, []);
+  const [payModal, setPayModal] = useState<{ isOpen: boolean, items: any[], persona: string }>({ isOpen: false, items: [], persona: '' });
+  const [payMetodo, setPayMetodo] = useState('Efectivo');
+  const [metodosPago, setMetodosPago] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchItems();
+    const metodosGuardados = localStorage.getItem('hbc_metodos_pago');
+    if (metodosGuardados) {
+      setMetodosPago(JSON.parse(metodosGuardados));
+    } else {
+      setMetodosPago(['Efectivo', 'Tarjeta', 'Transferencia', 'Nequi', 'Daviplata', 'Otro']);
+    }
+  }, []);
 
   const fetchItems = async () => {
     setLoading(true);
@@ -563,8 +575,13 @@ const CargosPersona: React.FC = () => {
     } finally { setLoading(false); }
   };
 
-  const handleBulkStatus = async (e: React.MouseEvent, itemsToUpdate: any[], estado: string) => {
+  const handleBulkStatus = async (e: React.MouseEvent, itemsToUpdate: any[], estado: string, persona?: string) => {
     e.stopPropagation();
+    if (estado === 'pagado') {
+      setPayModal({ isOpen: true, items: itemsToUpdate, persona: persona || '' });
+      return;
+    }
+    
     setLoading(true);
     try {
       const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
@@ -573,6 +590,25 @@ const CargosPersona: React.FC = () => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ estado })
+        });
+      }
+      await fetchItems();
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+    }
+  };
+
+  const executePayPersona = async () => {
+    setLoading(true);
+    setPayModal({ isOpen: false, items: [], persona: '' });
+    try {
+      const pending = payModal.items.filter(i => i.estado === 'pendiente' || !i.estado);
+      for (const item of pending) {
+        await apiFetch(`/cuentas/persona/${item.id_item_persona}/estado`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ estado: 'pagado', metodo_pago: payMetodo })
         });
       }
       await fetchItems();
@@ -629,7 +665,7 @@ const CargosPersona: React.FC = () => {
                 <span className="text-muted text-sm">{personItems.length} cargo{personItems.length !== 1 ? 's' : ''}</span>
                 
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={(e: React.MouseEvent) => handleBulkStatus(e, personItems, 'pagado')} style={{ color: '#10b981', borderColor: 'transparent', padding: '4px 8px' }} title="Pagar todo lo pendiente">
+                  <Button variant="ghost" size="sm" onClick={(e: React.MouseEvent) => handleBulkStatus(e, personItems, 'pagado', nombre)} style={{ color: '#10b981', borderColor: 'transparent', padding: '4px 8px' }} title="Pagar todo lo pendiente">
                     <Check size={16} /> Todo
                   </Button>
                   <Button variant="ghost" size="sm" onClick={(e: React.MouseEvent) => handleBulkStatus(e, personItems, 'anulado')} style={{ color: '#ef4444', borderColor: 'transparent', padding: '4px 8px' }} title="Anular todo lo pendiente">
@@ -705,6 +741,27 @@ const CargosPersona: React.FC = () => {
               await addCargo(newPersona.trim(), { descripcion: '—', cantidad: '0', valor_unitario: '0' });
               setNewPersona(''); setIsOpen(false);
             }}>Crear</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal isOpen={payModal.isOpen} onClose={() => setPayModal({ isOpen: false, items: [], persona: '' })} title={`Pagar Cargos: ${payModal.persona}`}>
+        <div className="cargo-form">
+          <p className="text-muted" style={{ marginBottom: '16px' }}>Selecciona el método de pago para registrar el ingreso correctamente.</p>
+          <div className="form-group">
+            <label>Método de pago</label>
+            <select value={payMetodo} onChange={e => setPayMetodo(e.target.value)}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', backgroundColor: '#1e1e24', color: '#ffffff', marginBottom: '20px', boxSizing: 'border-box', outline: 'none' }}>
+              {metodosPago.map((metodo, idx) => (
+                <option key={idx} value={metodo} style={{ backgroundColor: '#1e1e24', color: '#ffffff', padding: '8px' }}>{metodo}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-actions">
+            <Button variant="ghost" onClick={() => setPayModal({ isOpen: false, items: [], persona: '' })}>Cancelar</Button>
+            <Button variant="primary" onClick={executePayPersona}>
+              Confirmar Pago
+            </Button>
           </div>
         </div>
       </Modal>

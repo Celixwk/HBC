@@ -92,6 +92,23 @@ const getPnL = async (req, res) => {
     const ingresosPendientes  = reservasPendientes.reduce((s, r) => s + parseFloat(r.monto_total || 0), 0)
                               + [...cargosEspacioPendientes, ...cargosPersonaPendientes].reduce((s, c) => s + parseFloat(c.valor_total || 0), 0);
 
+    const ingresosPorMetodo = {};
+    reservasPagadas.forEach(r => {
+      const m = r.metodo_pago || 'Desconocido';
+      if (!ingresosPorMetodo[m]) ingresosPorMetodo[m] = 0;
+      ingresosPorMetodo[m] += parseFloat(r.monto_total || 0);
+    });
+    cargosEspacioPagados.forEach(c => {
+      const m = c.metodo_pago || 'Desconocido';
+      if (!ingresosPorMetodo[m]) ingresosPorMetodo[m] = 0;
+      ingresosPorMetodo[m] += parseFloat(c.valor_total || 0);
+    });
+    cargosPersonaPagados.forEach(c => {
+      const m = c.metodo_pago || 'Desconocido';
+      if (!ingresosPorMetodo[m]) ingresosPorMetodo[m] = 0;
+      ingresosPorMetodo[m] += parseFloat(c.valor_total || 0);
+    });
+
     const [gastosOperativos, comprasInventario] = await Promise.all([
       prisma.gasto_operativo.findMany({
         where: { activo: true, fecha: { gte: inicioDate, lte: finDate } },
@@ -162,6 +179,7 @@ const getPnL = async (req, res) => {
         hospedaje: ingresoHospedaje,
         consumos: ingresoConsumos,
         consumosPorCategoria,
+        porMetodoPago: ingresosPorMetodo,
         total: totalIngresosReales,
         pendientes: ingresosPendientes,
         detalle: [...detalleReservas, ...detalleConsumos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
