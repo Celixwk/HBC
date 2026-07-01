@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Printer, Edit2 } from 'lucide-react';
+import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Printer } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
 import { Receipt } from '../../components/Receipt/Receipt';
