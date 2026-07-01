@@ -94,17 +94,17 @@ const getPnL = async (req, res) => {
 
     const ingresosPorMetodo = {};
     reservasPagadas.forEach(r => {
-      const m = r.metodo_pago || 'Desconocido';
+      const m = r.metodo_pago || 'Otros';
       if (!ingresosPorMetodo[m]) ingresosPorMetodo[m] = 0;
       ingresosPorMetodo[m] += parseFloat(r.monto_total || 0);
     });
     cargosEspacioPagados.forEach(c => {
-      const m = c.metodo_pago || 'Desconocido';
+      const m = c.metodo_pago || 'Otros';
       if (!ingresosPorMetodo[m]) ingresosPorMetodo[m] = 0;
       ingresosPorMetodo[m] += parseFloat(c.valor_total || 0);
     });
     cargosPersonaPagados.forEach(c => {
-      const m = c.metodo_pago || 'Desconocido';
+      const m = c.metodo_pago || 'Otros';
       if (!ingresosPorMetodo[m]) ingresosPorMetodo[m] = 0;
       ingresosPorMetodo[m] += parseFloat(c.valor_total || 0);
     });

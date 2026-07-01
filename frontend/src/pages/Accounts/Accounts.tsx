@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Printer } from 'lucide-react';
+import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Printer, Edit2 } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
 import { Receipt } from '../../components/Receipt/Receipt';
@@ -170,6 +170,7 @@ const CargosEspacio: React.FC = () => {
 
   const [receiptData, setReceiptData] = useState<{ reserva: any, items: any[] } | null>(null);
   const [metodosPago, setMetodosPago] = useState<string[]>([]);
+  const [editMetodoModal, setEditMetodoModal] = useState<{ isOpen: boolean, reserva: any, metodo: string }>({ isOpen: false, reserva: null, metodo: '' });
 
   useEffect(() => {
     fetchItems();
@@ -436,7 +437,16 @@ const CargosEspacio: React.FC = () => {
                           </span>
                         </td>
                         <td>
-                          <div className="row-actions">
+                          <div className="row-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            {reserva.estado_pago === 'pagado' && (
+                              <span
+                                onClick={(e) => { e.stopPropagation(); setEditMetodoModal({ isOpen: true, reserva, metodo: reserva.metodo_pago || metodosPago[0] || 'Efectivo' }); }}
+                                title="Editar método de pago"
+                                style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: reserva.metodo_pago ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)', color: reserva.metodo_pago ? '#10b981' : '#f59e0b', border: `1px solid ${reserva.metodo_pago ? '#10b981' : '#f59e0b'}`, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}
+                              >
+                                {reserva.metodo_pago || 'Sin método'} <Pencil size={10}/>
+                              </span>
+                            )}
                             {reserva.estado_pago !== 'pagado' && (
                               <button className="icon-action save" style={{ color: '#10b981' }} onClick={(e) => handleRoomStatus(e, reserva.id_reserva, 'pagado', parseFloat(reserva.monto_total || '0'), reserva)} title="Marcar Alojamiento como Pagado"><Check size={14} /></button>
                             )}
@@ -531,6 +541,37 @@ const CargosEspacio: React.FC = () => {
         </div>
       )}
 
+      {/* Mini-modal para editar método de pago en reservas ya pagadas */}
+      {editMetodoModal.isOpen && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '28px 32px', minWidth: '360px', maxWidth: '440px', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
+            <h3 style={{ margin: '0 0 6px', color: 'var(--text-primary)' }}>Editar Método de Pago</h3>
+            <p style={{ margin: '0 0 16px', color: 'var(--text-muted)', fontSize: '13px' }}>
+              Hab. {editMetodoModal.reserva?.espacio?.numero} — {editMetodoModal.reserva?.huesped?.nombre_completo}
+            </p>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', color: 'var(--text-muted)' }}>Método de pago</label>
+            <select value={editMetodoModal.metodo} onChange={e => setEditMetodoModal(m => ({ ...m, metodo: e.target.value }))}
+              style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-light)', backgroundColor: '#1e1e24', color: '#ffffff', marginBottom: '20px', boxSizing: 'border-box', outline: 'none' }}>
+              {metodosPago.map((met, idx) => (
+                <option key={idx} value={met} style={{ backgroundColor: '#1e1e24', color: '#ffffff' }}>{met}</option>
+              ))}
+            </select>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setEditMetodoModal({ isOpen: false, reserva: null, metodo: '' })}
+                style={{ padding: '8px 20px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'transparent', color: 'var(--text-muted)', cursor: 'pointer' }}>Cancelar</button>
+              <button onClick={async () => {
+                await apiFetch(`/reservas/${editMetodoModal.reserva.id_reserva}/pago`, {
+                  method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ metodo_pago: editMetodoModal.metodo })
+                });
+                setEditMetodoModal({ isOpen: false, reserva: null, metodo: '' });
+                fetchItems();
+              }} style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal de Impresión */}
       {receiptData && (
         <Receipt 
@@ -556,9 +597,13 @@ const CargosPersona: React.FC = () => {
   const [payModal, setPayModal] = useState<{ isOpen: boolean, items: any[], persona: string }>({ isOpen: false, items: [], persona: '' });
   const [payMetodo, setPayMetodo] = useState('Efectivo');
   const [metodosPago, setMetodosPago] = useState<string[]>([]);
+  const [mostrarPagados, setMostrarPagados] = useState(false);
 
   useEffect(() => {
     fetchItems();
+  }, [mostrarPagados]);
+
+  useEffect(() => {
     const metodosGuardados = localStorage.getItem('hbc_metodos_pago');
     if (metodosGuardados) {
       setMetodosPago(JSON.parse(metodosGuardados));
@@ -570,7 +615,7 @@ const CargosPersona: React.FC = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const res = await apiFetch('/cuentas/persona');
+      const res = await apiFetch(`/cuentas/persona?incluirPagados=${mostrarPagados}`);
       if (res.ok) setItems(await res.json());
     } finally { setLoading(false); }
   };
@@ -633,12 +678,23 @@ const CargosPersona: React.FC = () => {
     grouped[item.nombre_persona].push(item);
   });
 
-  if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" size={36} /></div>;
+  if (loading && items.length === 0) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" size={36} /></div>;
 
   return (
     <div className="grouped-sections">
-      <div className="tab-header">
-        <span className="text-muted">{Object.keys(grouped).length} persona(s) con cargos</span>
+      <div className="tab-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span className="text-muted">{Object.keys(grouped).length} persona(s) {mostrarPagados ? 'en total' : 'con cargos pendientes'}</span>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', color: 'var(--text-muted)' }}>
+            <input 
+              type="checkbox" 
+              checked={mostrarPagados} 
+              onChange={e => setMostrarPagados(e.target.checked)} 
+              style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
+            />
+            Mostrar pagados/anulados
+          </label>
+        </div>
         <Button variant="primary" onClick={() => setIsOpen(true)}><Plus size={16} /> Nueva Persona</Button>
       </div>
       {Object.entries(grouped).map(([nombre, personItems]) => {

@@ -137,8 +137,10 @@ const deleteCuentaEspacio = async (req, res) => {
 // ===================== CUENTA PERSONA =====================
 
 const getCuentasPersona = async (req, res) => {
+  const incluirPagados = req.query.incluirPagados === 'true';
   try {
     const items = await prisma.cuenta_persona.findMany({
+      where: incluirPagados ? undefined : { estado: { in: ['pendiente', null] } },
       include: { huesped: true, reserva: { include: { espacio: true } } },
       orderBy: { fecha_registro: 'desc' }
     });
