@@ -137,13 +137,34 @@ const deleteCuentaEspacio = async (req, res) => {
 // ===================== CUENTA PERSONA =====================
 
 const getCuentasPersona = async (req, res) => {
-  const incluirPagados = req.query.incluirPagados === 'true';
   try {
+    // 1. Obtener todas las personas/huéspedes que tienen al menos un cargo pendiente
+    const pendientes = await prisma.cuenta_persona.findMany({
+      where: { estado: { in: ['pendiente', null] } },
+      select: { nombre_persona: true, id_huesped: true }
+    });
+
+    // 2. Extraer los nombres e IDs únicos
+    const nombresPendientes = [...new Set(pendientes.map(p => p.nombre_persona).filter(Boolean))];
+    const huespedesPendientes = [...new Set(pendientes.map(p => p.id_huesped).filter(Boolean))];
+
+    // Si no hay nadie con pendientes, devolvemos vacío
+    if (nombresPendientes.length === 0 && huespedesPendientes.length === 0) {
+      return res.json([]);
+    }
+
+    // 3. Traer TODOS los cargos de esas personas (para poder ver los ya pagados junto a los pendientes)
     const items = await prisma.cuenta_persona.findMany({
-      where: incluirPagados ? undefined : { estado: { in: ['pendiente', null] } },
+      where: {
+        OR: [
+          nombresPendientes.length > 0 ? { nombre_persona: { in: nombresPendientes } } : undefined,
+          huespedesPendientes.length > 0 ? { id_huesped: { in: huespedesPendientes } } : undefined
+        ].filter(Boolean)
+      },
       include: { huesped: true, reserva: { include: { espacio: true } } },
       orderBy: { fecha_registro: 'desc' }
     });
+    
     res.json(items);
   } catch (error) {
     console.error('Error al obtener cuentas persona:', error);
@@ -410,7 +431,7 @@ const getHistorialPersonas = async (req, res) => {
       total_pendiente: g.cargos.filter(c => c.estado === 'pendiente' || !c.estado).reduce((a, c) => a + c.valor_total, 0),
       total_pagado: g.cargos.filter(c => c.estado === 'pagado').reduce((a, c) => a + c.valor_total, 0),
       total_anulado: g.cargos.filter(c => c.estado === 'anulado').reduce((a, c) => a + c.valor_total, 0),
-    }));
+    })).filter(g => g.total_pendiente === 0);
 
     res.json(result);
   } catch (error) {

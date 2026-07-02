@@ -597,11 +597,10 @@ const CargosPersona: React.FC = () => {
   const [payModal, setPayModal] = useState<{ isOpen: boolean, items: any[], persona: string }>({ isOpen: false, items: [], persona: '' });
   const [payMetodo, setPayMetodo] = useState('Efectivo');
   const [metodosPago, setMetodosPago] = useState<string[]>([]);
-  const [mostrarPagados, setMostrarPagados] = useState(false);
 
   useEffect(() => {
     fetchItems();
-  }, [mostrarPagados]);
+  }, []);
 
   useEffect(() => {
     const metodosGuardados = localStorage.getItem('hbc_metodos_pago');
@@ -615,7 +614,7 @@ const CargosPersona: React.FC = () => {
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const res = await apiFetch(`/cuentas/persona?incluirPagados=${mostrarPagados}`);
+      const res = await apiFetch('/cuentas/persona');
       if (res.ok) setItems(await res.json());
     } finally { setLoading(false); }
   };
@@ -684,16 +683,7 @@ const CargosPersona: React.FC = () => {
     <div className="grouped-sections">
       <div className="tab-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span className="text-muted">{Object.keys(grouped).length} persona(s) {mostrarPagados ? 'en total' : 'con cargos pendientes'}</span>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            <input 
-              type="checkbox" 
-              checked={mostrarPagados} 
-              onChange={e => setMostrarPagados(e.target.checked)} 
-              style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
-            />
-            Mostrar pagados/anulados
-          </label>
+          <span className="text-muted">{Object.keys(grouped).length} persona(s) con cuenta abierta</span>
         </div>
         <Button variant="primary" onClick={() => setIsOpen(true)}><Plus size={16} /> Nueva Persona</Button>
       </div>
