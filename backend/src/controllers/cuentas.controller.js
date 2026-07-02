@@ -138,32 +138,23 @@ const deleteCuentaEspacio = async (req, res) => {
 
 const getCuentasPersona = async (req, res) => {
   try {
-    // 1. Obtener todas las personas/huéspedes que tienen al menos un cargo pendiente
-    const pendientes = await prisma.cuenta_persona.findMany({
-      where: { estado: { in: ['pendiente', null] } },
-      select: { nombre_persona: true, id_huesped: true }
-    });
-
-    // 2. Extraer los nombres e IDs únicos
-    const nombresPendientes = [...new Set(pendientes.map(p => p.nombre_persona).filter(Boolean))];
-    const huespedesPendientes = [...new Set(pendientes.map(p => p.id_huesped).filter(Boolean))];
-
-    // Si no hay nadie con pendientes, devolvemos vacío
-    if (nombresPendientes.length === 0 && huespedesPendientes.length === 0) {
-      return res.json([]);
-    }
-
-    // 3. Traer TODOS los cargos de esas personas (para poder ver los ya pagados junto a los pendientes)
-    const items = await prisma.cuenta_persona.findMany({
-      where: {
-        OR: [
-          nombresPendientes.length > 0 ? { nombre_persona: { in: nombresPendientes } } : undefined,
-          huespedesPendientes.length > 0 ? { id_huesped: { in: huespedesPendientes } } : undefined
-        ].filter(Boolean)
-      },
+    // Traer TODOS los cargos
+    const todos = await prisma.cuenta_persona.findMany({
       include: { huesped: true, reserva: { include: { espacio: true } } },
       orderBy: { fecha_registro: 'desc' }
     });
+
+    // Identificar a las personas que tienen al menos un cargo pendiente
+    const personasActivas = new Set();
+    todos.forEach(c => {
+      // Consideramos pendiente si el estado es 'pendiente', null, o vacío.
+      if (c.estado === 'pendiente' || !c.estado) {
+        if (c.nombre_persona) personasActivas.add(c.nombre_persona);
+      }
+    });
+
+    // Filtrar la lista completa para devolver solo los cargos de las personas activas
+    const items = todos.filter(c => c.nombre_persona && personasActivas.has(c.nombre_persona));
     
     res.json(items);
   } catch (error) {
@@ -428,10 +419,11 @@ const getHistorialPersonas = async (req, res) => {
       nombre: g.nombre,
       id_huesped: g.id_huesped,
       cargos: g.cargos,
+      tienePendientes: g.cargos.some(c => c.estado === 'pendiente' || !c.estado),
       total_pendiente: g.cargos.filter(c => c.estado === 'pendiente' || !c.estado).reduce((a, c) => a + c.valor_total, 0),
       total_pagado: g.cargos.filter(c => c.estado === 'pagado').reduce((a, c) => a + c.valor_total, 0),
       total_anulado: g.cargos.filter(c => c.estado === 'anulado').reduce((a, c) => a + c.valor_total, 0),
-    })).filter(g => g.total_pendiente === 0);
+    })).filter(g => !g.tienePendientes);
 
     res.json(result);
   } catch (error) {
