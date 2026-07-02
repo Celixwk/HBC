@@ -130,7 +130,7 @@ function EditableRow<T extends { [key: string]: any }>({
         <div className="row-actions">
           <button className="icon-action edit" onClick={() => setEditing(true)} title="Editar"><Pencil size={14} /></button>
           
-          {apiPath !== 'minibar' ? (
+          {apiPath !== 'minibar' && (
             <>
               {item.estado !== 'pagado' && (
                 <button className="icon-action save" style={{ color: '#10b981' }} onClick={() => handleChangeStatus('pagado')} title="Marcar Pagado"><Check size={14} /></button>
@@ -139,9 +139,8 @@ function EditableRow<T extends { [key: string]: any }>({
                 <button className="icon-action cancel" style={{ color: '#ef4444' }} onClick={() => handleChangeStatus('anulado')} title="Anular"><X size={14} /></button>
               )}
             </>
-          ) : (
-            <button className="icon-action del" onClick={handleDelete} title="Eliminar"><Trash2 size={14} /></button>
           )}
+          <button className="icon-action del" onClick={handleDelete} title="Eliminar"><Trash2 size={14} /></button>
         </div>
       </td>
     </tr>
