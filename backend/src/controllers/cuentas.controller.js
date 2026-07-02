@@ -176,8 +176,7 @@ const createCuentaPersona = async (req, res) => {
         id_reserva: id_reserva ? parseInt(id_reserva) : null,
         descripcion,
         cantidad: parseInt(cantidad),
-        valor_unitario: parseFloat(valor_unitario),
-        valor_total: parseInt(cantidad) * parseFloat(valor_unitario)
+        valor_unitario: parseFloat(valor_unitario)
       },
       include: { huesped: true, reserva: { include: { espacio: true } } }
     });
@@ -215,7 +214,7 @@ const createCuentaPersona = async (req, res) => {
     res.status(201).json(nuevo);
   } catch (error) {
     console.error('Error al crear cargo persona:', error);
-    res.status(500).json({ error: 'Error al crear el cargo' });
+    res.status(500).json({ error: error.message || 'Error al crear el cargo' });
   }
 };
 
@@ -225,7 +224,7 @@ const updateCuentaPersona = async (req, res) => {
   try {
     const updated = await prisma.cuenta_persona.update({
       where: { id_item_persona: parseInt(id) },
-      data: { descripcion, cantidad: parseInt(cantidad), valor_unitario: parseFloat(valor_unitario), valor_total: parseInt(cantidad) * parseFloat(valor_unitario) }
+      data: { descripcion, cantidad: parseInt(cantidad), valor_unitario: parseFloat(valor_unitario) }
     });
     res.json(updated);
   } catch (error) {
