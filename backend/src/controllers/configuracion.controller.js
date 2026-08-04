@@ -41,6 +41,49 @@ const updateConfiguracion = async (req, res) => {
   }
 };
 
+const getOrigenes = async (req, res) => {
+  try {
+    const origenes = await prisma.origen_reserva.findMany({
+      where: { activo: true },
+      orderBy: { id_origen: 'asc' }
+    });
+    res.json(origenes);
+  } catch (error) {
+    console.error('Error al obtener orígenes:', error);
+    res.status(500).json({ error: 'Error al obtener orígenes de reserva' });
+  }
+};
+
+const createOrigen = async (req, res) => {
+  const { nombre } = req.body;
+  if (!nombre) return res.status(400).json({ error: 'Nombre es requerido' });
+  try {
+    const origin = await prisma.origen_reserva.upsert({
+      where: { nombre },
+      update: { activo: true },
+      create: { nombre }
+    });
+    res.json(origin);
+  } catch (error) {
+    console.error('Error al crear origen:', error);
+    res.status(500).json({ error: 'Error al crear origen de reserva' });
+  }
+};
+
+const deleteOrigen = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.origen_reserva.update({
+      where: { id_origen: parseInt(id) },
+      data: { activo: false }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error al eliminar origen:', error);
+    res.status(500).json({ error: 'Error al eliminar origen de reserva' });
+  }
+};
+
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -126,4 +169,12 @@ const restoreDatabase = async (req, res) => {
   }
 };
 
-module.exports = { getConfiguracion, updateConfiguracion, backupDatabase, restoreDatabase };
+module.exports = {
+  getConfiguracion,
+  updateConfiguracion,
+  backupDatabase,
+  restoreDatabase,
+  getOrigenes,
+  createOrigen,
+  deleteOrigen
+};

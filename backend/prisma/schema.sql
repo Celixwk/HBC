@@ -81,11 +81,24 @@ CREATE TABLE IF NOT EXISTS "inventario_minibar" (
 );
 
 -- CreateTable
+CREATE TABLE IF NOT EXISTS "origen_reserva" (
+    "id_origen" SERIAL NOT NULL,
+    "nombre" VARCHAR(50) NOT NULL UNIQUE,
+    "activo" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "origen_reserva_pkey" PRIMARY KEY ("id_origen")
+);
+
+-- Insert default origin
+INSERT INTO "origen_reserva" ("nombre", "activo") VALUES ('Propia', true) ON CONFLICT ("nombre") DO NOTHING;
+
+-- CreateTable
 CREATE TABLE IF NOT EXISTS "reserva" (
     "id_reserva" SERIAL NOT NULL,
     "id_huesped" INTEGER NOT NULL,
     "id_espacio" INTEGER NOT NULL,
     "tipo_reserva" VARCHAR(15) NOT NULL DEFAULT 'alojamiento',
+    "origen" VARCHAR(50) NOT NULL DEFAULT 'Propia',
     "dni_tipo" VARCHAR(20) DEFAULT 'reserva',
     "check_in" DATE,
     "check_out" DATE,
@@ -105,6 +118,13 @@ CREATE TABLE IF NOT EXISTS "reserva" (
 
     CONSTRAINT "reserva_pkey" PRIMARY KEY ("id_reserva")
 );
+
+-- ADD COLUMN IF NOT EXISTS logic
+DO $$ BEGIN
+  ALTER TABLE "reserva" ADD COLUMN "origen" VARCHAR(50) NOT NULL DEFAULT 'Propia';
+EXCEPTION
+  WHEN duplicate_column THEN null;
+END $$;
 
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "configuracion_hotel" (

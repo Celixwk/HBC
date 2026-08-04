@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../Modal/Modal';
 import { Button } from '../Button/Button';
 import '../NewSpaceModal/NewSpaceModal.css';
@@ -22,6 +22,20 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({ isOpen, onClose,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [tiposConfig, setTiposConfig] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      apiFetch('/espacios/config/tipos')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setTiposConfig(data);
+          }
+        })
+        .catch(err => console.error('Error al cargar tipos de espacio:', err));
+    }
+  }, [isOpen]);
 
   const isSalon = formData.tipo_espacio === 'salon';
 
@@ -104,9 +118,14 @@ export const EditSpaceModal: React.FC<EditSpaceModalProps> = ({ isOpen, onClose,
             <label htmlFor="edit-tipo_habitacion">Categoría</label>
             <select id="edit-tipo_habitacion" name="tipo_habitacion" value={formData.tipo_habitacion}
               onChange={handleChange} className="form-input">
-              <option value="standard">Standard</option>
-              <option value="deluxe">Deluxe</option>
-              <option value="suite">Suite</option>
+              {tiposConfig.map((tipo) => (
+                <option key={tipo.id} value={tipo.nombre}>
+                  {tipo.nombre.charAt(0).toUpperCase() + tipo.nombre.slice(1)}
+                </option>
+              ))}
+              {tiposConfig.length === 0 && (
+                <option value="standard">Standard</option>
+              )}
             </select>
           </div>
         )}

@@ -22,6 +22,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
   const [allGuests, setAllGuests] = useState<any[]>([]);
   const [config, setConfig] = useState<any>(null);
   const [tiposConfig, setTiposConfig] = useState<any[]>([]);
+  const [origenesList, setOrigenesList] = useState<any[]>([]);
   const [guestSearch, setGuestSearch] = useState('');
   const [showGuestDrop, setShowGuestDrop] = useState(false);
   const [selectedGuestId, setSelectedGuestId] = useState<number | null>(null);
@@ -37,10 +38,12 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
     check_out: '',
     cantidad_adultos: '1',
     cantidad_ninos: '',
-    anotaciones: ''
+    anotaciones: '',
+    origen: 'Propia'
   });
 
   const [montoTotal, setMontoTotal] = useState(0);
+  const [montoManual, setMontoManual] = useState<number | null>(null);
   const [noches, setNoches] = useState(0);
   const [precioSalon, setPrecioSalon] = useState('');
   const [fechaEvento, setFechaEvento] = useState('');
@@ -54,6 +57,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
     if (isOpen) {
       apiFetch('/huespedes').then(r => r.json()).then(setAllGuests).catch(console.error);
       apiFetch('/configuracion').then(r => r.json()).then(setConfig).catch(console.error);
+      apiFetch('/configuracion/origenes').then(r => r.json()).then(d => setOrigenesList(Array.isArray(d) ? d : [])).catch(console.error);
       apiFetch('/espacios/config/tipos').then(r => r.json()).then(d => setTiposConfig(Array.isArray(d) ? d : [])).catch(() => setTiposConfig([]));
     }
   }, [isOpen]);
@@ -211,7 +215,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
           cantidad_adultos: parseInt(formData.cantidad_adultos) || 1,
           cantidad_ninos: parseInt(formData.cantidad_ninos) || 0,
           anotaciones: formData.anotaciones || null,
-          monto_total: montoTotal,
+          monto_total: formData.origen !== 'Propia' && montoManual !== null ? montoManual : montoTotal,
+          origen: formData.origen,
           tipo_reserva: isSalon ? 'evento' : 'alojamiento',
           fecha_evento: isSalon && fechaEvento ? fechaEvento : null,
           hora_inicio: isSalon && horaInicio ? horaInicio : null,
@@ -224,8 +229,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
 
       onSuccess(data);
       onClose();
-      setFormData({ nombre_huesped: '', documento: '', telefono: '', procedencia: '', id_espacios: [], check_in: '', check_out: '', cantidad_adultos: '1', cantidad_ninos: '', anotaciones: '' });
-      setMontoTotal(0); setNoches(0); setPrecioSalon('');
+      setFormData({ nombre_huesped: '', documento: '', telefono: '', procedencia: '', id_espacios: [], check_in: '', check_out: '', cantidad_adultos: '1', cantidad_ninos: '', anotaciones: '', origen: 'Propia' });
+      setMontoTotal(0); setMontoManual(null); setNoches(0); setPrecioSalon('');
       setGuestSearch(''); setSelectedGuestId(null); setShowGuestDrop(false);
     } catch (err: any) {
       setError(err.message);
@@ -292,8 +297,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
               <input type="text" name="nombre_huesped" value={formData.nombre_huesped} onChange={handleChange} required className="form-input" placeholder="Juan García" autoComplete="off" />
             </div>
             <div className="form-group">
-              <label>Documento *</label>
-              <input type="text" name="documento" value={formData.documento} onChange={handleChange} required className="form-input" placeholder="1234567890" autoComplete="off" />
+              <label>Documento</label>
+              <input type="text" name="documento" value={formData.documento} onChange={handleChange} className="form-input" placeholder="1234567890" autoComplete="off" />
             </div>
             <div className="form-group">
               <label>Teléfono</label>
@@ -443,6 +448,36 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
           )}
         </div>
 
+        {/* ── Origen de Reserva ── */}
+        <div className="form-section">
+          <div className="form-section-title"><Search size={14} /> Origen de Reserva</div>
+          <div className="form-grid-2">
+            <div className="form-group">
+              <label>Origen</label>
+              <select name="origen" value={formData.origen} onChange={handleChange} className="form-input">
+                <option value="Propia">Propia (Por defecto)</option>
+                {origenesList.filter(o => o.nombre !== 'Propia').map(o => (
+                  <option key={o.id_origen} value={o.nombre}>{o.nombre}</option>
+                ))}
+              </select>
+            </div>
+            {formData.origen !== 'Propia' && (
+              <div className="form-group">
+                <label>Precio Total Manual *</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={montoManual === null ? '' : montoManual}
+                  onChange={e => setMontoManual(e.target.value ? parseInt(e.target.value) : null)}
+                  className="form-input"
+                  placeholder="Ej. 120000"
+                  required={formData.origen !== 'Propia'}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* ── Anotaciones ── */}
         <div className="form-section">
           <div className="form-section-title"><FileText size={14} /> Anotaciones</div>
@@ -471,9 +506,19 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
               })}
             </>
           )}
+          {formData.origen !== 'Propia' && montoManual !== null && (
+            <div className="price-row">
+              <span className="text-muted">Ajuste manual (Origen: {formData.origen})</span>
+              <span className="font-medium">Aplicado</span>
+            </div>
+          )}
           <div className="price-row price-total">
             <span className="font-bold">Total estimado</span>
-            <span className="price-value">{montoTotal > 0 ? `$${fmt(montoTotal)}` : '—'}</span>
+            <span className="price-value">
+              {formData.origen !== 'Propia' && montoManual !== null
+                ? `$${fmt(montoManual)}`
+                : (montoTotal > 0 ? `$${fmt(montoTotal)}` : '—')}
+            </span>
           </div>
         </div>
 

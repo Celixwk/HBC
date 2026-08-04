@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../Modal/Modal';
 import { Button } from '../Button/Button';
 import { User, CreditCard, Phone, MapPin } from 'lucide-react';
@@ -104,7 +104,7 @@ export const EditGuestModal: React.FC<EditGuestModalProps> = ({ isOpen, onClose,
           <div className="form-group">
             <label htmlFor="documento">
               <CreditCard size={14} style={{ display: 'inline', marginRight: 4 }} />
-              Documento *
+              Documento
             </label>
             <input
               type="text"
@@ -113,7 +113,6 @@ export const EditGuestModal: React.FC<EditGuestModalProps> = ({ isOpen, onClose,
               value={formData.documento}
               onChange={handleChange}
               className="form-input"
-              required
             />
           </div>
         </div>

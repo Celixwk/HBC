@@ -86,11 +86,18 @@ model inventario_minibar {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model origen_reserva {
+  id_origen Int     @id @default(autoincrement())
+  nombre    String  @unique @db.VarChar(50)
+  activo    Boolean @default(true)
+}
+
 model reserva {
   id_reserva       Int              @id @default(autoincrement())
   id_huesped       Int
   id_espacio       Int
   tipo_reserva     String           @default("alojamiento") @db.VarChar(15)
+  origen           String           @default("Propia") @db.VarChar(50)
   dni_tipo         String?          @default("reserva") @db.VarChar(20)
   check_in         DateTime?        @db.Date
   check_out        DateTime?        @db.Date

@@ -39,8 +39,13 @@ export type huesped = $Result.DefaultSelection<Prisma.$huespedPayload>
  */
 export type inventario_minibar = $Result.DefaultSelection<Prisma.$inventario_minibarPayload>
 /**
- * Model reserva
+ * Model origen_reserva
  * This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ */
+export type origen_reserva = $Result.DefaultSelection<Prisma.$origen_reservaPayload>
+/**
+ * Model reserva
+ * 
  */
 export type reserva = $Result.DefaultSelection<Prisma.$reservaPayload>
 /**
@@ -254,6 +259,16 @@ export class PrismaClient<
     * ```
     */
   get inventario_minibar(): Prisma.inventario_minibarDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.origen_reserva`: Exposes CRUD operations for the **origen_reserva** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Origen_reservas
+    * const origen_reservas = await prisma.origen_reserva.findMany()
+    * ```
+    */
+  get origen_reserva(): Prisma.origen_reservaDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.reserva`: Exposes CRUD operations for the **reserva** model.
@@ -783,6 +798,7 @@ export namespace Prisma {
     espacio: 'espacio',
     huesped: 'huesped',
     inventario_minibar: 'inventario_minibar',
+    origen_reserva: 'origen_reserva',
     reserva: 'reserva',
     configuracion_hotel: 'configuracion_hotel',
     tipo_espacio_config: 'tipo_espacio_config',
@@ -807,7 +823,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "cuenta_espacio" | "cuenta_persona" | "espacio" | "huesped" | "inventario_minibar" | "reserva" | "configuracion_hotel" | "tipo_espacio_config" | "categoria_inventario" | "proveedor" | "producto_inventario" | "movimiento_inventario" | "gasto_operativo" | "categoria_gasto"
+      modelProps: "cuenta_espacio" | "cuenta_persona" | "espacio" | "huesped" | "inventario_minibar" | "origen_reserva" | "reserva" | "configuracion_hotel" | "tipo_espacio_config" | "categoria_inventario" | "proveedor" | "producto_inventario" | "movimiento_inventario" | "gasto_operativo" | "categoria_gasto"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1178,6 +1194,80 @@ export namespace Prisma {
           count: {
             args: Prisma.inventario_minibarCountArgs<ExtArgs>
             result: $Utils.Optional<Inventario_minibarCountAggregateOutputType> | number
+          }
+        }
+      }
+      origen_reserva: {
+        payload: Prisma.$origen_reservaPayload<ExtArgs>
+        fields: Prisma.origen_reservaFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.origen_reservaFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.origen_reservaFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>
+          }
+          findFirst: {
+            args: Prisma.origen_reservaFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.origen_reservaFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>
+          }
+          findMany: {
+            args: Prisma.origen_reservaFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>[]
+          }
+          create: {
+            args: Prisma.origen_reservaCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>
+          }
+          createMany: {
+            args: Prisma.origen_reservaCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.origen_reservaCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>[]
+          }
+          delete: {
+            args: Prisma.origen_reservaDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>
+          }
+          update: {
+            args: Prisma.origen_reservaUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>
+          }
+          deleteMany: {
+            args: Prisma.origen_reservaDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.origen_reservaUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.origen_reservaUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>[]
+          }
+          upsert: {
+            args: Prisma.origen_reservaUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$origen_reservaPayload>
+          }
+          aggregate: {
+            args: Prisma.Origen_reservaAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOrigen_reserva>
+          }
+          groupBy: {
+            args: Prisma.origen_reservaGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Origen_reservaGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.origen_reservaCountArgs<ExtArgs>
+            result: $Utils.Optional<Origen_reservaCountAggregateOutputType> | number
           }
         }
       }
@@ -1960,6 +2050,7 @@ export namespace Prisma {
     espacio?: espacioOmit
     huesped?: huespedOmit
     inventario_minibar?: inventario_minibarOmit
+    origen_reserva?: origen_reservaOmit
     reserva?: reservaOmit
     configuracion_hotel?: configuracion_hotelOmit
     tipo_espacio_config?: tipo_espacio_configOmit
@@ -8205,6 +8296,1014 @@ export namespace Prisma {
 
 
   /**
+   * Model origen_reserva
+   */
+
+  export type AggregateOrigen_reserva = {
+    _count: Origen_reservaCountAggregateOutputType | null
+    _avg: Origen_reservaAvgAggregateOutputType | null
+    _sum: Origen_reservaSumAggregateOutputType | null
+    _min: Origen_reservaMinAggregateOutputType | null
+    _max: Origen_reservaMaxAggregateOutputType | null
+  }
+
+  export type Origen_reservaAvgAggregateOutputType = {
+    id_origen: number | null
+  }
+
+  export type Origen_reservaSumAggregateOutputType = {
+    id_origen: number | null
+  }
+
+  export type Origen_reservaMinAggregateOutputType = {
+    id_origen: number | null
+    nombre: string | null
+    activo: boolean | null
+  }
+
+  export type Origen_reservaMaxAggregateOutputType = {
+    id_origen: number | null
+    nombre: string | null
+    activo: boolean | null
+  }
+
+  export type Origen_reservaCountAggregateOutputType = {
+    id_origen: number
+    nombre: number
+    activo: number
+    _all: number
+  }
+
+
+  export type Origen_reservaAvgAggregateInputType = {
+    id_origen?: true
+  }
+
+  export type Origen_reservaSumAggregateInputType = {
+    id_origen?: true
+  }
+
+  export type Origen_reservaMinAggregateInputType = {
+    id_origen?: true
+    nombre?: true
+    activo?: true
+  }
+
+  export type Origen_reservaMaxAggregateInputType = {
+    id_origen?: true
+    nombre?: true
+    activo?: true
+  }
+
+  export type Origen_reservaCountAggregateInputType = {
+    id_origen?: true
+    nombre?: true
+    activo?: true
+    _all?: true
+  }
+
+  export type Origen_reservaAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which origen_reserva to aggregate.
+     */
+    where?: origen_reservaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of origen_reservas to fetch.
+     */
+    orderBy?: origen_reservaOrderByWithRelationInput | origen_reservaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: origen_reservaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` origen_reservas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` origen_reservas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned origen_reservas
+    **/
+    _count?: true | Origen_reservaCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Origen_reservaAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Origen_reservaSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Origen_reservaMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Origen_reservaMaxAggregateInputType
+  }
+
+  export type GetOrigen_reservaAggregateType<T extends Origen_reservaAggregateArgs> = {
+        [P in keyof T & keyof AggregateOrigen_reserva]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOrigen_reserva[P]>
+      : GetScalarType<T[P], AggregateOrigen_reserva[P]>
+  }
+
+
+
+
+  export type origen_reservaGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: origen_reservaWhereInput
+    orderBy?: origen_reservaOrderByWithAggregationInput | origen_reservaOrderByWithAggregationInput[]
+    by: Origen_reservaScalarFieldEnum[] | Origen_reservaScalarFieldEnum
+    having?: origen_reservaScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Origen_reservaCountAggregateInputType | true
+    _avg?: Origen_reservaAvgAggregateInputType
+    _sum?: Origen_reservaSumAggregateInputType
+    _min?: Origen_reservaMinAggregateInputType
+    _max?: Origen_reservaMaxAggregateInputType
+  }
+
+  export type Origen_reservaGroupByOutputType = {
+    id_origen: number
+    nombre: string
+    activo: boolean
+    _count: Origen_reservaCountAggregateOutputType | null
+    _avg: Origen_reservaAvgAggregateOutputType | null
+    _sum: Origen_reservaSumAggregateOutputType | null
+    _min: Origen_reservaMinAggregateOutputType | null
+    _max: Origen_reservaMaxAggregateOutputType | null
+  }
+
+  type GetOrigen_reservaGroupByPayload<T extends origen_reservaGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Origen_reservaGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Origen_reservaGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Origen_reservaGroupByOutputType[P]>
+            : GetScalarType<T[P], Origen_reservaGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type origen_reservaSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id_origen?: boolean
+    nombre?: boolean
+    activo?: boolean
+  }, ExtArgs["result"]["origen_reserva"]>
+
+  export type origen_reservaSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id_origen?: boolean
+    nombre?: boolean
+    activo?: boolean
+  }, ExtArgs["result"]["origen_reserva"]>
+
+  export type origen_reservaSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id_origen?: boolean
+    nombre?: boolean
+    activo?: boolean
+  }, ExtArgs["result"]["origen_reserva"]>
+
+  export type origen_reservaSelectScalar = {
+    id_origen?: boolean
+    nombre?: boolean
+    activo?: boolean
+  }
+
+  export type origen_reservaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_origen" | "nombre" | "activo", ExtArgs["result"]["origen_reserva"]>
+
+  export type $origen_reservaPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "origen_reserva"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id_origen: number
+      nombre: string
+      activo: boolean
+    }, ExtArgs["result"]["origen_reserva"]>
+    composites: {}
+  }
+
+  type origen_reservaGetPayload<S extends boolean | null | undefined | origen_reservaDefaultArgs> = $Result.GetResult<Prisma.$origen_reservaPayload, S>
+
+  type origen_reservaCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<origen_reservaFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Origen_reservaCountAggregateInputType | true
+    }
+
+  export interface origen_reservaDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['origen_reserva'], meta: { name: 'origen_reserva' } }
+    /**
+     * Find zero or one Origen_reserva that matches the filter.
+     * @param {origen_reservaFindUniqueArgs} args - Arguments to find a Origen_reserva
+     * @example
+     * // Get one Origen_reserva
+     * const origen_reserva = await prisma.origen_reserva.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends origen_reservaFindUniqueArgs>(args: SelectSubset<T, origen_reservaFindUniqueArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Origen_reserva that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {origen_reservaFindUniqueOrThrowArgs} args - Arguments to find a Origen_reserva
+     * @example
+     * // Get one Origen_reserva
+     * const origen_reserva = await prisma.origen_reserva.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends origen_reservaFindUniqueOrThrowArgs>(args: SelectSubset<T, origen_reservaFindUniqueOrThrowArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Origen_reserva that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {origen_reservaFindFirstArgs} args - Arguments to find a Origen_reserva
+     * @example
+     * // Get one Origen_reserva
+     * const origen_reserva = await prisma.origen_reserva.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends origen_reservaFindFirstArgs>(args?: SelectSubset<T, origen_reservaFindFirstArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Origen_reserva that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {origen_reservaFindFirstOrThrowArgs} args - Arguments to find a Origen_reserva
+     * @example
+     * // Get one Origen_reserva
+     * const origen_reserva = await prisma.origen_reserva.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends origen_reservaFindFirstOrThrowArgs>(args?: SelectSubset<T, origen_reservaFindFirstOrThrowArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Origen_reservas that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {origen_reservaFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Origen_reservas
+     * const origen_reservas = await prisma.origen_reserva.findMany()
+     * 
+     * // Get first 10 Origen_reservas
+     * const origen_reservas = await prisma.origen_reserva.findMany({ take: 10 })
+     * 
+     * // Only select the `id_origen`
+     * const origen_reservaWithId_origenOnly = await prisma.origen_reserva.findMany({ select: { id_origen: true } })
+     * 
+     */
+    findMany<T extends origen_reservaFindManyArgs>(args?: SelectSubset<T, origen_reservaFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Origen_reserva.
+     * @param {origen_reservaCreateArgs} args - Arguments to create a Origen_reserva.
+     * @example
+     * // Create one Origen_reserva
+     * const Origen_reserva = await prisma.origen_reserva.create({
+     *   data: {
+     *     // ... data to create a Origen_reserva
+     *   }
+     * })
+     * 
+     */
+    create<T extends origen_reservaCreateArgs>(args: SelectSubset<T, origen_reservaCreateArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Origen_reservas.
+     * @param {origen_reservaCreateManyArgs} args - Arguments to create many Origen_reservas.
+     * @example
+     * // Create many Origen_reservas
+     * const origen_reserva = await prisma.origen_reserva.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends origen_reservaCreateManyArgs>(args?: SelectSubset<T, origen_reservaCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Origen_reservas and returns the data saved in the database.
+     * @param {origen_reservaCreateManyAndReturnArgs} args - Arguments to create many Origen_reservas.
+     * @example
+     * // Create many Origen_reservas
+     * const origen_reserva = await prisma.origen_reserva.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Origen_reservas and only return the `id_origen`
+     * const origen_reservaWithId_origenOnly = await prisma.origen_reserva.createManyAndReturn({
+     *   select: { id_origen: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends origen_reservaCreateManyAndReturnArgs>(args?: SelectSubset<T, origen_reservaCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Origen_reserva.
+     * @param {origen_reservaDeleteArgs} args - Arguments to delete one Origen_reserva.
+     * @example
+     * // Delete one Origen_reserva
+     * const Origen_reserva = await prisma.origen_reserva.delete({
+     *   where: {
+     *     // ... filter to delete one Origen_reserva
+     *   }
+     * })
+     * 
+     */
+    delete<T extends origen_reservaDeleteArgs>(args: SelectSubset<T, origen_reservaDeleteArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Origen_reserva.
+     * @param {origen_reservaUpdateArgs} args - Arguments to update one Origen_reserva.
+     * @example
+     * // Update one Origen_reserva
+     * const origen_reserva = await prisma.origen_reserva.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends origen_reservaUpdateArgs>(args: SelectSubset<T, origen_reservaUpdateArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Origen_reservas.
+     * @param {origen_reservaDeleteManyArgs} args - Arguments to filter Origen_reservas to delete.
+     * @example
+     * // Delete a few Origen_reservas
+     * const { count } = await prisma.origen_reserva.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends origen_reservaDeleteManyArgs>(args?: SelectSubset<T, origen_reservaDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Origen_reservas.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {origen_reservaUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Origen_reservas
+     * const origen_reserva = await prisma.origen_reserva.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends origen_reservaUpdateManyArgs>(args: SelectSubset<T, origen_reservaUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Origen_reservas and returns the data updated in the database.
+     * @param {origen_reservaUpdateManyAndReturnArgs} args - Arguments to update many Origen_reservas.
+     * @example
+     * // Update many Origen_reservas
+     * const origen_reserva = await prisma.origen_reserva.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Origen_reservas and only return the `id_origen`
+     * const origen_reservaWithId_origenOnly = await prisma.origen_reserva.updateManyAndReturn({
+     *   select: { id_origen: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends origen_reservaUpdateManyAndReturnArgs>(args: SelectSubset<T, origen_reservaUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Origen_reserva.
+     * @param {origen_reservaUpsertArgs} args - Arguments to update or create a Origen_reserva.
+     * @example
+     * // Update or create a Origen_reserva
+     * const origen_reserva = await prisma.origen_reserva.upsert({
+     *   create: {
+     *     // ... data to create a Origen_reserva
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Origen_reserva we want to update
+     *   }
+     * })
+     */
+    upsert<T extends origen_reservaUpsertArgs>(args: SelectSubset<T, origen_reservaUpsertArgs<ExtArgs>>): Prisma__origen_reservaClient<$Result.GetResult<Prisma.$origen_reservaPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Origen_reservas.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {origen_reservaCountArgs} args - Arguments to filter Origen_reservas to count.
+     * @example
+     * // Count the number of Origen_reservas
+     * const count = await prisma.origen_reserva.count({
+     *   where: {
+     *     // ... the filter for the Origen_reservas we want to count
+     *   }
+     * })
+    **/
+    count<T extends origen_reservaCountArgs>(
+      args?: Subset<T, origen_reservaCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Origen_reservaCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Origen_reserva.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Origen_reservaAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Origen_reservaAggregateArgs>(args: Subset<T, Origen_reservaAggregateArgs>): Prisma.PrismaPromise<GetOrigen_reservaAggregateType<T>>
+
+    /**
+     * Group by Origen_reserva.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {origen_reservaGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends origen_reservaGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: origen_reservaGroupByArgs['orderBy'] }
+        : { orderBy?: origen_reservaGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, origen_reservaGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOrigen_reservaGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the origen_reserva model
+   */
+  readonly fields: origen_reservaFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for origen_reserva.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__origen_reservaClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the origen_reserva model
+   */
+  interface origen_reservaFieldRefs {
+    readonly id_origen: FieldRef<"origen_reserva", 'Int'>
+    readonly nombre: FieldRef<"origen_reserva", 'String'>
+    readonly activo: FieldRef<"origen_reserva", 'Boolean'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * origen_reserva findUnique
+   */
+  export type origen_reservaFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * Filter, which origen_reserva to fetch.
+     */
+    where: origen_reservaWhereUniqueInput
+  }
+
+  /**
+   * origen_reserva findUniqueOrThrow
+   */
+  export type origen_reservaFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * Filter, which origen_reserva to fetch.
+     */
+    where: origen_reservaWhereUniqueInput
+  }
+
+  /**
+   * origen_reserva findFirst
+   */
+  export type origen_reservaFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * Filter, which origen_reserva to fetch.
+     */
+    where?: origen_reservaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of origen_reservas to fetch.
+     */
+    orderBy?: origen_reservaOrderByWithRelationInput | origen_reservaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for origen_reservas.
+     */
+    cursor?: origen_reservaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` origen_reservas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` origen_reservas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of origen_reservas.
+     */
+    distinct?: Origen_reservaScalarFieldEnum | Origen_reservaScalarFieldEnum[]
+  }
+
+  /**
+   * origen_reserva findFirstOrThrow
+   */
+  export type origen_reservaFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * Filter, which origen_reserva to fetch.
+     */
+    where?: origen_reservaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of origen_reservas to fetch.
+     */
+    orderBy?: origen_reservaOrderByWithRelationInput | origen_reservaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for origen_reservas.
+     */
+    cursor?: origen_reservaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` origen_reservas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` origen_reservas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of origen_reservas.
+     */
+    distinct?: Origen_reservaScalarFieldEnum | Origen_reservaScalarFieldEnum[]
+  }
+
+  /**
+   * origen_reserva findMany
+   */
+  export type origen_reservaFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * Filter, which origen_reservas to fetch.
+     */
+    where?: origen_reservaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of origen_reservas to fetch.
+     */
+    orderBy?: origen_reservaOrderByWithRelationInput | origen_reservaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing origen_reservas.
+     */
+    cursor?: origen_reservaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` origen_reservas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` origen_reservas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of origen_reservas.
+     */
+    distinct?: Origen_reservaScalarFieldEnum | Origen_reservaScalarFieldEnum[]
+  }
+
+  /**
+   * origen_reserva create
+   */
+  export type origen_reservaCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * The data needed to create a origen_reserva.
+     */
+    data: XOR<origen_reservaCreateInput, origen_reservaUncheckedCreateInput>
+  }
+
+  /**
+   * origen_reserva createMany
+   */
+  export type origen_reservaCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many origen_reservas.
+     */
+    data: origen_reservaCreateManyInput | origen_reservaCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * origen_reserva createManyAndReturn
+   */
+  export type origen_reservaCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * The data used to create many origen_reservas.
+     */
+    data: origen_reservaCreateManyInput | origen_reservaCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * origen_reserva update
+   */
+  export type origen_reservaUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * The data needed to update a origen_reserva.
+     */
+    data: XOR<origen_reservaUpdateInput, origen_reservaUncheckedUpdateInput>
+    /**
+     * Choose, which origen_reserva to update.
+     */
+    where: origen_reservaWhereUniqueInput
+  }
+
+  /**
+   * origen_reserva updateMany
+   */
+  export type origen_reservaUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update origen_reservas.
+     */
+    data: XOR<origen_reservaUpdateManyMutationInput, origen_reservaUncheckedUpdateManyInput>
+    /**
+     * Filter which origen_reservas to update
+     */
+    where?: origen_reservaWhereInput
+    /**
+     * Limit how many origen_reservas to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * origen_reserva updateManyAndReturn
+   */
+  export type origen_reservaUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * The data used to update origen_reservas.
+     */
+    data: XOR<origen_reservaUpdateManyMutationInput, origen_reservaUncheckedUpdateManyInput>
+    /**
+     * Filter which origen_reservas to update
+     */
+    where?: origen_reservaWhereInput
+    /**
+     * Limit how many origen_reservas to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * origen_reserva upsert
+   */
+  export type origen_reservaUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * The filter to search for the origen_reserva to update in case it exists.
+     */
+    where: origen_reservaWhereUniqueInput
+    /**
+     * In case the origen_reserva found by the `where` argument doesn't exist, create a new origen_reserva with this data.
+     */
+    create: XOR<origen_reservaCreateInput, origen_reservaUncheckedCreateInput>
+    /**
+     * In case the origen_reserva was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<origen_reservaUpdateInput, origen_reservaUncheckedUpdateInput>
+  }
+
+  /**
+   * origen_reserva delete
+   */
+  export type origen_reservaDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+    /**
+     * Filter which origen_reserva to delete.
+     */
+    where: origen_reservaWhereUniqueInput
+  }
+
+  /**
+   * origen_reserva deleteMany
+   */
+  export type origen_reservaDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which origen_reservas to delete
+     */
+    where?: origen_reservaWhereInput
+    /**
+     * Limit how many origen_reservas to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * origen_reserva without action
+   */
+  export type origen_reservaDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the origen_reserva
+     */
+    select?: origen_reservaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the origen_reserva
+     */
+    omit?: origen_reservaOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model reserva
    */
 
@@ -8241,6 +9340,7 @@ export namespace Prisma {
     id_huesped: number | null
     id_espacio: number | null
     tipo_reserva: string | null
+    origen: string | null
     dni_tipo: string | null
     check_in: Date | null
     check_out: Date | null
@@ -8264,6 +9364,7 @@ export namespace Prisma {
     id_huesped: number | null
     id_espacio: number | null
     tipo_reserva: string | null
+    origen: string | null
     dni_tipo: string | null
     check_in: Date | null
     check_out: Date | null
@@ -8287,6 +9388,7 @@ export namespace Prisma {
     id_huesped: number
     id_espacio: number
     tipo_reserva: number
+    origen: number
     dni_tipo: number
     check_in: number
     check_out: number
@@ -8332,6 +9434,7 @@ export namespace Prisma {
     id_huesped?: true
     id_espacio?: true
     tipo_reserva?: true
+    origen?: true
     dni_tipo?: true
     check_in?: true
     check_out?: true
@@ -8355,6 +9458,7 @@ export namespace Prisma {
     id_huesped?: true
     id_espacio?: true
     tipo_reserva?: true
+    origen?: true
     dni_tipo?: true
     check_in?: true
     check_out?: true
@@ -8378,6 +9482,7 @@ export namespace Prisma {
     id_huesped?: true
     id_espacio?: true
     tipo_reserva?: true
+    origen?: true
     dni_tipo?: true
     check_in?: true
     check_out?: true
@@ -8488,6 +9593,7 @@ export namespace Prisma {
     id_huesped: number
     id_espacio: number
     tipo_reserva: string
+    origen: string
     dni_tipo: string | null
     check_in: Date | null
     check_out: Date | null
@@ -8530,6 +9636,7 @@ export namespace Prisma {
     id_huesped?: boolean
     id_espacio?: boolean
     tipo_reserva?: boolean
+    origen?: boolean
     dni_tipo?: boolean
     check_in?: boolean
     check_out?: boolean
@@ -8558,6 +9665,7 @@ export namespace Prisma {
     id_huesped?: boolean
     id_espacio?: boolean
     tipo_reserva?: boolean
+    origen?: boolean
     dni_tipo?: boolean
     check_in?: boolean
     check_out?: boolean
@@ -8583,6 +9691,7 @@ export namespace Prisma {
     id_huesped?: boolean
     id_espacio?: boolean
     tipo_reserva?: boolean
+    origen?: boolean
     dni_tipo?: boolean
     check_in?: boolean
     check_out?: boolean
@@ -8608,6 +9717,7 @@ export namespace Prisma {
     id_huesped?: boolean
     id_espacio?: boolean
     tipo_reserva?: boolean
+    origen?: boolean
     dni_tipo?: boolean
     check_in?: boolean
     check_out?: boolean
@@ -8626,7 +9736,7 @@ export namespace Prisma {
     fecha_creacion?: boolean
   }
 
-  export type reservaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_reserva" | "id_huesped" | "id_espacio" | "tipo_reserva" | "dni_tipo" | "check_in" | "check_out" | "cantidad_adultos" | "cantidad_ninos" | "fecha_evento" | "hora_inicio" | "hora_fin" | "estado_reserva" | "monto_total" | "estado_pago" | "metodo_pago" | "monto_pagado" | "anotaciones" | "firma" | "fecha_creacion", ExtArgs["result"]["reserva"]>
+  export type reservaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_reserva" | "id_huesped" | "id_espacio" | "tipo_reserva" | "origen" | "dni_tipo" | "check_in" | "check_out" | "cantidad_adultos" | "cantidad_ninos" | "fecha_evento" | "hora_inicio" | "hora_fin" | "estado_reserva" | "monto_total" | "estado_pago" | "metodo_pago" | "monto_pagado" | "anotaciones" | "firma" | "fecha_creacion", ExtArgs["result"]["reserva"]>
   export type reservaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     cuenta_espacio?: boolean | reserva$cuenta_espacioArgs<ExtArgs>
     cuenta_persona?: boolean | reserva$cuenta_personaArgs<ExtArgs>
@@ -8656,6 +9766,7 @@ export namespace Prisma {
       id_huesped: number
       id_espacio: number
       tipo_reserva: string
+      origen: string
       dni_tipo: string | null
       check_in: Date | null
       check_out: Date | null
@@ -9103,6 +10214,7 @@ export namespace Prisma {
     readonly id_huesped: FieldRef<"reserva", 'Int'>
     readonly id_espacio: FieldRef<"reserva", 'Int'>
     readonly tipo_reserva: FieldRef<"reserva", 'String'>
+    readonly origen: FieldRef<"reserva", 'String'>
     readonly dni_tipo: FieldRef<"reserva", 'String'>
     readonly check_in: FieldRef<"reserva", 'DateTime'>
     readonly check_out: FieldRef<"reserva", 'DateTime'>
@@ -18658,11 +19770,21 @@ export namespace Prisma {
   export type Inventario_minibarScalarFieldEnum = (typeof Inventario_minibarScalarFieldEnum)[keyof typeof Inventario_minibarScalarFieldEnum]
 
 
+  export const Origen_reservaScalarFieldEnum: {
+    id_origen: 'id_origen',
+    nombre: 'nombre',
+    activo: 'activo'
+  };
+
+  export type Origen_reservaScalarFieldEnum = (typeof Origen_reservaScalarFieldEnum)[keyof typeof Origen_reservaScalarFieldEnum]
+
+
   export const ReservaScalarFieldEnum: {
     id_reserva: 'id_reserva',
     id_huesped: 'id_huesped',
     id_espacio: 'id_espacio',
     tipo_reserva: 'tipo_reserva',
+    origen: 'origen',
     dni_tipo: 'dni_tipo',
     check_in: 'check_in',
     check_out: 'check_out',
@@ -19320,6 +20442,50 @@ export namespace Prisma {
     fecha_actualizacion?: DateTimeNullableWithAggregatesFilter<"inventario_minibar"> | Date | string | null
   }
 
+  export type origen_reservaWhereInput = {
+    AND?: origen_reservaWhereInput | origen_reservaWhereInput[]
+    OR?: origen_reservaWhereInput[]
+    NOT?: origen_reservaWhereInput | origen_reservaWhereInput[]
+    id_origen?: IntFilter<"origen_reserva"> | number
+    nombre?: StringFilter<"origen_reserva"> | string
+    activo?: BoolFilter<"origen_reserva"> | boolean
+  }
+
+  export type origen_reservaOrderByWithRelationInput = {
+    id_origen?: SortOrder
+    nombre?: SortOrder
+    activo?: SortOrder
+  }
+
+  export type origen_reservaWhereUniqueInput = Prisma.AtLeast<{
+    id_origen?: number
+    nombre?: string
+    AND?: origen_reservaWhereInput | origen_reservaWhereInput[]
+    OR?: origen_reservaWhereInput[]
+    NOT?: origen_reservaWhereInput | origen_reservaWhereInput[]
+    activo?: BoolFilter<"origen_reserva"> | boolean
+  }, "id_origen" | "nombre">
+
+  export type origen_reservaOrderByWithAggregationInput = {
+    id_origen?: SortOrder
+    nombre?: SortOrder
+    activo?: SortOrder
+    _count?: origen_reservaCountOrderByAggregateInput
+    _avg?: origen_reservaAvgOrderByAggregateInput
+    _max?: origen_reservaMaxOrderByAggregateInput
+    _min?: origen_reservaMinOrderByAggregateInput
+    _sum?: origen_reservaSumOrderByAggregateInput
+  }
+
+  export type origen_reservaScalarWhereWithAggregatesInput = {
+    AND?: origen_reservaScalarWhereWithAggregatesInput | origen_reservaScalarWhereWithAggregatesInput[]
+    OR?: origen_reservaScalarWhereWithAggregatesInput[]
+    NOT?: origen_reservaScalarWhereWithAggregatesInput | origen_reservaScalarWhereWithAggregatesInput[]
+    id_origen?: IntWithAggregatesFilter<"origen_reserva"> | number
+    nombre?: StringWithAggregatesFilter<"origen_reserva"> | string
+    activo?: BoolWithAggregatesFilter<"origen_reserva"> | boolean
+  }
+
   export type reservaWhereInput = {
     AND?: reservaWhereInput | reservaWhereInput[]
     OR?: reservaWhereInput[]
@@ -19328,6 +20494,7 @@ export namespace Prisma {
     id_huesped?: IntFilter<"reserva"> | number
     id_espacio?: IntFilter<"reserva"> | number
     tipo_reserva?: StringFilter<"reserva"> | string
+    origen?: StringFilter<"reserva"> | string
     dni_tipo?: StringNullableFilter<"reserva"> | string | null
     check_in?: DateTimeNullableFilter<"reserva"> | Date | string | null
     check_out?: DateTimeNullableFilter<"reserva"> | Date | string | null
@@ -19355,6 +20522,7 @@ export namespace Prisma {
     id_huesped?: SortOrder
     id_espacio?: SortOrder
     tipo_reserva?: SortOrder
+    origen?: SortOrder
     dni_tipo?: SortOrderInput | SortOrder
     check_in?: SortOrderInput | SortOrder
     check_out?: SortOrderInput | SortOrder
@@ -19385,6 +20553,7 @@ export namespace Prisma {
     id_huesped?: IntFilter<"reserva"> | number
     id_espacio?: IntFilter<"reserva"> | number
     tipo_reserva?: StringFilter<"reserva"> | string
+    origen?: StringFilter<"reserva"> | string
     dni_tipo?: StringNullableFilter<"reserva"> | string | null
     check_in?: DateTimeNullableFilter<"reserva"> | Date | string | null
     check_out?: DateTimeNullableFilter<"reserva"> | Date | string | null
@@ -19412,6 +20581,7 @@ export namespace Prisma {
     id_huesped?: SortOrder
     id_espacio?: SortOrder
     tipo_reserva?: SortOrder
+    origen?: SortOrder
     dni_tipo?: SortOrderInput | SortOrder
     check_in?: SortOrderInput | SortOrder
     check_out?: SortOrderInput | SortOrder
@@ -19443,6 +20613,7 @@ export namespace Prisma {
     id_huesped?: IntWithAggregatesFilter<"reserva"> | number
     id_espacio?: IntWithAggregatesFilter<"reserva"> | number
     tipo_reserva?: StringWithAggregatesFilter<"reserva"> | string
+    origen?: StringWithAggregatesFilter<"reserva"> | string
     dni_tipo?: StringNullableWithAggregatesFilter<"reserva"> | string | null
     check_in?: DateTimeNullableWithAggregatesFilter<"reserva"> | Date | string | null
     check_out?: DateTimeNullableWithAggregatesFilter<"reserva"> | Date | string | null
@@ -20493,8 +21664,48 @@ export namespace Prisma {
     fecha_actualizacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type origen_reservaCreateInput = {
+    nombre: string
+    activo?: boolean
+  }
+
+  export type origen_reservaUncheckedCreateInput = {
+    id_origen?: number
+    nombre: string
+    activo?: boolean
+  }
+
+  export type origen_reservaUpdateInput = {
+    nombre?: StringFieldUpdateOperationsInput | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type origen_reservaUncheckedUpdateInput = {
+    id_origen?: IntFieldUpdateOperationsInput | number
+    nombre?: StringFieldUpdateOperationsInput | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type origen_reservaCreateManyInput = {
+    id_origen?: number
+    nombre: string
+    activo?: boolean
+  }
+
+  export type origen_reservaUpdateManyMutationInput = {
+    nombre?: StringFieldUpdateOperationsInput | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type origen_reservaUncheckedUpdateManyInput = {
+    id_origen?: IntFieldUpdateOperationsInput | number
+    nombre?: StringFieldUpdateOperationsInput | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+  }
+
   export type reservaCreateInput = {
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -20522,6 +21733,7 @@ export namespace Prisma {
     id_huesped: number
     id_espacio: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -20544,6 +21756,7 @@ export namespace Prisma {
 
   export type reservaUpdateInput = {
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20571,6 +21784,7 @@ export namespace Prisma {
     id_huesped?: IntFieldUpdateOperationsInput | number
     id_espacio?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20596,6 +21810,7 @@ export namespace Prisma {
     id_huesped: number
     id_espacio: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -20616,6 +21831,7 @@ export namespace Prisma {
 
   export type reservaUpdateManyMutationInput = {
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -20639,6 +21855,7 @@ export namespace Prisma {
     id_huesped?: IntFieldUpdateOperationsInput | number
     id_espacio?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -21850,6 +23067,45 @@ export namespace Prisma {
     precio_unitario?: SortOrder
   }
 
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
+  export type origen_reservaCountOrderByAggregateInput = {
+    id_origen?: SortOrder
+    nombre?: SortOrder
+    activo?: SortOrder
+  }
+
+  export type origen_reservaAvgOrderByAggregateInput = {
+    id_origen?: SortOrder
+  }
+
+  export type origen_reservaMaxOrderByAggregateInput = {
+    id_origen?: SortOrder
+    nombre?: SortOrder
+    activo?: SortOrder
+  }
+
+  export type origen_reservaMinOrderByAggregateInput = {
+    id_origen?: SortOrder
+    nombre?: SortOrder
+    activo?: SortOrder
+  }
+
+  export type origen_reservaSumOrderByAggregateInput = {
+    id_origen?: SortOrder
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
+  }
+
   export type Cuenta_espacioListRelationFilter = {
     every?: cuenta_espacioWhereInput
     some?: cuenta_espacioWhereInput
@@ -21870,6 +23126,7 @@ export namespace Prisma {
     id_huesped?: SortOrder
     id_espacio?: SortOrder
     tipo_reserva?: SortOrder
+    origen?: SortOrder
     dni_tipo?: SortOrder
     check_in?: SortOrder
     check_out?: SortOrder
@@ -21903,6 +23160,7 @@ export namespace Prisma {
     id_huesped?: SortOrder
     id_espacio?: SortOrder
     tipo_reserva?: SortOrder
+    origen?: SortOrder
     dni_tipo?: SortOrder
     check_in?: SortOrder
     check_out?: SortOrder
@@ -21926,6 +23184,7 @@ export namespace Prisma {
     id_huesped?: SortOrder
     id_espacio?: SortOrder
     tipo_reserva?: SortOrder
+    origen?: SortOrder
     dni_tipo?: SortOrder
     check_in?: SortOrder
     check_out?: SortOrder
@@ -22044,11 +23303,6 @@ export namespace Prisma {
     max_personas_adicionales?: SortOrder
   }
 
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type categoria_inventarioCountOrderByAggregateInput = {
     id_categoria?: SortOrder
     nombre?: SortOrder
@@ -22076,14 +23330,6 @@ export namespace Prisma {
 
   export type categoria_inventarioSumOrderByAggregateInput = {
     id_categoria?: SortOrder
-  }
-
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type Producto_inventarioListRelationFilter = {
@@ -22657,6 +23903,10 @@ export namespace Prisma {
     update?: XOR<XOR<espacioUpdateToOneWithWhereWithoutInventario_minibarInput, espacioUpdateWithoutInventario_minibarInput>, espacioUncheckedUpdateWithoutInventario_minibarInput>
   }
 
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
+  }
+
   export type cuenta_espacioCreateNestedManyWithoutReservaInput = {
     create?: XOR<cuenta_espacioCreateWithoutReservaInput, cuenta_espacioUncheckedCreateWithoutReservaInput> | cuenta_espacioCreateWithoutReservaInput[] | cuenta_espacioUncheckedCreateWithoutReservaInput[]
     connectOrCreate?: cuenta_espacioCreateOrConnectWithoutReservaInput | cuenta_espacioCreateOrConnectWithoutReservaInput[]
@@ -22767,10 +24017,6 @@ export namespace Prisma {
     update?: cuenta_personaUpdateWithWhereUniqueWithoutReservaInput | cuenta_personaUpdateWithWhereUniqueWithoutReservaInput[]
     updateMany?: cuenta_personaUpdateManyWithWhereWithoutReservaInput | cuenta_personaUpdateManyWithWhereWithoutReservaInput[]
     deleteMany?: cuenta_personaScalarWhereInput | cuenta_personaScalarWhereInput[]
-  }
-
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
   }
 
   export type producto_inventarioCreateNestedManyWithoutProveedorInput = {
@@ -23157,6 +24403,7 @@ export namespace Prisma {
 
   export type reservaCreateWithoutCuenta_espacioInput = {
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -23183,6 +24430,7 @@ export namespace Prisma {
     id_huesped: number
     id_espacio: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -23220,6 +24468,7 @@ export namespace Prisma {
 
   export type reservaUpdateWithoutCuenta_espacioInput = {
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23246,6 +24495,7 @@ export namespace Prisma {
     id_huesped?: IntFieldUpdateOperationsInput | number
     id_espacio?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23295,6 +24545,7 @@ export namespace Prisma {
 
   export type reservaCreateWithoutCuenta_personaInput = {
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -23321,6 +24572,7 @@ export namespace Prisma {
     id_huesped: number
     id_espacio: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -23392,6 +24644,7 @@ export namespace Prisma {
 
   export type reservaUpdateWithoutCuenta_personaInput = {
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23418,6 +24671,7 @@ export namespace Prisma {
     id_huesped?: IntFieldUpdateOperationsInput | number
     id_espacio?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23466,6 +24720,7 @@ export namespace Prisma {
 
   export type reservaCreateWithoutEspacioInput = {
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -23491,6 +24746,7 @@ export namespace Prisma {
     id_reserva?: number
     id_huesped: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -23574,6 +24830,7 @@ export namespace Prisma {
     id_huesped?: IntFilter<"reserva"> | number
     id_espacio?: IntFilter<"reserva"> | number
     tipo_reserva?: StringFilter<"reserva"> | string
+    origen?: StringFilter<"reserva"> | string
     dni_tipo?: StringNullableFilter<"reserva"> | string | null
     check_in?: DateTimeNullableFilter<"reserva"> | Date | string | null
     check_out?: DateTimeNullableFilter<"reserva"> | Date | string | null
@@ -23631,6 +24888,7 @@ export namespace Prisma {
 
   export type reservaCreateWithoutHuespedInput = {
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -23656,6 +24914,7 @@ export namespace Prisma {
     id_reserva?: number
     id_espacio: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -24365,6 +25624,7 @@ export namespace Prisma {
     id_reserva?: number
     id_huesped: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -24411,6 +25671,7 @@ export namespace Prisma {
 
   export type reservaUpdateWithoutEspacioInput = {
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24436,6 +25697,7 @@ export namespace Prisma {
     id_reserva?: IntFieldUpdateOperationsInput | number
     id_huesped?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24460,6 +25722,7 @@ export namespace Prisma {
     id_reserva?: IntFieldUpdateOperationsInput | number
     id_huesped?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24496,6 +25759,7 @@ export namespace Prisma {
     id_reserva?: number
     id_espacio: number
     tipo_reserva?: string
+    origen?: string
     dni_tipo?: string | null
     check_in?: Date | string | null
     check_out?: Date | string | null
@@ -24557,6 +25821,7 @@ export namespace Prisma {
 
   export type reservaUpdateWithoutHuespedInput = {
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24582,6 +25847,7 @@ export namespace Prisma {
     id_reserva?: IntFieldUpdateOperationsInput | number
     id_espacio?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -24606,6 +25872,7 @@ export namespace Prisma {
     id_reserva?: IntFieldUpdateOperationsInput | number
     id_espacio?: IntFieldUpdateOperationsInput | number
     tipo_reserva?: StringFieldUpdateOperationsInput | string
+    origen?: StringFieldUpdateOperationsInput | string
     dni_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     check_in?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     check_out?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null

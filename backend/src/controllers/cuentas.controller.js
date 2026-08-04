@@ -5,7 +5,7 @@ const prisma = require('../config/prisma');
 const getCuentasEspacio = async (req, res) => {
   try {
     const items = await prisma.cuenta_espacio.findMany({
-      where: { reserva: { estado_reserva: { in: ['activa', 'confirmada', 'no_show'] } } },
+      where: { reserva: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso', 'no_show'] } } },
       include: { reserva: { include: { espacio: true, huesped: true } } },
       orderBy: { fecha_registro: 'desc' }
     });
@@ -165,9 +165,15 @@ const getCuentasPersona = async (req, res) => {
 
 const createCuentaPersona = async (req, res) => {
   const { id_huesped, nombre_persona, id_reserva, descripcion, cantidad, valor_unitario } = req.body;
+  
   try {
-    if (!nombre_persona || !descripcion || !cantidad || !valor_unitario)
+    if (!nombre_persona || !descripcion || cantidad === undefined || valor_unitario === undefined) {
       return res.status(400).json({ error: 'Faltan campos requeridos' });
+    }
+
+    // Parseo seguro eliminando comas o caracteres extraños que puedan causar NaN
+    const safeCant = parseInt(cantidad?.toString().replace(/[^\d.-]/g, '')) || 0;
+    const safeUnit = parseFloat(valor_unitario?.toString().replace(/[^\d.-]/g, '')) || 0;
 
     const nuevo = await prisma.cuenta_persona.create({
       data: {
@@ -175,8 +181,9 @@ const createCuentaPersona = async (req, res) => {
         nombre_persona,
         id_reserva: id_reserva ? parseInt(id_reserva) : null,
         descripcion,
-        cantidad: parseInt(cantidad),
-        valor_unitario: parseFloat(valor_unitario)
+        cantidad: safeCant,
+        valor_unitario: safeUnit,
+        valor_total: safeCant * safeUnit
       },
       include: { huesped: true, reserva: { include: { espacio: true } } }
     });
@@ -222,9 +229,17 @@ const updateCuentaPersona = async (req, res) => {
   const { id } = req.params;
   const { descripcion, cantidad, valor_unitario } = req.body;
   try {
+    const safeCant = parseInt(cantidad?.toString().replace(/[^\d.-]/g, '')) || 0;
+    const safeUnit = parseFloat(valor_unitario?.toString().replace(/[^\d.-]/g, '')) || 0;
+
     const updated = await prisma.cuenta_persona.update({
       where: { id_item_persona: parseInt(id) },
-      data: { descripcion, cantidad: parseInt(cantidad), valor_unitario: parseFloat(valor_unitario) }
+      data: {
+        descripcion,
+        cantidad: safeCant,
+        valor_unitario: safeUnit,
+        valor_total: safeCant * safeUnit
+      }
     });
     res.json(updated);
   } catch (error) {
@@ -458,7 +473,7 @@ const createInventarioMinibar = async (req, res) => {
         nombre_producto,
         cantidad: parseInt(cantidad) || 0,
         precio_unitario: parseFloat(precio_unitario),
-        fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento) : null
+        fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento.slice(0,10) + 'T12:00:00Z') : null
       },
       include: { espacio: true }
     });
@@ -479,7 +494,7 @@ const updateInventarioMinibar = async (req, res) => {
         nombre_producto,
         cantidad: parseInt(cantidad),
         precio_unitario: parseFloat(precio_unitario),
-        fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento) : null
+        fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento.slice(0,10) + 'T12:00:00Z') : null
       }
     });
     res.json(updated);

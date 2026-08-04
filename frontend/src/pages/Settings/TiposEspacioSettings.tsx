@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Bed, Loader2, CheckCircle, Plus, X, Trash2 } from 'lucide-react';
+import { Save, Bed, Loader2, CheckCircle, Plus, X, Trash2, AlertCircle } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { apiFetch } from '../../utils/apiFetch';
 
@@ -123,124 +123,153 @@ export const TiposEspacioSettings: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="p-8 text-center"><Loader2 className="animate-spin inline" /></div>;
-  if (fetchError) return (
-    <div className="glass-panel" style={{ marginTop: '20px', padding: '20px' }}>
-      <div style={{ color: '#f87171', fontSize: '13px', padding: '12px', background: 'rgba(248,113,113,0.08)', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.2)' }}>
-        {fetchError}
-        <button onClick={fetchTipos} style={{ marginLeft: '12px', color: 'var(--primary)', cursor: 'pointer', background: 'none', border: 'none', fontSize: '13px' }}>
-          Reintentar
-        </button>
-      </div>
+  if (loading) return (
+    <div style={{ padding: '40px', textAlign: 'center' }}>
+      <Loader2 className="animate-spin" size={28} style={{ color: 'var(--primary)', display: 'inline-block' }} />
     </div>
   );
 
-  const colStyle = { gridTemplateColumns: '1.2fr 1fr 1fr 1fr 0.7fr auto auto', gap: '10px', alignItems: 'end' };
+  if (fetchError) return (
+    <div style={{ color: '#f87171', fontSize: '13px', padding: '14px 16px', background: 'rgba(248,113,113,0.08)', borderRadius: '10px', border: '1px solid rgba(248,113,113,0.2)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <AlertCircle size={15} />
+      {fetchError}
+      <button onClick={fetchTipos} style={{ marginLeft: 'auto', color: 'var(--primary)', cursor: 'pointer', background: 'none', border: 'none', fontSize: '13px', fontWeight: 600 }}>
+        Reintentar
+      </button>
+    </div>
+  );
 
   return (
-    <div className="glass-panel" style={{ marginTop: '20px', padding: '20px' }}>
-      <div className="settings-section-title flex justify-between items-center" style={{ marginBottom: '15px' }}>
-        <span><Bed size={16} /> Precios por Tipo de Habitación</span>
+    <div>
+      {/* Section Header */}
+      <div className="settings-section-title">
+        <span className="settings-section-title-left">
+          <Bed size={16} /> Precios por Tipo de Habitación
+        </span>
         {!showAddForm && (
-          <Button variant="ghost" size="sm" onClick={() => setShowAddForm(true)} className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" onClick={() => setShowAddForm(true)}>
             <Plus size={14} /> Añadir Tipo
           </Button>
         )}
       </div>
 
-      {/* Header labels */}
-      {tipos.length > 0 && (
-        <div style={{ display: 'grid', ...colStyle, padding: '0 15px', marginBottom: '4px' }}>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tipo</span>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Precio Base (1 pers.)</span>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recargo Pareja (+1)</span>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Adicional c/u</span>
-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Máx. Adic.</span>
-          <span></span>
-          <span></span>
-        </div>
-      )}
+      <div className="tipos-list">
+        {/* New tipo form */}
+        {showAddForm && (
+          <div className="tipo-card tipo-card-new">
+            <div className="tipo-card-header">
+              <input
+                type="text"
+                className="tipo-card-name-input"
+                placeholder="Nombre del tipo (Ej: Presidencial)"
+                value={newTipo.nombre}
+                onChange={e => setNewTipo({ ...newTipo, nombre: e.target.value })}
+                autoFocus
+              />
+              <div className="tipo-card-actions">
+                <Button variant="primary" size="sm" onClick={handleAddSubmit} disabled={addingNew || !newTipo.nombre.trim()}>
+                  {addingNew ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}
+                  Guardar
+                </Button>
+                <button
+                  onClick={() => { setShowAddForm(false); setNewTipo({ ...emptyNew }); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', padding: '4px' }}
+                  title="Cancelar"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+            <div className="tipo-card-fields">
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Precio Base (1 pers.)</span>
+                <input type="number" className="form-input" placeholder="170000"
+                  value={newTipo.precio_base} onChange={e => setNewTipo({ ...newTipo, precio_base: e.target.value })} />
+              </div>
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Recargo Pareja (+1)</span>
+                <input type="number" className="form-input" placeholder="50000"
+                  value={newTipo.recargo_pareja} onChange={e => setNewTipo({ ...newTipo, recargo_pareja: e.target.value })} />
+              </div>
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Adicional c/u</span>
+                <input type="number" className="form-input" placeholder="80000"
+                  value={newTipo.recargo_adicional} onChange={e => setNewTipo({ ...newTipo, recargo_adicional: e.target.value })} />
+              </div>
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Máx. Adicionales</span>
+                <input type="number" className="form-input" placeholder="1" min={0} max={10}
+                  value={newTipo.max_personas_adicionales} onChange={e => setNewTipo({ ...newTipo, max_personas_adicionales: e.target.value })} />
+              </div>
+            </div>
+          </div>
+        )}
 
-      <div style={{ display: 'grid', gap: '8px' }}>
+        {/* Existing tipos */}
         {tipos.map((tipo, idx) => (
-          <div key={tipo.id} style={{ display: 'grid', ...colStyle, padding: '12px 15px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="text" className="form-input" value={tipo.nombre} style={{ fontWeight: 600 }}
-                onChange={(e) => handleChange(idx, 'nombre', e.target.value)} />
+          <div key={tipo.id} className="tipo-card">
+            <div className="tipo-card-header">
+              <input
+                type="text"
+                className="tipo-card-name-input"
+                value={tipo.nombre}
+                onChange={(e) => handleChange(idx, 'nombre', e.target.value)}
+              />
+              <div className="tipo-card-actions">
+                {saved === tipo.id && (
+                  <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: 4, fontSize: '12px', fontWeight: 600 }}>
+                    <CheckCircle size={13} /> Guardado
+                  </span>
+                )}
+                <Button variant="secondary" size="sm" onClick={() => handleSave(tipo)} disabled={saving === tipo.id}>
+                  {saving === tipo.id ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />}
+                  Guardar
+                </Button>
+                <button
+                  onClick={() => handleDelete(tipo)}
+                  disabled={deleting === tipo.id}
+                  title="Eliminar tipo"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', display: 'flex', alignItems: 'center', padding: '4px', opacity: deleting === tipo.id ? 0.5 : 1 }}
+                >
+                  {deleting === tipo.id ? <Loader2 className="animate-spin" size={15} /> : <Trash2 size={15} />}
+                </button>
+              </div>
             </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input" value={tipo.precio_base} onChange={(e) => handleChange(idx, 'precio_base', e.target.value)} />
-            </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input" value={tipo.recargo_pareja} onChange={(e) => handleChange(idx, 'recargo_pareja', e.target.value)} />
-            </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input" value={tipo.recargo_adicional} onChange={(e) => handleChange(idx, 'recargo_adicional', e.target.value)} />
-            </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input text-center" value={tipo.max_personas_adicionales ?? 1} min={0} max={10}
-                onChange={(e) => handleChange(idx, 'max_personas_adicionales', e.target.value)} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Button variant="secondary" onClick={() => handleSave(tipo)} disabled={saving === tipo.id}>
-                {saving === tipo.id ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-              </Button>
-              {saved === tipo.id && <CheckCircle size={14} style={{ color: '#10b981' }} />}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Button variant="ghost" onClick={() => handleDelete(tipo)} disabled={deleting === tipo.id}
-                style={{ color: '#f87171', padding: '6px' }} title="Eliminar tipo">
-                {deleting === tipo.id ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
-              </Button>
+
+            <div className="tipo-card-fields">
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Precio Base (1 pers.)</span>
+                <input type="number" className="form-input" value={tipo.precio_base}
+                  onChange={(e) => handleChange(idx, 'precio_base', e.target.value)} />
+              </div>
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Recargo Pareja (+1)</span>
+                <input type="number" className="form-input" value={tipo.recargo_pareja}
+                  onChange={(e) => handleChange(idx, 'recargo_pareja', e.target.value)} />
+              </div>
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Adicional c/u</span>
+                <input type="number" className="form-input" value={tipo.recargo_adicional}
+                  onChange={(e) => handleChange(idx, 'recargo_adicional', e.target.value)} />
+              </div>
+              <div className="tipo-field-group">
+                <span className="tipo-field-label">Máx. Adicionales</span>
+                <input type="number" className="form-input" value={tipo.max_personas_adicionales ?? 1} min={0} max={10}
+                  onChange={(e) => handleChange(idx, 'max_personas_adicionales', e.target.value)} />
+              </div>
             </div>
           </div>
         ))}
-
-        {/* Inline add form */}
-        {showAddForm && (
-          <div style={{ display: 'grid', ...colStyle, padding: '12px 15px', backgroundColor: 'rgba(99,179,130,0.06)', borderRadius: '8px', border: '1px solid rgba(99,179,130,0.25)' }}>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="text" className="form-input" placeholder="Ej: Presidencial"
-                value={newTipo.nombre} onChange={e => setNewTipo({ ...newTipo, nombre: e.target.value })}
-                autoFocus />
-            </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input" placeholder="170000"
-                value={newTipo.precio_base} onChange={e => setNewTipo({ ...newTipo, precio_base: e.target.value })} />
-            </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input" placeholder="50000"
-                value={newTipo.recargo_pareja} onChange={e => setNewTipo({ ...newTipo, recargo_pareja: e.target.value })} />
-            </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input" placeholder="80000"
-                value={newTipo.recargo_adicional} onChange={e => setNewTipo({ ...newTipo, recargo_adicional: e.target.value })} />
-            </div>
-            <div className="form-group" style={{ margin: 0 }}>
-              <input type="number" className="form-input text-center" placeholder="1" min={0} max={10}
-                value={newTipo.max_personas_adicionales} onChange={e => setNewTipo({ ...newTipo, max_personas_adicionales: e.target.value })} />
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Button variant="primary" size="sm" onClick={handleAddSubmit} disabled={addingNew || !newTipo.nombre.trim()}>
-                {addingNew ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => { setShowAddForm(false); setNewTipo({ ...emptyNew }); }}>
-                <X size={16} />
-              </Button>
-            </div>
-            <div /> {/* columna vacía para alinear con el botón eliminar */}
-          </div>
-        )}
       </div>
 
       {deleteError && (
-        <div style={{ color: '#f87171', fontSize: '12px', marginTop: '10px', padding: '8px 12px', background: 'rgba(248,113,113,0.08)', borderRadius: '6px', border: '1px solid rgba(248,113,113,0.2)' }}>
-          {deleteError}
+        <div style={{ color: '#f87171', fontSize: '12px', marginTop: '12px', padding: '10px 14px', background: 'rgba(248,113,113,0.08)', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertCircle size={13} /> {deleteError}
         </div>
       )}
 
-      <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '15px' }}>
-        * Si una habitación en específico no pertenece a ninguno de estos tipos, usará los precios que tenga configurados de forma individual.
+      <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '18px', lineHeight: 1.5 }}>
+        * Si una habitación no pertenece a ningún tipo, usará los precios configurados de forma individual.
       </p>
     </div>
   );

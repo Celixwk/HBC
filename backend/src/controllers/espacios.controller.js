@@ -161,7 +161,7 @@ const updateTipoEspacioConfig = async (req, res) => {
       const reservasActivas = await prisma.reserva.findMany({
         where: {
           id_espacio: hab.id_espacio,
-          estado_reserva: { in: ['activa', 'confirmada'] },
+          estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
           tipo_reserva: 'alojamiento'
         }
       });

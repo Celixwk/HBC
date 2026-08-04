@@ -4,7 +4,7 @@ import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
 import { Receipt } from '../../components/Receipt/Receipt';
 import { PersonaReceipt } from '../../components/PersonaReceipt/PersonaReceipt';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import './Accounts.css';
 import { apiFetch } from '../../utils/apiFetch';
@@ -87,7 +87,7 @@ function EditableRow<T extends { [key: string]: any }>({
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('¿Eliminar este cargo?')) return;
+    // Eliminado el window.confirm porque bloquea Electron
     await apiFetch(`/cuentas/${apiPath}/${item[idKey]}`, { method: 'DELETE' });
     onDone();
   };
@@ -113,7 +113,7 @@ function EditableRow<T extends { [key: string]: any }>({
       {fields.map(f => (
         <td key={f.name} className={f.name.includes('total') ? 'font-bold text-gradient' : f.name === 'fecha_registro' || f.name === 'fecha_vencimiento' ? 'text-muted text-sm' : ''}>
           {f.name === 'fecha_registro' || f.name === 'fecha_vencimiento'
-            ? item[f.name] ? format(new Date(item[f.name]), "d MMM yyyy", { locale: es }) : 'Sin venc.'
+            ? item[f.name] ? format(parseISO(String(item[f.name]).slice(0, 10)), "d MMM yyyy", { locale: es }) : 'Sin venc.'
             : f.name.includes('valor') || f.name.includes('precio')
               ? `$${parseFloat(item[f.name] || 0).toLocaleString()}`
               : item[f.name]}
@@ -191,7 +191,7 @@ const CargosEspacio: React.FC = () => {
       if (resItems.ok) setItems(await resItems.json());
       if (resReservas.ok) {
         const all = await resReservas.json();
-        setReservas(all.filter((r: any) => ['activa', 'confirmada'].includes(r.estado_reserva)));
+        setReservas(all.filter((r: any) => ['activa', 'confirmada', 'en_uso'].includes(r.estado_reserva)));
       }
     } finally { setLoading(false); }
   };
@@ -395,14 +395,41 @@ const CargosEspacio: React.FC = () => {
                   >
                     ⟳ Extender
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={(e: React.MouseEvent) => handleFinalizar(e, reserva, roomItems, totalPendiente)}
-                    style={{ color: 'var(--primary)', borderColor: 'transparent', padding: '4px 8px' }}
-                  >
-                    Finalizar Hab.
-                  </Button>
+                  {(reserva.estado_reserva === 'activa' || reserva.estado_reserva === 'confirmada') && (
+                    <Button 
+                      variant="primary" 
+                      size="sm" 
+                      onClick={async (e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        // 1. Activar la reserva (en_uso)
+                        await apiFetch(`/reservas/${reserva.id_reserva}/estado`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ estado_reserva: 'en_uso' })
+                        });
+                        // 2. Registrar ingreso del huésped automáticamente (sin necesidad de ir a Huéspedes)
+                        await apiFetch(`/huespedes/${reserva.id_huesped}/firma`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ firma: 'CHECK-IN_MANUAL', id_reserva: reserva.id_reserva })
+                        });
+                        fetchItems();
+                      }}
+                      style={{ padding: '4px 12px' }}
+                    >
+                      <Check size={14} style={{ marginRight: 4 }} /> Check-In
+                    </Button>
+                  )}
+                  {reserva.estado_reserva === 'en_uso' && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={(e: React.MouseEvent) => handleFinalizar(e, reserva, roomItems, totalPendiente)}
+                      style={{ color: 'var(--primary)', borderColor: 'transparent', padding: '4px 8px' }}
+                    >
+                      Finalizar Hab.
+                    </Button>
+                  )}
                 </div>
                 {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
               </div>
@@ -429,7 +456,7 @@ const CargosEspacio: React.FC = () => {
                         <td>-</td>
                         <td>${parseFloat(reserva.monto_total).toLocaleString()}</td>
                         <td className="font-bold text-gradient">${parseFloat(reserva.monto_total).toLocaleString()}</td>
-                        <td className="text-muted text-sm">{format(new Date(reserva.fecha_creacion || reserva.check_in), "d MMM yyyy", { locale: es })}</td>
+                        <td className="text-muted text-sm">{format(parseISO(String(reserva.fecha_creacion || reserva.check_in).slice(0, 10)), "d MMM yyyy", { locale: es })}</td>
                         <td>
                           <span className={`status-badge status-${reserva.estado_pago?.toLowerCase() || 'pendiente'}`}>
                             {reserva.estado_pago || 'Pendiente'}
@@ -468,14 +495,22 @@ const CargosEspacio: React.FC = () => {
                           { name: 'fecha_registro', label: 'Fecha' },
                         ]} />
                     ))}
-                    <AddRowForm
-                      fields={[
-                        { name: 'nombre_producto', placeholder: 'Concepto / Producto' },
-                        { name: 'cantidad', placeholder: 'Cant.' },
-                        { name: 'valor_unitario', placeholder: 'Precio unitario' },
-                      ]}
-                      onSave={vals => addCargo(reserva.id_reserva, vals)}
-                    />
+                    {reserva.estado_reserva === 'en_uso' ? (
+                      <AddRowForm
+                        fields={[
+                          { name: 'nombre_producto', placeholder: 'Concepto / Producto' },
+                          { name: 'cantidad', placeholder: 'Cant.' },
+                          { name: 'valor_unitario', placeholder: 'Precio unitario' },
+                        ]}
+                        onSave={vals => addCargo(reserva.id_reserva, vals)}
+                      />
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="text-center text-muted" style={{ padding: '16px', fontSize: '13px' }}>
+                          Debe realizar el Check-In para agregar cargos.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -954,7 +989,7 @@ const HistorialPersonas: React.FC = () => {
                   <tbody>
                     {persona.cargos.map((c: any) => (
                       <tr key={c.id} style={{ opacity: c.estado === 'anulado' ? 0.5 : 1, textDecoration: c.estado === 'anulado' ? 'line-through' : 'none' }}>
-                        <td className="text-muted" style={{ fontSize: '12px' }}>{format(new Date(c.fecha_registro), 'd MMM yyyy', { locale: es })}</td>
+                        <td className="text-muted" style={{ fontSize: '12px' }}>{format(parseISO(String(c.fecha_registro).slice(0, 10)), 'd MMM yyyy', { locale: es })}</td>
                         <td>{c.descripcion}</td>
                         <td>{c.cantidad}</td>
                         <td className="text-muted" style={{ fontSize: '12px' }}>${c.valor_unitario.toLocaleString()}</td>
@@ -1043,7 +1078,7 @@ const HistorialHabitaciones: React.FC = () => {
                   <div className="text-muted" style={{ fontSize: '12px' }}>
                     {r.tipo_ocupacion}
                     {' • '}
-                    {format(new Date(r.check_in), 'd MMM', { locale: es })} → {format(new Date(r.check_out), 'd MMM yyyy', { locale: es })}
+                    {format(parseISO(String(r.check_in).slice(0, 10)), 'd MMM', { locale: es })} → {format(parseISO(String(r.check_out).slice(0, 10)), 'd MMM yyyy', { locale: es })}
                   </div>
                 </div>
               </div>

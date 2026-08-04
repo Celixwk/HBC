@@ -16,3 +16,5 @@ frontend-build/
 .prisma/
 coverage/
 .vscode/
+
+testsprite_tests\tmp\config.json

@@ -45,7 +45,7 @@ const getPnL = async (req, res) => {
         }
       }),
       prisma.reserva.findMany({
-        where: { estado_reserva: { in: ['activa', 'confirmada'] }, estado_pago: { not: 'pagado' }, check_in: { gte: inicioDate, lte: finDate } },
+        where: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] }, estado_pago: { not: 'pagado' }, check_in: { gte: inicioDate, lte: finDate } },
         select: { monto_total: true }
       }),
       prisma.cuenta_espacio.findMany({

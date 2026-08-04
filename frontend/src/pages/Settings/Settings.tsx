@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Building2, Phone, MapPin, Hash, Mail, Loader2, CheckCircle, Lock, CreditCard, Database } from 'lucide-react';
+import { Save, Building2, MapPin, Mail, Loader2, CheckCircle, Lock, CreditCard, Database, Globe } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import './Settings.css';
 import { apiFetch } from '../../utils/apiFetch';
@@ -7,6 +7,7 @@ import { TiposEspacioSettings } from './TiposEspacioSettings';
 import { SecuritySettings } from './SecuritySettings';
 import { BackupRestoreSettings } from './BackupRestoreSettings';
 import { MetodosPagoSettings } from './MetodosPagoSettings';
+import { OrigenesSettings } from './OrigenesSettings';
 
 interface ConfigData {
   nombre_hotel: string;
@@ -59,7 +60,7 @@ export const Settings: React.FC = () => {
     setSaved(false);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setError('');
@@ -69,93 +70,88 @@ export const Settings: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
-      if (!res.ok) throw new Error('Error al guardar');
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch {
-      setError('No se pudo guardar la configuración.');
+      if (res.ok) setSaved(true);
+      else throw new Error('Error al guardar');
+    } catch (e) {
+      setError('Error de conexión.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return (
-    <div className="settings-container">
-      <div className="flex justify-center items-center p-8">
-        <Loader2 className="animate-spin text-primary" size={36} />
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+        <Loader2 className="animate-spin" size={32} style={{ color: 'var(--primary)' }} />
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="settings-container">
       <div className="settings-header">
         <div>
-          <h1 className="page-title">Configuración</h1>
-          <p className="page-subtitle">Datos del hotel para recibos y reportes</p>
+          <h2 className="page-title">Configuración</h2>
+          <p className="page-subtitle">Gestiona las preferencias y parámetros del sistema</p>
         </div>
       </div>
 
       <div className="settings-tabs">
-        <button className={`tab-btn ${activeTab === 'general' ? 'active' : ''}`} onClick={() => setActiveTab('general')}>
-          <Building2 size={16} /> General
+        <button className={`settings-tab ${activeTab === 'general' ? 'active' : ''}`} onClick={() => setActiveTab('general')}>
+          <Building2 size={15} /> Hotel
         </button>
-        <button className={`tab-btn ${activeTab === 'spaces' ? 'active' : ''}`} onClick={() => setActiveTab('spaces')}>
-          <Building2 size={16} /> Espacios
+        <button className={`settings-tab ${activeTab === 'tipos' ? 'active' : ''}`} onClick={() => setActiveTab('tipos')}>
+          Tipos de Espacio
         </button>
-        <button className={`tab-btn ${activeTab === 'backup' ? 'active' : ''}`} onClick={() => setActiveTab('backup')}>
-          <Database size={16} /> Backup
+        <button className={`settings-tab ${activeTab === 'origenes' ? 'active' : ''}`} onClick={() => setActiveTab('origenes')}>
+          <Globe size={15} /> Orígenes
         </button>
-        <button className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`} onClick={() => setActiveTab('security')}>
-          <Lock size={16} /> Seguridad y Accesos
+        <button className={`settings-tab ${activeTab === 'pagos' ? 'active' : ''}`} onClick={() => setActiveTab('pagos')}>
+          <CreditCard size={15} /> Pagos
         </button>
-        <button className={`tab-btn ${activeTab === 'payments' ? 'active' : ''}`} onClick={() => setActiveTab('payments')}>
-          <CreditCard size={16} /> Métodos de Pago
+        <button className={`settings-tab ${activeTab === 'seguridad' ? 'active' : ''}`} onClick={() => setActiveTab('seguridad')}>
+          <Lock size={15} /> Seguridad
+        </button>
+        <button className={`settings-tab ${activeTab === 'backup' ? 'active' : ''}`} onClick={() => setActiveTab('backup')}>
+          <Database size={15} /> Respaldo
         </button>
       </div>
 
-      <div className="settings-body">
+      <div className="glass-panel settings-panel">
         {activeTab === 'general' && (
-          <form onSubmit={handleSave} className="settings-form glass-panel">
-            <div className="settings-section-title">
-              <Building2 size={16} /> Información del Hotel
-            </div>
+          <form onSubmit={handleSubmit} className="settings-form">
+            {error && (
+              <div style={{ color: '#f87171', fontSize: '13px', padding: '12px 14px', background: 'rgba(248,113,113,0.08)', borderRadius: '10px', border: '1px solid rgba(248,113,113,0.2)' }}>
+                {error}
+              </div>
+            )}
 
-            {error && <div className="form-error">{error}</div>}
+            <div className="settings-section-title">
+              <span className="settings-section-title-left">
+                <Building2 size={15} /> Información del Hotel
+              </span>
+            </div>
 
             <div className="settings-grid">
               <div className="form-group settings-full-col">
-                <label htmlFor="nombre_hotel">Nombre del Hotel *</label>
+                <label htmlFor="nombre_hotel">Nombre del Hotel</label>
                 <input type="text" id="nombre_hotel" name="nombre_hotel"
                   value={form.nombre_hotel} onChange={handleChange}
-                  className="form-input" placeholder="Hotel Boutique Las Palmas" required />
+                  className="form-input" placeholder="Hotel Boutique XYZ" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="nit">
-                  <Hash size={13} style={{ display:'inline', marginRight: 4 }} />NIT / RUC
-                </label>
+                <label htmlFor="nit">NIT / RUT</label>
                 <input type="text" id="nit" name="nit"
                   value={form.nit} onChange={handleChange}
-                  className="form-input" placeholder="900.123.456-7" />
+                  className="form-input" placeholder="900.000.000-1" />
               </div>
 
               <div className="form-group">
-                <label htmlFor="telefono">
-                  <Phone size={13} style={{ display:'inline', marginRight: 4 }} />Teléfono
-                </label>
+                <label htmlFor="telefono">Teléfono</label>
                 <input type="text" id="telefono" name="telefono"
                   value={form.telefono} onChange={handleChange}
-                  className="form-input" placeholder="(601) 234 5678" />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="ciudad">
-                  <MapPin size={13} style={{ display:'inline', marginRight: 4 }} />Ciudad
-                </label>
-                <input type="text" id="ciudad" name="ciudad"
-                  value={form.ciudad} onChange={handleChange}
-                  className="form-input" placeholder="Bogotá, Colombia" />
+                  className="form-input" placeholder="+57 320 000 0000" />
               </div>
 
               <div className="form-group">
@@ -167,6 +163,13 @@ export const Settings: React.FC = () => {
                   className="form-input" placeholder="info@hotelboutique.com" />
               </div>
 
+              <div className="form-group">
+                <label htmlFor="ciudad">Ciudad</label>
+                <input type="text" id="ciudad" name="ciudad"
+                  value={form.ciudad} onChange={handleChange}
+                  className="form-input" placeholder="Bogotá, Colombia" />
+              </div>
+
               <div className="form-group settings-full-col">
                 <label htmlFor="direccion">
                   <MapPin size={13} style={{ display:'inline', marginRight: 4 }} />Dirección
@@ -175,7 +178,15 @@ export const Settings: React.FC = () => {
                   value={form.direccion} onChange={handleChange}
                   className="form-input" placeholder="Calle 123 # 45-67, Barrio Centro" />
               </div>
+            </div>
 
+            <div className="settings-section-title" style={{ marginTop: '8px' }}>
+              <span className="settings-section-title-left">
+                Horarios
+              </span>
+            </div>
+
+            <div className="settings-grid">
               <div className="form-group">
                 <label htmlFor="hora_check_in">Hora Check-in</label>
                 <input type="time" id="hora_check_in" name="hora_check_in"
@@ -192,22 +203,24 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="settings-actions">
-              {saved && (
-                <div className="saved-badge">
-                  <CheckCircle size={15} /> Guardado correctamente
-                </div>
-              )}
-              <Button variant="primary" type="submit" disabled={saving}>
-                <Save size={16} /> {saving ? 'Guardando...' : 'Guardar Cambios'}
+              <Button type="submit" variant="primary" disabled={saving}>
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                {saving ? 'Guardando...' : 'Guardar Cambios'}
               </Button>
+              {saved && (
+                <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px', fontWeight: 500 }}>
+                  <CheckCircle size={16} /> Cambios guardados correctamente
+                </span>
+              )}
             </div>
           </form>
         )}
-
-        {activeTab === 'spaces' && <TiposEspacioSettings />}
+        
+        {activeTab === 'tipos' && <TiposEspacioSettings />}
+        {activeTab === 'origenes' && <OrigenesSettings />}
+        {activeTab === 'pagos' && <MetodosPagoSettings />}
+        {activeTab === 'seguridad' && <SecuritySettings />}
         {activeTab === 'backup' && <BackupRestoreSettings />}
-        {activeTab === 'security' && <SecuritySettings />}
-        {activeTab === 'payments' && <MetodosPagoSettings />}
       </div>
     </div>
   );

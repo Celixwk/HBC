@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { Modal } from '../Modal/Modal';
 import { Button } from '../Button/Button';
 import { Printer } from 'lucide-react';
-import { apiFetch } from '../../utils/apiFetch';
 import { fmtLocalDate } from '../../utils/dateUtils';
 import './Receipt.css';
 
@@ -15,52 +14,9 @@ interface ReceiptProps {
 
 export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, items }) => {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [tiposConfig, setTiposConfig] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    apiFetch('/espacios/config/tipos')
-      .then(r => r.json())
-      .then(d => setTiposConfig(Array.isArray(d) ? d : []))
-      .catch(() => {});
-  }, [isOpen]);
 
-  // When config loads, if the stored monto_total is stale, silently correct it in the DB
-  useEffect(() => {
-    if (!reserva || tiposConfig.length === 0) return;
-    const tipoNombre = reserva.espacio?.tipo_habitacion;
-    if (!tipoNombre) return;
-    const config = tiposConfig.find(
-      (t: any) => t.nombre.toLowerCase() === tipoNombre.toLowerCase()
-    );
-    if (!config) return;
-
-    const base      = parseFloat(config.precio_base);
-    const pareja    = parseFloat(config.recargo_pareja);
-    const adicional = parseFloat(config.recargo_adicional);
-    const adultos   = reserva.cantidad_adultos || 1;
-    const ninos     = reserva.cantidad_ninos   || 0;
-    const personas  = adultos + ninos;
-
-    let precioNoche: number;
-    if (personas <= 1)      precioNoche = base;
-    else if (personas === 2) precioNoche = base + pareja;
-    else                     precioNoche = base + pareja + adicional * (personas - 2);
-
-    const start  = new Date(reserva.check_in);
-    const end    = new Date(reserva.check_out);
-    const noches = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
-    const montoCalculado = Math.round(precioNoche * noches);
-    const montoActual    = parseFloat(reserva.monto_total || '0');
-
-    if (Math.abs(montoCalculado - montoActual) > 1) {
-      apiFetch(`/reservas/${reserva.id_reserva}/monto`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ monto_total: montoCalculado })
-      }).catch(() => {});
-    }
-  }, [tiposConfig, reserva]);
+  // Se eliminó la actualización silenciosa del monto_total para evitar cambiar precios de reservas pasadas.
 
   if (!reserva) return null;
 
@@ -82,36 +38,11 @@ export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, item
     return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
   };
 
-  // Calculates the correct per-night price from current tipo_espacio_config
-  const calcularPrecioPorNocheDesdeConfig = (): number | null => {
-    const tipoNombre = reserva.espacio?.tipo_habitacion;
-    if (!tipoNombre || tiposConfig.length === 0) return null;
-    const config = tiposConfig.find(
-      (t: any) => t.nombre.toLowerCase() === tipoNombre.toLowerCase()
-    );
-    if (!config) return null;
-
-    const base     = parseFloat(config.precio_base);
-    const pareja   = parseFloat(config.recargo_pareja);
-    const adicional = parseFloat(config.recargo_adicional);
-    const adultos  = reserva.cantidad_adultos || 1;
-    const ninos    = reserva.cantidad_ninos   || 0;
-    const personas = adultos + ninos;
-
-    if (personas <= 1) return base;
-    if (personas === 2) return base + pareja;
-    return base + pareja + adicional * (personas - 2);
-  };
-
   const noches = calcularNoches();
-  const precioPorNocheConfig = calcularPrecioPorNocheDesdeConfig();
 
-  // Use config-based price if available; fallback to stored monto_total / noches
-  const precioPorNoche = precioPorNocheConfig ?? (noches > 0
-    ? parseFloat(reserva.monto_total || '0') / noches
-    : parseFloat(reserva.monto_total || '0'));
-
-  const subtotalAlojamiento = Math.round(precioPorNoche * noches);
+  // Siempre usamos el precio histórico almacenado en la reserva. No recalculamos basados en la config actual.
+  const subtotalAlojamiento = parseFloat(reserva.monto_total || '0');
+  const precioPorNoche = noches > 0 ? subtotalAlojamiento / noches : subtotalAlojamiento;
   const subtotalConsumos = items
     .filter(i => i.estado === 'pagado')
     .reduce((acc, item) => acc + parseFloat(item.valor_total || '0'), 0);

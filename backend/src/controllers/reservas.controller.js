@@ -43,8 +43,8 @@ const createReserva = async (req, res) => {
     }
 
     const espaciosArray = Array.isArray(id_espacio) ? id_espacio : [id_espacio];
-    const parsedCheckIn = new Date(check_in);
-    const parsedCheckOut = new Date(check_out);
+    const parsedCheckIn = new Date(check_in.slice(0,10) + 'T12:00:00Z');
+    const parsedCheckOut = new Date(check_out.slice(0,10) + 'T12:00:00Z');
 
     const nuevasReservas = [];
 
@@ -109,8 +109,8 @@ const updateReservaDates = async (req, res) => {
   const { check_in, check_out } = req.body;
 
   try {
-    const parsedCheckIn = new Date(check_in);
-    const parsedCheckOut = new Date(check_out);
+    const parsedCheckIn = new Date(check_in.slice(0,10) + 'T12:00:00Z');
+    const parsedCheckOut = new Date(check_out.slice(0,10) + 'T12:00:00Z');
 
     const reserva = await prisma.reserva.findUnique({ where: { id_reserva: parseInt(id) } });
     if (!reserva) return res.status(404).json({ error: 'Reserva no encontrada' });
@@ -143,7 +143,8 @@ const updateReservaDates = async (req, res) => {
   }
 };
 
-// Delete reservation (cascade → cuenta_espacio → cuenta_persona → reserva → huesped si queda sin reservas)
+// Delete reservation (cascade → cuenta_espacio → cuenta_persona → reserva)
+// El huésped se mantiene en el historial aunque quede sin reservas activas.
 const deleteReserva = async (req, res) => {
   const { id } = req.params;
   try {
@@ -154,19 +155,14 @@ const deleteReserva = async (req, res) => {
       select: { id_huesped: true }
     });
     if (!reserva) return res.status(404).json({ error: 'Reserva no encontrada' });
-    const idHuesped = reserva.id_huesped;
 
-    // Eliminar dependencias antes de borrar la reserva
+    // Eliminar dependencias en cascada antes de borrar la reserva
     await prisma.cuenta_espacio.deleteMany({ where: { id_reserva: idReserva } });
     await prisma.cuenta_persona.deleteMany({ where: { id_reserva: idReserva } });
     await prisma.reserva.delete({ where: { id_reserva: idReserva } });
 
-    // Si el huésped ya no tiene ninguna reserva, eliminarlo también
-    const restantes = await prisma.reserva.count({ where: { id_huesped: idHuesped } });
-    if (restantes === 0) {
-      await prisma.cuenta_persona.deleteMany({ where: { id_huesped: idHuesped } });
-      await prisma.huesped.delete({ where: { id_huesped: idHuesped } });
-    }
+    // NOTA: El huésped NO se elimina aunque quede sin reservas.
+    // Debe permanecer en el historial y estar disponible para nuevas reservas.
 
     res.json({ success: true });
   } catch (error) {
@@ -259,8 +255,8 @@ const updateReservaFull = async (req, res) => {
   const { id_espacio, check_in, check_out, cantidad_adultos, cantidad_ninos, monto_total, anotaciones, fecha_evento, hora_inicio, hora_fin } = req.body;
 
   try {
-    const parsedCheckIn  = new Date(check_in);
-    const parsedCheckOut = new Date(check_out);
+    const parsedCheckIn  = new Date(check_in.slice(0,10) + 'T12:00:00Z');
+    const parsedCheckOut = new Date(check_out.slice(0,10) + 'T12:00:00Z');
     const idReserva = parseInt(id);
     const idEspacio = parseInt(id_espacio);
 

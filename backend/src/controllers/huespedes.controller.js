@@ -36,8 +36,8 @@ const createHuesped = async (req, res) => {
   } = req.body;
 
   try {
-    if (!nombre_completo || !documento) {
-      return res.status(400).json({ error: 'Nombre y documento son obligatorios' });
+    if (!nombre_completo) {
+      return res.status(400).json({ error: 'El nombre es obligatorio' });
     }
 
     // Cada estadía crea un registro nuevo — el mismo documento puede aparecer varias veces
@@ -76,7 +76,7 @@ const updateFirma = async (req, res) => {
       reservaHoy = await prisma.reserva.findFirst({
         where: {
           id_huesped: idHuesped,
-          estado_reserva: { in: ['activa', 'confirmada'] }
+          estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] }
         },
         orderBy: { check_in: 'desc' }
       });

@@ -183,11 +183,18 @@ exports.Prisma.Inventario_minibarScalarFieldEnum = {
   fecha_actualizacion: 'fecha_actualizacion'
 };
 
+exports.Prisma.Origen_reservaScalarFieldEnum = {
+  id_origen: 'id_origen',
+  nombre: 'nombre',
+  activo: 'activo'
+};
+
 exports.Prisma.ReservaScalarFieldEnum = {
   id_reserva: 'id_reserva',
   id_huesped: 'id_huesped',
   id_espacio: 'id_espacio',
   tipo_reserva: 'tipo_reserva',
+  origen: 'origen',
   dni_tipo: 'dni_tipo',
   check_in: 'check_in',
   check_out: 'check_out',
@@ -322,6 +329,7 @@ exports.Prisma.ModelName = {
   espacio: 'espacio',
   huesped: 'huesped',
   inventario_minibar: 'inventario_minibar',
+  origen_reserva: 'origen_reserva',
   reserva: 'reserva',
   configuracion_hotel: 'configuracion_hotel',
   tipo_espacio_config: 'tipo_espacio_config',

@@ -1,52 +1,28 @@
-const http = require('http');
-let authToken = '';
+const prisma = require('./src/config/prisma');
 
-function req(method, path, body = null) {
-  return new Promise((resolve, reject) => {
-    const data = body ? JSON.stringify(body) : '';
-    const options = {
-      hostname: 'localhost',
-      port: 5000,
-      path: '/api' + path,
-      method: method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(data),
-        'Authorization': `Bearer ${authToken}`
-      }
-    };
-    const req = http.request(options, res => {
-      let resData = '';
-      res.on('data', chunk => resData += chunk);
-      res.on('end', () => {
-        try { resolve(JSON.parse(resData)); } 
-        catch (e) { resolve(resData); }
-      });
+async function test() {
+  try {
+    const today = new Date();
+    const todayStart = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    const todayEnd = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999));
+    
+    await prisma.reserva.findMany({
+      where: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] }, estado_pago: { not: 'pagado' }, check_in: { gte: todayStart, lte: todayEnd } },
+      select: { monto_total: true }
     });
-    req.on('error', reject);
-    if (body) req.write(data);
-    req.end();
-  });
+    console.log("Query 1 success");
+
+    const reservas = await prisma.reserva.findMany({
+      where: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] } },
+      include: { espacio: { select: { tipo_habitacion: true, tipo_espacio: true } } }
+    });
+    console.log("Query 2 success", reservas.length);
+
+  } catch (error) {
+    console.error("Prisma error:", error);
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
-async function t() {
-  const loginRes = await req('POST', '/auth/login', { usuario: 'admin', password: 'hotel2026' });
-  authToken = loginRes.token;
-  
-  const p = await req('POST', '/cuentas/persona', {
-    nombre_persona: 'Test Nuevo',
-    descripcion: 'Agua',
-    cantidad: 1,
-    valor_unitario: 5000
-  });
-  console.log('Cargo:', p);
-
-  const g = await req('POST', '/gastos/operativo', {
-    categoria: 'Aseo',
-    descripcion: 'Jabon',
-    monto: 10000,
-    fecha: new Date().toISOString()
-  });
-  console.log('Gasto:', g);
-}
-t();
+test();

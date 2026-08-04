@@ -59,7 +59,7 @@ export const Gastos: React.FC = () => {
 
   // Filtros
   const [catFilter, setCatFilter] = useState('');
-  const [desde, setDesde] = useState(() =>
+  const [desde, setDesde] = useState(() => 
     localStorage.getItem('hbc_gastos_desde') || (() => { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10); })()
   );
   const [hasta, setHasta] = useState(() =>
@@ -103,7 +103,7 @@ export const Gastos: React.FC = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Persistir rango de fechas en localStorage
+  // Persistir rango de fechas en localStorage para que no se pierda al cambiar de vista
   useEffect(() => { localStorage.setItem('hbc_gastos_desde', desde); }, [desde]);
   useEffect(() => { localStorage.setItem('hbc_gastos_hasta', hasta); }, [hasta]);
 
@@ -399,8 +399,6 @@ export const Gastos: React.FC = () => {
                 <th>Fecha</th>
                 <th>Categoría</th>
                 <th>Descripción</th>
-                <th>Proveedor / Empresa</th>
-                <th>Comprobante</th>
                 <th style={{ textAlign: 'right' }}>Monto</th>
                 <th></th>
               </tr>
@@ -408,7 +406,7 @@ export const Gastos: React.FC = () => {
             <tbody>
               {gastos.map(g => (
                 <tr key={g.id_gasto} className={g.es_recurrente ? 'gasto-recurrente' : ''}>
-                  <td>{format(parseISO(g.fecha), 'd MMM yyyy', { locale: es })}</td>
+                  <td>{format(parseISO(g.fecha.slice(0, 10)), 'd MMM yyyy', { locale: es })}</td>
                   <td>
                     <span className="gasto-cat-badge"
                       style={{ background: catColor(canonicalCat(g.categoria), categorias) + '22', color: catColor(canonicalCat(g.categoria), categorias) }}>
@@ -419,8 +417,6 @@ export const Gastos: React.FC = () => {
                     {g.descripcion}
                     {g.es_recurrente && <span className="recurrente-tag" title="Plantilla recurrente"><Repeat size={11} /> mensual</span>}
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{g.proveedor_nombre || '—'}</td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{g.comprobante || '—'}</td>
                   <td style={{ textAlign: 'right', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                     ${fmt(parseFloat(g.monto))}
                   </td>
@@ -438,7 +434,7 @@ export const Gastos: React.FC = () => {
             </tbody>
             <tfoot>
               <tr className="gastos-total-row">
-                <td colSpan={5} style={{ textAlign: 'right', fontWeight: 600, paddingRight: '12px', fontSize: '0.85rem' }}>
+                <td colSpan={3} style={{ textAlign: 'right', fontWeight: 600, paddingRight: '12px', fontSize: '0.85rem' }}>
                   Total {catFilter || 'período'}
                 </td>
                 <td style={{ textAlign: 'right', fontWeight: 700, fontSize: '0.95rem', color: '#ef4444' }}>
@@ -460,6 +456,7 @@ export const Gastos: React.FC = () => {
             <div className="form-group">
               <label>Categoría *</label>
               <select className="form-input" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))}>
+                <option value="" disabled>Selecciona una categoría...</option>
                 {categorias.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -477,26 +474,11 @@ export const Gastos: React.FC = () => {
               onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))} />
           </div>
 
-          <div className="form-grid-2">
-            <div className="form-group">
-              <label>Monto ($) *</label>
-              <input type="number" min="0" step="100" className="form-input" value={form.monto}
-                placeholder="0"
-                onChange={e => setForm(f => ({ ...f, monto: e.target.value }))} />
-            </div>
-            <div className="form-group">
-              <label>N° Comprobante / Factura</label>
-              <input type="text" className="form-input" value={form.comprobante}
-                placeholder="Ej. FE-2026-001"
-                onChange={e => setForm(f => ({ ...f, comprobante: e.target.value }))} />
-            </div>
-          </div>
-
           <div className="form-group">
-            <label>Proveedor / Empresa</label>
-            <input type="text" className="form-input" value={form.proveedor_nombre}
-              placeholder="Ej. EPM, ETB, Empresas Municipales..."
-              onChange={e => setForm(f => ({ ...f, proveedor_nombre: e.target.value }))} />
+            <label>Monto ($) *</label>
+            <input type="number" min="0" step="100" className="form-input" value={form.monto}
+              placeholder="0"
+              onChange={e => setForm(f => ({ ...f, monto: e.target.value }))} />
           </div>
 
           <div className="recurrente-toggle">

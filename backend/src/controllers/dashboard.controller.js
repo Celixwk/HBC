@@ -122,7 +122,7 @@ const getDashboardStats = async (req, res) => {
 
     const [totalEspacios, reservasActivas, llegadasHoy, salidasHoy, reservasConFirma, reservasSinFirma] = await Promise.all([
       prisma.espacio.count({ where: { activo: true } }),
-      prisma.reserva.count({ where: { estado_reserva: { in: ['activa', 'confirmada'] } } }),
+      prisma.reserva.count({ where: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] } } }),
       // Llegadas de hoy (excluye no_show — si no llegaron no cuentan como llegada activa)
       prisma.reserva.count({
         where: {
@@ -140,17 +140,16 @@ const getDashboardStats = async (req, res) => {
       // In-House CON FIRMA en la reserva (ya llegaron y firmaron esta estadía)
       prisma.reserva.findMany({
         where: {
-          estado_reserva: { in: ['activa', 'confirmada'] },
+          estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
           check_in: { lte: todayEnd },
           check_out: { gte: todayStart }, // Incluir a los que salen hoy mientras la reserva siga activa
-          firma: { not: null }
         },
         select: { cantidad_adultos: true, cantidad_ninos: true }
       }),
       // In-House SIN FIRMA (reservados pero aun no han llegado o no han firmado)
       prisma.reserva.count({
         where: {
-          estado_reserva: { in: ['activa', 'confirmada'] },
+          estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
           check_in: { gte: todayStart, lte: todayEnd },
           firma: null
         }
@@ -167,7 +166,7 @@ const getDashboardStats = async (req, res) => {
     const [reservasFuturas, checkInsHoyDetalle, checkOutsHoyDetalle] = await Promise.all([
       prisma.reserva.findMany({
         where: {
-          estado_reserva: { in: ['activa', 'confirmada'] },
+          estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
           check_in: { lte: next7DaysEnd },
           check_out: { gt: todayStart }
         },
@@ -327,11 +326,11 @@ const getDashboardStats = async (req, res) => {
       prisma.reserva.count({ where: { estado_reserva: 'no_show', check_in: { gte: startOfCurrentMonth, lte: endOfCurrentMonth } } }),
       prisma.reserva.count({ where: { check_in: { gte: startOfCurrentMonth, lte: endOfCurrentMonth } } }),
       prisma.reserva.findMany({
-        where: { estado_reserva: { in: ['activa', 'confirmada'] }, estado_pago: { not: 'pagado' } },
+        where: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] }, estado_pago: { not: 'pagado' } },
         select: { monto_total: true }
       }),
       prisma.reserva.findMany({
-        where: { estado_reserva: { in: ['activa', 'confirmada'] } },
+        where: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] } },
         include: { espacio: { select: { tipo_habitacion: true, tipo_espacio: true } } }
       })
     ]);
@@ -366,10 +365,10 @@ const getDashboardStats = async (req, res) => {
         where: { estado_reserva: { notIn: ['cancelada', 'no_show'] }, check_out: { gte: manana, lte: mananaEnd } },
         include: { huesped: { select: { nombre_completo: true } }, espacio: { select: { numero: true } } }
       }),
-      // Reservas activas/confirmadas con pago pendiente y que hacen check-out mañana
+      // Reservas activas/confirmadas/en_uso con pago pendiente y que hacen check-out mañana
       prisma.reserva.findMany({
         where: { 
-          estado_reserva: { in: ['activa', 'confirmada'] }, 
+          estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] }, 
           estado_pago: { not: 'pagado' },
           check_out: { gte: manana, lte: mananaEnd }
         },
