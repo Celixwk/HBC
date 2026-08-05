@@ -185,10 +185,6 @@ export const TiposEspacioSettings: React.FC = () => {
         {tipos.map((tipo, idx) => {
           const isExpanded = expanded[tipo.id];
           return (
-      <div style={{ display: 'grid', gap: '10px' }}>
-        {tipos.map((tipo, idx) => {
-          const isExpanded = expanded[tipo.id];
-          return (
             <div key={tipo.id} style={{
               borderRadius: '10px', border: '1px solid rgba(255,255,255,0.07)',
               backgroundColor: 'rgba(255,255,255,0.02)', overflow: 'hidden'

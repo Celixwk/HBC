@@ -59,6 +59,11 @@ export type configuracion_hotel = $Result.DefaultSelection<Prisma.$configuracion
  */
 export type tipo_espacio_config = $Result.DefaultSelection<Prisma.$tipo_espacio_configPayload>
 /**
+ * Model temporada
+ * 
+ */
+export type temporada = $Result.DefaultSelection<Prisma.$temporadaPayload>
+/**
  * Model categoria_inventario
  * 
  */
@@ -299,6 +304,16 @@ export class PrismaClient<
     * ```
     */
   get tipo_espacio_config(): Prisma.tipo_espacio_configDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.temporada`: Exposes CRUD operations for the **temporada** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Temporadas
+    * const temporadas = await prisma.temporada.findMany()
+    * ```
+    */
+  get temporada(): Prisma.temporadaDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.categoria_inventario`: Exposes CRUD operations for the **categoria_inventario** model.
@@ -802,6 +817,7 @@ export namespace Prisma {
     reserva: 'reserva',
     configuracion_hotel: 'configuracion_hotel',
     tipo_espacio_config: 'tipo_espacio_config',
+    temporada: 'temporada',
     categoria_inventario: 'categoria_inventario',
     proveedor: 'proveedor',
     producto_inventario: 'producto_inventario',
@@ -823,7 +839,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "cuenta_espacio" | "cuenta_persona" | "espacio" | "huesped" | "inventario_minibar" | "origen_reserva" | "reserva" | "configuracion_hotel" | "tipo_espacio_config" | "categoria_inventario" | "proveedor" | "producto_inventario" | "movimiento_inventario" | "gasto_operativo" | "categoria_gasto"
+      modelProps: "cuenta_espacio" | "cuenta_persona" | "espacio" | "huesped" | "inventario_minibar" | "origen_reserva" | "reserva" | "configuracion_hotel" | "tipo_espacio_config" | "temporada" | "categoria_inventario" | "proveedor" | "producto_inventario" | "movimiento_inventario" | "gasto_operativo" | "categoria_gasto"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1493,6 +1509,80 @@ export namespace Prisma {
           }
         }
       }
+      temporada: {
+        payload: Prisma.$temporadaPayload<ExtArgs>
+        fields: Prisma.temporadaFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.temporadaFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.temporadaFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>
+          }
+          findFirst: {
+            args: Prisma.temporadaFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.temporadaFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>
+          }
+          findMany: {
+            args: Prisma.temporadaFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>[]
+          }
+          create: {
+            args: Prisma.temporadaCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>
+          }
+          createMany: {
+            args: Prisma.temporadaCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.temporadaCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>[]
+          }
+          delete: {
+            args: Prisma.temporadaDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>
+          }
+          update: {
+            args: Prisma.temporadaUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>
+          }
+          deleteMany: {
+            args: Prisma.temporadaDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.temporadaUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.temporadaUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>[]
+          }
+          upsert: {
+            args: Prisma.temporadaUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$temporadaPayload>
+          }
+          aggregate: {
+            args: Prisma.TemporadaAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTemporada>
+          }
+          groupBy: {
+            args: Prisma.temporadaGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TemporadaGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.temporadaCountArgs<ExtArgs>
+            result: $Utils.Optional<TemporadaCountAggregateOutputType> | number
+          }
+        }
+      }
       categoria_inventario: {
         payload: Prisma.$categoria_inventarioPayload<ExtArgs>
         fields: Prisma.categoria_inventarioFieldRefs
@@ -2054,6 +2144,7 @@ export namespace Prisma {
     reserva?: reservaOmit
     configuracion_hotel?: configuracion_hotelOmit
     tipo_espacio_config?: tipo_espacio_configOmit
+    temporada?: temporadaOmit
     categoria_inventario?: categoria_inventarioOmit
     proveedor?: proveedorOmit
     producto_inventario?: producto_inventarioOmit
@@ -9323,6 +9414,7 @@ export namespace Prisma {
     cantidad_ninos: number | null
     monto_total: Decimal | null
     monto_pagado: Decimal | null
+    precio_noche_snapshot: Decimal | null
   }
 
   export type ReservaSumAggregateOutputType = {
@@ -9333,6 +9425,7 @@ export namespace Prisma {
     cantidad_ninos: number | null
     monto_total: Decimal | null
     monto_pagado: Decimal | null
+    precio_noche_snapshot: Decimal | null
   }
 
   export type ReservaMinAggregateOutputType = {
@@ -9357,6 +9450,8 @@ export namespace Prisma {
     anotaciones: string | null
     firma: string | null
     fecha_creacion: Date | null
+    precio_noche_snapshot: Decimal | null
+    temporada_tipo: string | null
   }
 
   export type ReservaMaxAggregateOutputType = {
@@ -9381,6 +9476,8 @@ export namespace Prisma {
     anotaciones: string | null
     firma: string | null
     fecha_creacion: Date | null
+    precio_noche_snapshot: Decimal | null
+    temporada_tipo: string | null
   }
 
   export type ReservaCountAggregateOutputType = {
@@ -9405,6 +9502,8 @@ export namespace Prisma {
     anotaciones: number
     firma: number
     fecha_creacion: number
+    precio_noche_snapshot: number
+    temporada_tipo: number
     _all: number
   }
 
@@ -9417,6 +9516,7 @@ export namespace Prisma {
     cantidad_ninos?: true
     monto_total?: true
     monto_pagado?: true
+    precio_noche_snapshot?: true
   }
 
   export type ReservaSumAggregateInputType = {
@@ -9427,6 +9527,7 @@ export namespace Prisma {
     cantidad_ninos?: true
     monto_total?: true
     monto_pagado?: true
+    precio_noche_snapshot?: true
   }
 
   export type ReservaMinAggregateInputType = {
@@ -9451,6 +9552,8 @@ export namespace Prisma {
     anotaciones?: true
     firma?: true
     fecha_creacion?: true
+    precio_noche_snapshot?: true
+    temporada_tipo?: true
   }
 
   export type ReservaMaxAggregateInputType = {
@@ -9475,6 +9578,8 @@ export namespace Prisma {
     anotaciones?: true
     firma?: true
     fecha_creacion?: true
+    precio_noche_snapshot?: true
+    temporada_tipo?: true
   }
 
   export type ReservaCountAggregateInputType = {
@@ -9499,6 +9604,8 @@ export namespace Prisma {
     anotaciones?: true
     firma?: true
     fecha_creacion?: true
+    precio_noche_snapshot?: true
+    temporada_tipo?: true
     _all?: true
   }
 
@@ -9610,6 +9717,8 @@ export namespace Prisma {
     anotaciones: string | null
     firma: string | null
     fecha_creacion: Date | null
+    precio_noche_snapshot: Decimal | null
+    temporada_tipo: string | null
     _count: ReservaCountAggregateOutputType | null
     _avg: ReservaAvgAggregateOutputType | null
     _sum: ReservaSumAggregateOutputType | null
@@ -9653,6 +9762,8 @@ export namespace Prisma {
     anotaciones?: boolean
     firma?: boolean
     fecha_creacion?: boolean
+    precio_noche_snapshot?: boolean
+    temporada_tipo?: boolean
     cuenta_espacio?: boolean | reserva$cuenta_espacioArgs<ExtArgs>
     cuenta_persona?: boolean | reserva$cuenta_personaArgs<ExtArgs>
     espacio?: boolean | espacioDefaultArgs<ExtArgs>
@@ -9682,6 +9793,8 @@ export namespace Prisma {
     anotaciones?: boolean
     firma?: boolean
     fecha_creacion?: boolean
+    precio_noche_snapshot?: boolean
+    temporada_tipo?: boolean
     espacio?: boolean | espacioDefaultArgs<ExtArgs>
     huesped?: boolean | huespedDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["reserva"]>
@@ -9708,6 +9821,8 @@ export namespace Prisma {
     anotaciones?: boolean
     firma?: boolean
     fecha_creacion?: boolean
+    precio_noche_snapshot?: boolean
+    temporada_tipo?: boolean
     espacio?: boolean | espacioDefaultArgs<ExtArgs>
     huesped?: boolean | huespedDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["reserva"]>
@@ -9734,9 +9849,11 @@ export namespace Prisma {
     anotaciones?: boolean
     firma?: boolean
     fecha_creacion?: boolean
+    precio_noche_snapshot?: boolean
+    temporada_tipo?: boolean
   }
 
-  export type reservaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_reserva" | "id_huesped" | "id_espacio" | "tipo_reserva" | "origen" | "dni_tipo" | "check_in" | "check_out" | "cantidad_adultos" | "cantidad_ninos" | "fecha_evento" | "hora_inicio" | "hora_fin" | "estado_reserva" | "monto_total" | "estado_pago" | "metodo_pago" | "monto_pagado" | "anotaciones" | "firma" | "fecha_creacion", ExtArgs["result"]["reserva"]>
+  export type reservaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_reserva" | "id_huesped" | "id_espacio" | "tipo_reserva" | "origen" | "dni_tipo" | "check_in" | "check_out" | "cantidad_adultos" | "cantidad_ninos" | "fecha_evento" | "hora_inicio" | "hora_fin" | "estado_reserva" | "monto_total" | "estado_pago" | "metodo_pago" | "monto_pagado" | "anotaciones" | "firma" | "fecha_creacion" | "precio_noche_snapshot" | "temporada_tipo", ExtArgs["result"]["reserva"]>
   export type reservaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     cuenta_espacio?: boolean | reserva$cuenta_espacioArgs<ExtArgs>
     cuenta_persona?: boolean | reserva$cuenta_personaArgs<ExtArgs>
@@ -9783,6 +9900,8 @@ export namespace Prisma {
       anotaciones: string | null
       firma: string | null
       fecha_creacion: Date | null
+      precio_noche_snapshot: Prisma.Decimal | null
+      temporada_tipo: string | null
     }, ExtArgs["result"]["reserva"]>
     composites: {}
   }
@@ -10231,6 +10350,8 @@ export namespace Prisma {
     readonly anotaciones: FieldRef<"reserva", 'String'>
     readonly firma: FieldRef<"reserva", 'String'>
     readonly fecha_creacion: FieldRef<"reserva", 'DateTime'>
+    readonly precio_noche_snapshot: FieldRef<"reserva", 'Decimal'>
+    readonly temporada_tipo: FieldRef<"reserva", 'String'>
   }
     
 
@@ -11815,6 +11936,12 @@ export namespace Prisma {
     recargo_pareja: Decimal | null
     recargo_adicional: Decimal | null
     max_personas_adicionales: number | null
+    precio_base_media: Decimal | null
+    precio_base_alta: Decimal | null
+    recargo_pareja_media: Decimal | null
+    recargo_pareja_alta: Decimal | null
+    recargo_adicional_media: Decimal | null
+    recargo_adicional_alta: Decimal | null
   }
 
   export type Tipo_espacio_configSumAggregateOutputType = {
@@ -11823,6 +11950,12 @@ export namespace Prisma {
     recargo_pareja: Decimal | null
     recargo_adicional: Decimal | null
     max_personas_adicionales: number | null
+    precio_base_media: Decimal | null
+    precio_base_alta: Decimal | null
+    recargo_pareja_media: Decimal | null
+    recargo_pareja_alta: Decimal | null
+    recargo_adicional_media: Decimal | null
+    recargo_adicional_alta: Decimal | null
   }
 
   export type Tipo_espacio_configMinAggregateOutputType = {
@@ -11832,6 +11965,12 @@ export namespace Prisma {
     recargo_pareja: Decimal | null
     recargo_adicional: Decimal | null
     max_personas_adicionales: number | null
+    precio_base_media: Decimal | null
+    precio_base_alta: Decimal | null
+    recargo_pareja_media: Decimal | null
+    recargo_pareja_alta: Decimal | null
+    recargo_adicional_media: Decimal | null
+    recargo_adicional_alta: Decimal | null
   }
 
   export type Tipo_espacio_configMaxAggregateOutputType = {
@@ -11841,6 +11980,12 @@ export namespace Prisma {
     recargo_pareja: Decimal | null
     recargo_adicional: Decimal | null
     max_personas_adicionales: number | null
+    precio_base_media: Decimal | null
+    precio_base_alta: Decimal | null
+    recargo_pareja_media: Decimal | null
+    recargo_pareja_alta: Decimal | null
+    recargo_adicional_media: Decimal | null
+    recargo_adicional_alta: Decimal | null
   }
 
   export type Tipo_espacio_configCountAggregateOutputType = {
@@ -11850,6 +11995,12 @@ export namespace Prisma {
     recargo_pareja: number
     recargo_adicional: number
     max_personas_adicionales: number
+    precio_base_media: number
+    precio_base_alta: number
+    recargo_pareja_media: number
+    recargo_pareja_alta: number
+    recargo_adicional_media: number
+    recargo_adicional_alta: number
     _all: number
   }
 
@@ -11860,6 +12011,12 @@ export namespace Prisma {
     recargo_pareja?: true
     recargo_adicional?: true
     max_personas_adicionales?: true
+    precio_base_media?: true
+    precio_base_alta?: true
+    recargo_pareja_media?: true
+    recargo_pareja_alta?: true
+    recargo_adicional_media?: true
+    recargo_adicional_alta?: true
   }
 
   export type Tipo_espacio_configSumAggregateInputType = {
@@ -11868,6 +12025,12 @@ export namespace Prisma {
     recargo_pareja?: true
     recargo_adicional?: true
     max_personas_adicionales?: true
+    precio_base_media?: true
+    precio_base_alta?: true
+    recargo_pareja_media?: true
+    recargo_pareja_alta?: true
+    recargo_adicional_media?: true
+    recargo_adicional_alta?: true
   }
 
   export type Tipo_espacio_configMinAggregateInputType = {
@@ -11877,6 +12040,12 @@ export namespace Prisma {
     recargo_pareja?: true
     recargo_adicional?: true
     max_personas_adicionales?: true
+    precio_base_media?: true
+    precio_base_alta?: true
+    recargo_pareja_media?: true
+    recargo_pareja_alta?: true
+    recargo_adicional_media?: true
+    recargo_adicional_alta?: true
   }
 
   export type Tipo_espacio_configMaxAggregateInputType = {
@@ -11886,6 +12055,12 @@ export namespace Prisma {
     recargo_pareja?: true
     recargo_adicional?: true
     max_personas_adicionales?: true
+    precio_base_media?: true
+    precio_base_alta?: true
+    recargo_pareja_media?: true
+    recargo_pareja_alta?: true
+    recargo_adicional_media?: true
+    recargo_adicional_alta?: true
   }
 
   export type Tipo_espacio_configCountAggregateInputType = {
@@ -11895,6 +12070,12 @@ export namespace Prisma {
     recargo_pareja?: true
     recargo_adicional?: true
     max_personas_adicionales?: true
+    precio_base_media?: true
+    precio_base_alta?: true
+    recargo_pareja_media?: true
+    recargo_pareja_alta?: true
+    recargo_adicional_media?: true
+    recargo_adicional_alta?: true
     _all?: true
   }
 
@@ -11991,6 +12172,12 @@ export namespace Prisma {
     recargo_pareja: Decimal
     recargo_adicional: Decimal
     max_personas_adicionales: number
+    precio_base_media: Decimal | null
+    precio_base_alta: Decimal | null
+    recargo_pareja_media: Decimal | null
+    recargo_pareja_alta: Decimal | null
+    recargo_adicional_media: Decimal | null
+    recargo_adicional_alta: Decimal | null
     _count: Tipo_espacio_configCountAggregateOutputType | null
     _avg: Tipo_espacio_configAvgAggregateOutputType | null
     _sum: Tipo_espacio_configSumAggregateOutputType | null
@@ -12019,6 +12206,12 @@ export namespace Prisma {
     recargo_pareja?: boolean
     recargo_adicional?: boolean
     max_personas_adicionales?: boolean
+    precio_base_media?: boolean
+    precio_base_alta?: boolean
+    recargo_pareja_media?: boolean
+    recargo_pareja_alta?: boolean
+    recargo_adicional_media?: boolean
+    recargo_adicional_alta?: boolean
   }, ExtArgs["result"]["tipo_espacio_config"]>
 
   export type tipo_espacio_configSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -12028,6 +12221,12 @@ export namespace Prisma {
     recargo_pareja?: boolean
     recargo_adicional?: boolean
     max_personas_adicionales?: boolean
+    precio_base_media?: boolean
+    precio_base_alta?: boolean
+    recargo_pareja_media?: boolean
+    recargo_pareja_alta?: boolean
+    recargo_adicional_media?: boolean
+    recargo_adicional_alta?: boolean
   }, ExtArgs["result"]["tipo_espacio_config"]>
 
   export type tipo_espacio_configSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -12037,6 +12236,12 @@ export namespace Prisma {
     recargo_pareja?: boolean
     recargo_adicional?: boolean
     max_personas_adicionales?: boolean
+    precio_base_media?: boolean
+    precio_base_alta?: boolean
+    recargo_pareja_media?: boolean
+    recargo_pareja_alta?: boolean
+    recargo_adicional_media?: boolean
+    recargo_adicional_alta?: boolean
   }, ExtArgs["result"]["tipo_espacio_config"]>
 
   export type tipo_espacio_configSelectScalar = {
@@ -12046,9 +12251,15 @@ export namespace Prisma {
     recargo_pareja?: boolean
     recargo_adicional?: boolean
     max_personas_adicionales?: boolean
+    precio_base_media?: boolean
+    precio_base_alta?: boolean
+    recargo_pareja_media?: boolean
+    recargo_pareja_alta?: boolean
+    recargo_adicional_media?: boolean
+    recargo_adicional_alta?: boolean
   }
 
-  export type tipo_espacio_configOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "nombre" | "precio_base" | "recargo_pareja" | "recargo_adicional" | "max_personas_adicionales", ExtArgs["result"]["tipo_espacio_config"]>
+  export type tipo_espacio_configOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "nombre" | "precio_base" | "recargo_pareja" | "recargo_adicional" | "max_personas_adicionales" | "precio_base_media" | "precio_base_alta" | "recargo_pareja_media" | "recargo_pareja_alta" | "recargo_adicional_media" | "recargo_adicional_alta", ExtArgs["result"]["tipo_espacio_config"]>
 
   export type $tipo_espacio_configPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "tipo_espacio_config"
@@ -12060,6 +12271,12 @@ export namespace Prisma {
       recargo_pareja: Prisma.Decimal
       recargo_adicional: Prisma.Decimal
       max_personas_adicionales: number
+      precio_base_media: Prisma.Decimal | null
+      precio_base_alta: Prisma.Decimal | null
+      recargo_pareja_media: Prisma.Decimal | null
+      recargo_pareja_alta: Prisma.Decimal | null
+      recargo_adicional_media: Prisma.Decimal | null
+      recargo_adicional_alta: Prisma.Decimal | null
     }, ExtArgs["result"]["tipo_espacio_config"]>
     composites: {}
   }
@@ -12489,6 +12706,12 @@ export namespace Prisma {
     readonly recargo_pareja: FieldRef<"tipo_espacio_config", 'Decimal'>
     readonly recargo_adicional: FieldRef<"tipo_espacio_config", 'Decimal'>
     readonly max_personas_adicionales: FieldRef<"tipo_espacio_config", 'Int'>
+    readonly precio_base_media: FieldRef<"tipo_espacio_config", 'Decimal'>
+    readonly precio_base_alta: FieldRef<"tipo_espacio_config", 'Decimal'>
+    readonly recargo_pareja_media: FieldRef<"tipo_espacio_config", 'Decimal'>
+    readonly recargo_pareja_alta: FieldRef<"tipo_espacio_config", 'Decimal'>
+    readonly recargo_adicional_media: FieldRef<"tipo_espacio_config", 'Decimal'>
+    readonly recargo_adicional_alta: FieldRef<"tipo_espacio_config", 'Decimal'>
   }
     
 
@@ -12857,6 +13080,1083 @@ export namespace Prisma {
      * Omit specific fields from the tipo_espacio_config
      */
     omit?: tipo_espacio_configOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model temporada
+   */
+
+  export type AggregateTemporada = {
+    _count: TemporadaCountAggregateOutputType | null
+    _avg: TemporadaAvgAggregateOutputType | null
+    _sum: TemporadaSumAggregateOutputType | null
+    _min: TemporadaMinAggregateOutputType | null
+    _max: TemporadaMaxAggregateOutputType | null
+  }
+
+  export type TemporadaAvgAggregateOutputType = {
+    id: number | null
+    anio: number | null
+  }
+
+  export type TemporadaSumAggregateOutputType = {
+    id: number | null
+    anio: number | null
+  }
+
+  export type TemporadaMinAggregateOutputType = {
+    id: number | null
+    nombre: string | null
+    tipo: string | null
+    fecha_inicio: Date | null
+    fecha_fin: Date | null
+    activo: boolean | null
+    anio: number | null
+    fecha_creacion: Date | null
+  }
+
+  export type TemporadaMaxAggregateOutputType = {
+    id: number | null
+    nombre: string | null
+    tipo: string | null
+    fecha_inicio: Date | null
+    fecha_fin: Date | null
+    activo: boolean | null
+    anio: number | null
+    fecha_creacion: Date | null
+  }
+
+  export type TemporadaCountAggregateOutputType = {
+    id: number
+    nombre: number
+    tipo: number
+    fecha_inicio: number
+    fecha_fin: number
+    activo: number
+    anio: number
+    fecha_creacion: number
+    _all: number
+  }
+
+
+  export type TemporadaAvgAggregateInputType = {
+    id?: true
+    anio?: true
+  }
+
+  export type TemporadaSumAggregateInputType = {
+    id?: true
+    anio?: true
+  }
+
+  export type TemporadaMinAggregateInputType = {
+    id?: true
+    nombre?: true
+    tipo?: true
+    fecha_inicio?: true
+    fecha_fin?: true
+    activo?: true
+    anio?: true
+    fecha_creacion?: true
+  }
+
+  export type TemporadaMaxAggregateInputType = {
+    id?: true
+    nombre?: true
+    tipo?: true
+    fecha_inicio?: true
+    fecha_fin?: true
+    activo?: true
+    anio?: true
+    fecha_creacion?: true
+  }
+
+  export type TemporadaCountAggregateInputType = {
+    id?: true
+    nombre?: true
+    tipo?: true
+    fecha_inicio?: true
+    fecha_fin?: true
+    activo?: true
+    anio?: true
+    fecha_creacion?: true
+    _all?: true
+  }
+
+  export type TemporadaAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which temporada to aggregate.
+     */
+    where?: temporadaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of temporadas to fetch.
+     */
+    orderBy?: temporadaOrderByWithRelationInput | temporadaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: temporadaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` temporadas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` temporadas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned temporadas
+    **/
+    _count?: true | TemporadaCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TemporadaAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TemporadaSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TemporadaMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TemporadaMaxAggregateInputType
+  }
+
+  export type GetTemporadaAggregateType<T extends TemporadaAggregateArgs> = {
+        [P in keyof T & keyof AggregateTemporada]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTemporada[P]>
+      : GetScalarType<T[P], AggregateTemporada[P]>
+  }
+
+
+
+
+  export type temporadaGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: temporadaWhereInput
+    orderBy?: temporadaOrderByWithAggregationInput | temporadaOrderByWithAggregationInput[]
+    by: TemporadaScalarFieldEnum[] | TemporadaScalarFieldEnum
+    having?: temporadaScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TemporadaCountAggregateInputType | true
+    _avg?: TemporadaAvgAggregateInputType
+    _sum?: TemporadaSumAggregateInputType
+    _min?: TemporadaMinAggregateInputType
+    _max?: TemporadaMaxAggregateInputType
+  }
+
+  export type TemporadaGroupByOutputType = {
+    id: number
+    nombre: string
+    tipo: string
+    fecha_inicio: Date
+    fecha_fin: Date
+    activo: boolean
+    anio: number | null
+    fecha_creacion: Date
+    _count: TemporadaCountAggregateOutputType | null
+    _avg: TemporadaAvgAggregateOutputType | null
+    _sum: TemporadaSumAggregateOutputType | null
+    _min: TemporadaMinAggregateOutputType | null
+    _max: TemporadaMaxAggregateOutputType | null
+  }
+
+  type GetTemporadaGroupByPayload<T extends temporadaGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TemporadaGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TemporadaGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TemporadaGroupByOutputType[P]>
+            : GetScalarType<T[P], TemporadaGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type temporadaSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    nombre?: boolean
+    tipo?: boolean
+    fecha_inicio?: boolean
+    fecha_fin?: boolean
+    activo?: boolean
+    anio?: boolean
+    fecha_creacion?: boolean
+  }, ExtArgs["result"]["temporada"]>
+
+  export type temporadaSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    nombre?: boolean
+    tipo?: boolean
+    fecha_inicio?: boolean
+    fecha_fin?: boolean
+    activo?: boolean
+    anio?: boolean
+    fecha_creacion?: boolean
+  }, ExtArgs["result"]["temporada"]>
+
+  export type temporadaSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    nombre?: boolean
+    tipo?: boolean
+    fecha_inicio?: boolean
+    fecha_fin?: boolean
+    activo?: boolean
+    anio?: boolean
+    fecha_creacion?: boolean
+  }, ExtArgs["result"]["temporada"]>
+
+  export type temporadaSelectScalar = {
+    id?: boolean
+    nombre?: boolean
+    tipo?: boolean
+    fecha_inicio?: boolean
+    fecha_fin?: boolean
+    activo?: boolean
+    anio?: boolean
+    fecha_creacion?: boolean
+  }
+
+  export type temporadaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "nombre" | "tipo" | "fecha_inicio" | "fecha_fin" | "activo" | "anio" | "fecha_creacion", ExtArgs["result"]["temporada"]>
+
+  export type $temporadaPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "temporada"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      nombre: string
+      tipo: string
+      fecha_inicio: Date
+      fecha_fin: Date
+      activo: boolean
+      anio: number | null
+      fecha_creacion: Date
+    }, ExtArgs["result"]["temporada"]>
+    composites: {}
+  }
+
+  type temporadaGetPayload<S extends boolean | null | undefined | temporadaDefaultArgs> = $Result.GetResult<Prisma.$temporadaPayload, S>
+
+  type temporadaCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<temporadaFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TemporadaCountAggregateInputType | true
+    }
+
+  export interface temporadaDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['temporada'], meta: { name: 'temporada' } }
+    /**
+     * Find zero or one Temporada that matches the filter.
+     * @param {temporadaFindUniqueArgs} args - Arguments to find a Temporada
+     * @example
+     * // Get one Temporada
+     * const temporada = await prisma.temporada.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends temporadaFindUniqueArgs>(args: SelectSubset<T, temporadaFindUniqueArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Temporada that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {temporadaFindUniqueOrThrowArgs} args - Arguments to find a Temporada
+     * @example
+     * // Get one Temporada
+     * const temporada = await prisma.temporada.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends temporadaFindUniqueOrThrowArgs>(args: SelectSubset<T, temporadaFindUniqueOrThrowArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Temporada that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {temporadaFindFirstArgs} args - Arguments to find a Temporada
+     * @example
+     * // Get one Temporada
+     * const temporada = await prisma.temporada.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends temporadaFindFirstArgs>(args?: SelectSubset<T, temporadaFindFirstArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Temporada that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {temporadaFindFirstOrThrowArgs} args - Arguments to find a Temporada
+     * @example
+     * // Get one Temporada
+     * const temporada = await prisma.temporada.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends temporadaFindFirstOrThrowArgs>(args?: SelectSubset<T, temporadaFindFirstOrThrowArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Temporadas that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {temporadaFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Temporadas
+     * const temporadas = await prisma.temporada.findMany()
+     * 
+     * // Get first 10 Temporadas
+     * const temporadas = await prisma.temporada.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const temporadaWithIdOnly = await prisma.temporada.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends temporadaFindManyArgs>(args?: SelectSubset<T, temporadaFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Temporada.
+     * @param {temporadaCreateArgs} args - Arguments to create a Temporada.
+     * @example
+     * // Create one Temporada
+     * const Temporada = await prisma.temporada.create({
+     *   data: {
+     *     // ... data to create a Temporada
+     *   }
+     * })
+     * 
+     */
+    create<T extends temporadaCreateArgs>(args: SelectSubset<T, temporadaCreateArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Temporadas.
+     * @param {temporadaCreateManyArgs} args - Arguments to create many Temporadas.
+     * @example
+     * // Create many Temporadas
+     * const temporada = await prisma.temporada.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends temporadaCreateManyArgs>(args?: SelectSubset<T, temporadaCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Temporadas and returns the data saved in the database.
+     * @param {temporadaCreateManyAndReturnArgs} args - Arguments to create many Temporadas.
+     * @example
+     * // Create many Temporadas
+     * const temporada = await prisma.temporada.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Temporadas and only return the `id`
+     * const temporadaWithIdOnly = await prisma.temporada.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends temporadaCreateManyAndReturnArgs>(args?: SelectSubset<T, temporadaCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Temporada.
+     * @param {temporadaDeleteArgs} args - Arguments to delete one Temporada.
+     * @example
+     * // Delete one Temporada
+     * const Temporada = await prisma.temporada.delete({
+     *   where: {
+     *     // ... filter to delete one Temporada
+     *   }
+     * })
+     * 
+     */
+    delete<T extends temporadaDeleteArgs>(args: SelectSubset<T, temporadaDeleteArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Temporada.
+     * @param {temporadaUpdateArgs} args - Arguments to update one Temporada.
+     * @example
+     * // Update one Temporada
+     * const temporada = await prisma.temporada.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends temporadaUpdateArgs>(args: SelectSubset<T, temporadaUpdateArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Temporadas.
+     * @param {temporadaDeleteManyArgs} args - Arguments to filter Temporadas to delete.
+     * @example
+     * // Delete a few Temporadas
+     * const { count } = await prisma.temporada.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends temporadaDeleteManyArgs>(args?: SelectSubset<T, temporadaDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Temporadas.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {temporadaUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Temporadas
+     * const temporada = await prisma.temporada.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends temporadaUpdateManyArgs>(args: SelectSubset<T, temporadaUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Temporadas and returns the data updated in the database.
+     * @param {temporadaUpdateManyAndReturnArgs} args - Arguments to update many Temporadas.
+     * @example
+     * // Update many Temporadas
+     * const temporada = await prisma.temporada.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Temporadas and only return the `id`
+     * const temporadaWithIdOnly = await prisma.temporada.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends temporadaUpdateManyAndReturnArgs>(args: SelectSubset<T, temporadaUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Temporada.
+     * @param {temporadaUpsertArgs} args - Arguments to update or create a Temporada.
+     * @example
+     * // Update or create a Temporada
+     * const temporada = await prisma.temporada.upsert({
+     *   create: {
+     *     // ... data to create a Temporada
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Temporada we want to update
+     *   }
+     * })
+     */
+    upsert<T extends temporadaUpsertArgs>(args: SelectSubset<T, temporadaUpsertArgs<ExtArgs>>): Prisma__temporadaClient<$Result.GetResult<Prisma.$temporadaPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Temporadas.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {temporadaCountArgs} args - Arguments to filter Temporadas to count.
+     * @example
+     * // Count the number of Temporadas
+     * const count = await prisma.temporada.count({
+     *   where: {
+     *     // ... the filter for the Temporadas we want to count
+     *   }
+     * })
+    **/
+    count<T extends temporadaCountArgs>(
+      args?: Subset<T, temporadaCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TemporadaCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Temporada.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TemporadaAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TemporadaAggregateArgs>(args: Subset<T, TemporadaAggregateArgs>): Prisma.PrismaPromise<GetTemporadaAggregateType<T>>
+
+    /**
+     * Group by Temporada.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {temporadaGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends temporadaGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: temporadaGroupByArgs['orderBy'] }
+        : { orderBy?: temporadaGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, temporadaGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTemporadaGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the temporada model
+   */
+  readonly fields: temporadaFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for temporada.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__temporadaClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the temporada model
+   */
+  interface temporadaFieldRefs {
+    readonly id: FieldRef<"temporada", 'Int'>
+    readonly nombre: FieldRef<"temporada", 'String'>
+    readonly tipo: FieldRef<"temporada", 'String'>
+    readonly fecha_inicio: FieldRef<"temporada", 'DateTime'>
+    readonly fecha_fin: FieldRef<"temporada", 'DateTime'>
+    readonly activo: FieldRef<"temporada", 'Boolean'>
+    readonly anio: FieldRef<"temporada", 'Int'>
+    readonly fecha_creacion: FieldRef<"temporada", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * temporada findUnique
+   */
+  export type temporadaFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * Filter, which temporada to fetch.
+     */
+    where: temporadaWhereUniqueInput
+  }
+
+  /**
+   * temporada findUniqueOrThrow
+   */
+  export type temporadaFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * Filter, which temporada to fetch.
+     */
+    where: temporadaWhereUniqueInput
+  }
+
+  /**
+   * temporada findFirst
+   */
+  export type temporadaFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * Filter, which temporada to fetch.
+     */
+    where?: temporadaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of temporadas to fetch.
+     */
+    orderBy?: temporadaOrderByWithRelationInput | temporadaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for temporadas.
+     */
+    cursor?: temporadaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` temporadas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` temporadas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of temporadas.
+     */
+    distinct?: TemporadaScalarFieldEnum | TemporadaScalarFieldEnum[]
+  }
+
+  /**
+   * temporada findFirstOrThrow
+   */
+  export type temporadaFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * Filter, which temporada to fetch.
+     */
+    where?: temporadaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of temporadas to fetch.
+     */
+    orderBy?: temporadaOrderByWithRelationInput | temporadaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for temporadas.
+     */
+    cursor?: temporadaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` temporadas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` temporadas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of temporadas.
+     */
+    distinct?: TemporadaScalarFieldEnum | TemporadaScalarFieldEnum[]
+  }
+
+  /**
+   * temporada findMany
+   */
+  export type temporadaFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * Filter, which temporadas to fetch.
+     */
+    where?: temporadaWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of temporadas to fetch.
+     */
+    orderBy?: temporadaOrderByWithRelationInput | temporadaOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing temporadas.
+     */
+    cursor?: temporadaWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` temporadas from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` temporadas.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of temporadas.
+     */
+    distinct?: TemporadaScalarFieldEnum | TemporadaScalarFieldEnum[]
+  }
+
+  /**
+   * temporada create
+   */
+  export type temporadaCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * The data needed to create a temporada.
+     */
+    data: XOR<temporadaCreateInput, temporadaUncheckedCreateInput>
+  }
+
+  /**
+   * temporada createMany
+   */
+  export type temporadaCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many temporadas.
+     */
+    data: temporadaCreateManyInput | temporadaCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * temporada createManyAndReturn
+   */
+  export type temporadaCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * The data used to create many temporadas.
+     */
+    data: temporadaCreateManyInput | temporadaCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * temporada update
+   */
+  export type temporadaUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * The data needed to update a temporada.
+     */
+    data: XOR<temporadaUpdateInput, temporadaUncheckedUpdateInput>
+    /**
+     * Choose, which temporada to update.
+     */
+    where: temporadaWhereUniqueInput
+  }
+
+  /**
+   * temporada updateMany
+   */
+  export type temporadaUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update temporadas.
+     */
+    data: XOR<temporadaUpdateManyMutationInput, temporadaUncheckedUpdateManyInput>
+    /**
+     * Filter which temporadas to update
+     */
+    where?: temporadaWhereInput
+    /**
+     * Limit how many temporadas to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * temporada updateManyAndReturn
+   */
+  export type temporadaUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * The data used to update temporadas.
+     */
+    data: XOR<temporadaUpdateManyMutationInput, temporadaUncheckedUpdateManyInput>
+    /**
+     * Filter which temporadas to update
+     */
+    where?: temporadaWhereInput
+    /**
+     * Limit how many temporadas to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * temporada upsert
+   */
+  export type temporadaUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * The filter to search for the temporada to update in case it exists.
+     */
+    where: temporadaWhereUniqueInput
+    /**
+     * In case the temporada found by the `where` argument doesn't exist, create a new temporada with this data.
+     */
+    create: XOR<temporadaCreateInput, temporadaUncheckedCreateInput>
+    /**
+     * In case the temporada was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<temporadaUpdateInput, temporadaUncheckedUpdateInput>
+  }
+
+  /**
+   * temporada delete
+   */
+  export type temporadaDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
+    /**
+     * Filter which temporada to delete.
+     */
+    where: temporadaWhereUniqueInput
+  }
+
+  /**
+   * temporada deleteMany
+   */
+  export type temporadaDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which temporadas to delete
+     */
+    where?: temporadaWhereInput
+    /**
+     * Limit how many temporadas to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * temporada without action
+   */
+  export type temporadaDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the temporada
+     */
+    select?: temporadaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the temporada
+     */
+    omit?: temporadaOmit<ExtArgs> | null
   }
 
 
@@ -19800,7 +21100,9 @@ export namespace Prisma {
     monto_pagado: 'monto_pagado',
     anotaciones: 'anotaciones',
     firma: 'firma',
-    fecha_creacion: 'fecha_creacion'
+    fecha_creacion: 'fecha_creacion',
+    precio_noche_snapshot: 'precio_noche_snapshot',
+    temporada_tipo: 'temporada_tipo'
   };
 
   export type ReservaScalarFieldEnum = (typeof ReservaScalarFieldEnum)[keyof typeof ReservaScalarFieldEnum]
@@ -19828,10 +21130,30 @@ export namespace Prisma {
     precio_base: 'precio_base',
     recargo_pareja: 'recargo_pareja',
     recargo_adicional: 'recargo_adicional',
-    max_personas_adicionales: 'max_personas_adicionales'
+    max_personas_adicionales: 'max_personas_adicionales',
+    precio_base_media: 'precio_base_media',
+    precio_base_alta: 'precio_base_alta',
+    recargo_pareja_media: 'recargo_pareja_media',
+    recargo_pareja_alta: 'recargo_pareja_alta',
+    recargo_adicional_media: 'recargo_adicional_media',
+    recargo_adicional_alta: 'recargo_adicional_alta'
   };
 
   export type Tipo_espacio_configScalarFieldEnum = (typeof Tipo_espacio_configScalarFieldEnum)[keyof typeof Tipo_espacio_configScalarFieldEnum]
+
+
+  export const TemporadaScalarFieldEnum: {
+    id: 'id',
+    nombre: 'nombre',
+    tipo: 'tipo',
+    fecha_inicio: 'fecha_inicio',
+    fecha_fin: 'fecha_fin',
+    activo: 'activo',
+    anio: 'anio',
+    fecha_creacion: 'fecha_creacion'
+  };
+
+  export type TemporadaScalarFieldEnum = (typeof TemporadaScalarFieldEnum)[keyof typeof TemporadaScalarFieldEnum]
 
 
   export const Categoria_inventarioScalarFieldEnum: {
@@ -20511,6 +21833,8 @@ export namespace Prisma {
     anotaciones?: StringNullableFilter<"reserva"> | string | null
     firma?: StringNullableFilter<"reserva"> | string | null
     fecha_creacion?: DateTimeNullableFilter<"reserva"> | Date | string | null
+    precio_noche_snapshot?: DecimalNullableFilter<"reserva"> | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: StringNullableFilter<"reserva"> | string | null
     cuenta_espacio?: Cuenta_espacioListRelationFilter
     cuenta_persona?: Cuenta_personaListRelationFilter
     espacio?: XOR<EspacioScalarRelationFilter, espacioWhereInput>
@@ -20539,6 +21863,8 @@ export namespace Prisma {
     anotaciones?: SortOrderInput | SortOrder
     firma?: SortOrderInput | SortOrder
     fecha_creacion?: SortOrderInput | SortOrder
+    precio_noche_snapshot?: SortOrderInput | SortOrder
+    temporada_tipo?: SortOrderInput | SortOrder
     cuenta_espacio?: cuenta_espacioOrderByRelationAggregateInput
     cuenta_persona?: cuenta_personaOrderByRelationAggregateInput
     espacio?: espacioOrderByWithRelationInput
@@ -20570,6 +21896,8 @@ export namespace Prisma {
     anotaciones?: StringNullableFilter<"reserva"> | string | null
     firma?: StringNullableFilter<"reserva"> | string | null
     fecha_creacion?: DateTimeNullableFilter<"reserva"> | Date | string | null
+    precio_noche_snapshot?: DecimalNullableFilter<"reserva"> | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: StringNullableFilter<"reserva"> | string | null
     cuenta_espacio?: Cuenta_espacioListRelationFilter
     cuenta_persona?: Cuenta_personaListRelationFilter
     espacio?: XOR<EspacioScalarRelationFilter, espacioWhereInput>
@@ -20598,6 +21926,8 @@ export namespace Prisma {
     anotaciones?: SortOrderInput | SortOrder
     firma?: SortOrderInput | SortOrder
     fecha_creacion?: SortOrderInput | SortOrder
+    precio_noche_snapshot?: SortOrderInput | SortOrder
+    temporada_tipo?: SortOrderInput | SortOrder
     _count?: reservaCountOrderByAggregateInput
     _avg?: reservaAvgOrderByAggregateInput
     _max?: reservaMaxOrderByAggregateInput
@@ -20630,6 +21960,8 @@ export namespace Prisma {
     anotaciones?: StringNullableWithAggregatesFilter<"reserva"> | string | null
     firma?: StringNullableWithAggregatesFilter<"reserva"> | string | null
     fecha_creacion?: DateTimeNullableWithAggregatesFilter<"reserva"> | Date | string | null
+    precio_noche_snapshot?: DecimalNullableWithAggregatesFilter<"reserva"> | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: StringNullableWithAggregatesFilter<"reserva"> | string | null
   }
 
   export type configuracion_hotelWhereInput = {
@@ -20721,6 +22053,12 @@ export namespace Prisma {
     recargo_pareja?: DecimalFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string
     recargo_adicional?: DecimalFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: IntFilter<"tipo_espacio_config"> | number
+    precio_base_media?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
   }
 
   export type tipo_espacio_configOrderByWithRelationInput = {
@@ -20730,6 +22068,12 @@ export namespace Prisma {
     recargo_pareja?: SortOrder
     recargo_adicional?: SortOrder
     max_personas_adicionales?: SortOrder
+    precio_base_media?: SortOrderInput | SortOrder
+    precio_base_alta?: SortOrderInput | SortOrder
+    recargo_pareja_media?: SortOrderInput | SortOrder
+    recargo_pareja_alta?: SortOrderInput | SortOrder
+    recargo_adicional_media?: SortOrderInput | SortOrder
+    recargo_adicional_alta?: SortOrderInput | SortOrder
   }
 
   export type tipo_espacio_configWhereUniqueInput = Prisma.AtLeast<{
@@ -20742,6 +22086,12 @@ export namespace Prisma {
     recargo_pareja?: DecimalFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string
     recargo_adicional?: DecimalFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: IntFilter<"tipo_espacio_config"> | number
+    precio_base_media?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: DecimalNullableFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
   }, "id" | "nombre">
 
   export type tipo_espacio_configOrderByWithAggregationInput = {
@@ -20751,6 +22101,12 @@ export namespace Prisma {
     recargo_pareja?: SortOrder
     recargo_adicional?: SortOrder
     max_personas_adicionales?: SortOrder
+    precio_base_media?: SortOrderInput | SortOrder
+    precio_base_alta?: SortOrderInput | SortOrder
+    recargo_pareja_media?: SortOrderInput | SortOrder
+    recargo_pareja_alta?: SortOrderInput | SortOrder
+    recargo_adicional_media?: SortOrderInput | SortOrder
+    recargo_adicional_alta?: SortOrderInput | SortOrder
     _count?: tipo_espacio_configCountOrderByAggregateInput
     _avg?: tipo_espacio_configAvgOrderByAggregateInput
     _max?: tipo_espacio_configMaxOrderByAggregateInput
@@ -20768,6 +22124,81 @@ export namespace Prisma {
     recargo_pareja?: DecimalWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string
     recargo_adicional?: DecimalWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: IntWithAggregatesFilter<"tipo_espacio_config"> | number
+    precio_base_media?: DecimalNullableWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: DecimalNullableWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: DecimalNullableWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: DecimalNullableWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: DecimalNullableWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: DecimalNullableWithAggregatesFilter<"tipo_espacio_config"> | Decimal | DecimalJsLike | number | string | null
+  }
+
+  export type temporadaWhereInput = {
+    AND?: temporadaWhereInput | temporadaWhereInput[]
+    OR?: temporadaWhereInput[]
+    NOT?: temporadaWhereInput | temporadaWhereInput[]
+    id?: IntFilter<"temporada"> | number
+    nombre?: StringFilter<"temporada"> | string
+    tipo?: StringFilter<"temporada"> | string
+    fecha_inicio?: DateTimeFilter<"temporada"> | Date | string
+    fecha_fin?: DateTimeFilter<"temporada"> | Date | string
+    activo?: BoolFilter<"temporada"> | boolean
+    anio?: IntNullableFilter<"temporada"> | number | null
+    fecha_creacion?: DateTimeFilter<"temporada"> | Date | string
+  }
+
+  export type temporadaOrderByWithRelationInput = {
+    id?: SortOrder
+    nombre?: SortOrder
+    tipo?: SortOrder
+    fecha_inicio?: SortOrder
+    fecha_fin?: SortOrder
+    activo?: SortOrder
+    anio?: SortOrderInput | SortOrder
+    fecha_creacion?: SortOrder
+  }
+
+  export type temporadaWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: temporadaWhereInput | temporadaWhereInput[]
+    OR?: temporadaWhereInput[]
+    NOT?: temporadaWhereInput | temporadaWhereInput[]
+    nombre?: StringFilter<"temporada"> | string
+    tipo?: StringFilter<"temporada"> | string
+    fecha_inicio?: DateTimeFilter<"temporada"> | Date | string
+    fecha_fin?: DateTimeFilter<"temporada"> | Date | string
+    activo?: BoolFilter<"temporada"> | boolean
+    anio?: IntNullableFilter<"temporada"> | number | null
+    fecha_creacion?: DateTimeFilter<"temporada"> | Date | string
+  }, "id">
+
+  export type temporadaOrderByWithAggregationInput = {
+    id?: SortOrder
+    nombre?: SortOrder
+    tipo?: SortOrder
+    fecha_inicio?: SortOrder
+    fecha_fin?: SortOrder
+    activo?: SortOrder
+    anio?: SortOrderInput | SortOrder
+    fecha_creacion?: SortOrder
+    _count?: temporadaCountOrderByAggregateInput
+    _avg?: temporadaAvgOrderByAggregateInput
+    _max?: temporadaMaxOrderByAggregateInput
+    _min?: temporadaMinOrderByAggregateInput
+    _sum?: temporadaSumOrderByAggregateInput
+  }
+
+  export type temporadaScalarWhereWithAggregatesInput = {
+    AND?: temporadaScalarWhereWithAggregatesInput | temporadaScalarWhereWithAggregatesInput[]
+    OR?: temporadaScalarWhereWithAggregatesInput[]
+    NOT?: temporadaScalarWhereWithAggregatesInput | temporadaScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"temporada"> | number
+    nombre?: StringWithAggregatesFilter<"temporada"> | string
+    tipo?: StringWithAggregatesFilter<"temporada"> | string
+    fecha_inicio?: DateTimeWithAggregatesFilter<"temporada"> | Date | string
+    fecha_fin?: DateTimeWithAggregatesFilter<"temporada"> | Date | string
+    activo?: BoolWithAggregatesFilter<"temporada"> | boolean
+    anio?: IntNullableWithAggregatesFilter<"temporada"> | number | null
+    fecha_creacion?: DateTimeWithAggregatesFilter<"temporada"> | Date | string
   }
 
   export type categoria_inventarioWhereInput = {
@@ -21722,6 +23153,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioCreateNestedManyWithoutReservaInput
     cuenta_persona?: cuenta_personaCreateNestedManyWithoutReservaInput
     espacio: espacioCreateNestedOneWithoutReservaInput
@@ -21750,6 +23183,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioUncheckedCreateNestedManyWithoutReservaInput
     cuenta_persona?: cuenta_personaUncheckedCreateNestedManyWithoutReservaInput
   }
@@ -21773,6 +23208,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUpdateManyWithoutReservaNestedInput
     cuenta_persona?: cuenta_personaUpdateManyWithoutReservaNestedInput
     espacio?: espacioUpdateOneRequiredWithoutReservaNestedInput
@@ -21801,6 +23238,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUncheckedUpdateManyWithoutReservaNestedInput
     cuenta_persona?: cuenta_personaUncheckedUpdateManyWithoutReservaNestedInput
   }
@@ -21827,6 +23266,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
   }
 
   export type reservaUpdateManyMutationInput = {
@@ -21848,6 +23289,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type reservaUncheckedUpdateManyInput = {
@@ -21872,6 +23315,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type configuracion_hotelCreateInput = {
@@ -21968,6 +23413,12 @@ export namespace Prisma {
     recargo_pareja: Decimal | DecimalJsLike | number | string
     recargo_adicional: Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: number
+    precio_base_media?: Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: Decimal | DecimalJsLike | number | string | null
   }
 
   export type tipo_espacio_configUncheckedCreateInput = {
@@ -21977,6 +23428,12 @@ export namespace Prisma {
     recargo_pareja: Decimal | DecimalJsLike | number | string
     recargo_adicional: Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: number
+    precio_base_media?: Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: Decimal | DecimalJsLike | number | string | null
   }
 
   export type tipo_espacio_configUpdateInput = {
@@ -21985,6 +23442,12 @@ export namespace Prisma {
     recargo_pareja?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recargo_adicional?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: IntFieldUpdateOperationsInput | number
+    precio_base_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
   }
 
   export type tipo_espacio_configUncheckedUpdateInput = {
@@ -21994,6 +23457,12 @@ export namespace Prisma {
     recargo_pareja?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recargo_adicional?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: IntFieldUpdateOperationsInput | number
+    precio_base_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
   }
 
   export type tipo_espacio_configCreateManyInput = {
@@ -22003,6 +23472,12 @@ export namespace Prisma {
     recargo_pareja: Decimal | DecimalJsLike | number | string
     recargo_adicional: Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: number
+    precio_base_media?: Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: Decimal | DecimalJsLike | number | string | null
   }
 
   export type tipo_espacio_configUpdateManyMutationInput = {
@@ -22011,6 +23486,12 @@ export namespace Prisma {
     recargo_pareja?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recargo_adicional?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: IntFieldUpdateOperationsInput | number
+    precio_base_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
   }
 
   export type tipo_espacio_configUncheckedUpdateManyInput = {
@@ -22020,6 +23501,86 @@ export namespace Prisma {
     recargo_pareja?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     recargo_adicional?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     max_personas_adicionales?: IntFieldUpdateOperationsInput | number
+    precio_base_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    precio_base_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_pareja_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_media?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    recargo_adicional_alta?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+  }
+
+  export type temporadaCreateInput = {
+    nombre: string
+    tipo: string
+    fecha_inicio: Date | string
+    fecha_fin: Date | string
+    activo?: boolean
+    anio?: number | null
+    fecha_creacion?: Date | string
+  }
+
+  export type temporadaUncheckedCreateInput = {
+    id?: number
+    nombre: string
+    tipo: string
+    fecha_inicio: Date | string
+    fecha_fin: Date | string
+    activo?: boolean
+    anio?: number | null
+    fecha_creacion?: Date | string
+  }
+
+  export type temporadaUpdateInput = {
+    nombre?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
+    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+    anio?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type temporadaUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    nombre?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
+    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+    anio?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type temporadaCreateManyInput = {
+    id?: number
+    nombre: string
+    tipo: string
+    fecha_inicio: Date | string
+    fecha_fin: Date | string
+    activo?: boolean
+    anio?: number | null
+    fecha_creacion?: Date | string
+  }
+
+  export type temporadaUpdateManyMutationInput = {
+    nombre?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
+    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+    anio?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type temporadaUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    nombre?: StringFieldUpdateOperationsInput | string
+    tipo?: StringFieldUpdateOperationsInput | string
+    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
+    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    activo?: BoolFieldUpdateOperationsInput | boolean
+    anio?: NullableIntFieldUpdateOperationsInput | number | null
+    fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type categoria_inventarioCreateInput = {
@@ -23143,6 +24704,8 @@ export namespace Prisma {
     anotaciones?: SortOrder
     firma?: SortOrder
     fecha_creacion?: SortOrder
+    precio_noche_snapshot?: SortOrder
+    temporada_tipo?: SortOrder
   }
 
   export type reservaAvgOrderByAggregateInput = {
@@ -23153,6 +24716,7 @@ export namespace Prisma {
     cantidad_ninos?: SortOrder
     monto_total?: SortOrder
     monto_pagado?: SortOrder
+    precio_noche_snapshot?: SortOrder
   }
 
   export type reservaMaxOrderByAggregateInput = {
@@ -23177,6 +24741,8 @@ export namespace Prisma {
     anotaciones?: SortOrder
     firma?: SortOrder
     fecha_creacion?: SortOrder
+    precio_noche_snapshot?: SortOrder
+    temporada_tipo?: SortOrder
   }
 
   export type reservaMinOrderByAggregateInput = {
@@ -23201,6 +24767,8 @@ export namespace Prisma {
     anotaciones?: SortOrder
     firma?: SortOrder
     fecha_creacion?: SortOrder
+    precio_noche_snapshot?: SortOrder
+    temporada_tipo?: SortOrder
   }
 
   export type reservaSumOrderByAggregateInput = {
@@ -23211,6 +24779,7 @@ export namespace Prisma {
     cantidad_ninos?: SortOrder
     monto_total?: SortOrder
     monto_pagado?: SortOrder
+    precio_noche_snapshot?: SortOrder
   }
 
   export type configuracion_hotelCountOrderByAggregateInput = {
@@ -23267,6 +24836,12 @@ export namespace Prisma {
     recargo_pareja?: SortOrder
     recargo_adicional?: SortOrder
     max_personas_adicionales?: SortOrder
+    precio_base_media?: SortOrder
+    precio_base_alta?: SortOrder
+    recargo_pareja_media?: SortOrder
+    recargo_pareja_alta?: SortOrder
+    recargo_adicional_media?: SortOrder
+    recargo_adicional_alta?: SortOrder
   }
 
   export type tipo_espacio_configAvgOrderByAggregateInput = {
@@ -23275,6 +24850,12 @@ export namespace Prisma {
     recargo_pareja?: SortOrder
     recargo_adicional?: SortOrder
     max_personas_adicionales?: SortOrder
+    precio_base_media?: SortOrder
+    precio_base_alta?: SortOrder
+    recargo_pareja_media?: SortOrder
+    recargo_pareja_alta?: SortOrder
+    recargo_adicional_media?: SortOrder
+    recargo_adicional_alta?: SortOrder
   }
 
   export type tipo_espacio_configMaxOrderByAggregateInput = {
@@ -23284,6 +24865,12 @@ export namespace Prisma {
     recargo_pareja?: SortOrder
     recargo_adicional?: SortOrder
     max_personas_adicionales?: SortOrder
+    precio_base_media?: SortOrder
+    precio_base_alta?: SortOrder
+    recargo_pareja_media?: SortOrder
+    recargo_pareja_alta?: SortOrder
+    recargo_adicional_media?: SortOrder
+    recargo_adicional_alta?: SortOrder
   }
 
   export type tipo_espacio_configMinOrderByAggregateInput = {
@@ -23293,6 +24880,12 @@ export namespace Prisma {
     recargo_pareja?: SortOrder
     recargo_adicional?: SortOrder
     max_personas_adicionales?: SortOrder
+    precio_base_media?: SortOrder
+    precio_base_alta?: SortOrder
+    recargo_pareja_media?: SortOrder
+    recargo_pareja_alta?: SortOrder
+    recargo_adicional_media?: SortOrder
+    recargo_adicional_alta?: SortOrder
   }
 
   export type tipo_espacio_configSumOrderByAggregateInput = {
@@ -23301,6 +24894,55 @@ export namespace Prisma {
     recargo_pareja?: SortOrder
     recargo_adicional?: SortOrder
     max_personas_adicionales?: SortOrder
+    precio_base_media?: SortOrder
+    precio_base_alta?: SortOrder
+    recargo_pareja_media?: SortOrder
+    recargo_pareja_alta?: SortOrder
+    recargo_adicional_media?: SortOrder
+    recargo_adicional_alta?: SortOrder
+  }
+
+  export type temporadaCountOrderByAggregateInput = {
+    id?: SortOrder
+    nombre?: SortOrder
+    tipo?: SortOrder
+    fecha_inicio?: SortOrder
+    fecha_fin?: SortOrder
+    activo?: SortOrder
+    anio?: SortOrder
+    fecha_creacion?: SortOrder
+  }
+
+  export type temporadaAvgOrderByAggregateInput = {
+    id?: SortOrder
+    anio?: SortOrder
+  }
+
+  export type temporadaMaxOrderByAggregateInput = {
+    id?: SortOrder
+    nombre?: SortOrder
+    tipo?: SortOrder
+    fecha_inicio?: SortOrder
+    fecha_fin?: SortOrder
+    activo?: SortOrder
+    anio?: SortOrder
+    fecha_creacion?: SortOrder
+  }
+
+  export type temporadaMinOrderByAggregateInput = {
+    id?: SortOrder
+    nombre?: SortOrder
+    tipo?: SortOrder
+    fecha_inicio?: SortOrder
+    fecha_fin?: SortOrder
+    activo?: SortOrder
+    anio?: SortOrder
+    fecha_creacion?: SortOrder
+  }
+
+  export type temporadaSumOrderByAggregateInput = {
+    id?: SortOrder
+    anio?: SortOrder
   }
 
   export type categoria_inventarioCountOrderByAggregateInput = {
@@ -24420,6 +26062,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_persona?: cuenta_personaCreateNestedManyWithoutReservaInput
     espacio: espacioCreateNestedOneWithoutReservaInput
     huesped: huespedCreateNestedOneWithoutReservaInput
@@ -24447,6 +26091,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_persona?: cuenta_personaUncheckedCreateNestedManyWithoutReservaInput
   }
 
@@ -24485,6 +26131,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_persona?: cuenta_personaUpdateManyWithoutReservaNestedInput
     espacio?: espacioUpdateOneRequiredWithoutReservaNestedInput
     huesped?: huespedUpdateOneRequiredWithoutReservaNestedInput
@@ -24512,6 +26160,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_persona?: cuenta_personaUncheckedUpdateManyWithoutReservaNestedInput
   }
 
@@ -24562,6 +26212,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioCreateNestedManyWithoutReservaInput
     espacio: espacioCreateNestedOneWithoutReservaInput
     huesped: huespedCreateNestedOneWithoutReservaInput
@@ -24589,6 +26241,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioUncheckedCreateNestedManyWithoutReservaInput
   }
 
@@ -24661,6 +26315,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUpdateManyWithoutReservaNestedInput
     espacio?: espacioUpdateOneRequiredWithoutReservaNestedInput
     huesped?: huespedUpdateOneRequiredWithoutReservaNestedInput
@@ -24688,6 +26344,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUncheckedUpdateManyWithoutReservaNestedInput
   }
 
@@ -24737,6 +26395,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioCreateNestedManyWithoutReservaInput
     cuenta_persona?: cuenta_personaCreateNestedManyWithoutReservaInput
     huesped: huespedCreateNestedOneWithoutReservaInput
@@ -24763,6 +26423,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioUncheckedCreateNestedManyWithoutReservaInput
     cuenta_persona?: cuenta_personaUncheckedCreateNestedManyWithoutReservaInput
   }
@@ -24847,6 +26509,8 @@ export namespace Prisma {
     anotaciones?: StringNullableFilter<"reserva"> | string | null
     firma?: StringNullableFilter<"reserva"> | string | null
     fecha_creacion?: DateTimeNullableFilter<"reserva"> | Date | string | null
+    precio_noche_snapshot?: DecimalNullableFilter<"reserva"> | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: StringNullableFilter<"reserva"> | string | null
   }
 
   export type cuenta_personaCreateWithoutHuespedInput = {
@@ -24905,6 +26569,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioCreateNestedManyWithoutReservaInput
     cuenta_persona?: cuenta_personaCreateNestedManyWithoutReservaInput
     espacio: espacioCreateNestedOneWithoutReservaInput
@@ -24931,6 +26597,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
     cuenta_espacio?: cuenta_espacioUncheckedCreateNestedManyWithoutReservaInput
     cuenta_persona?: cuenta_personaUncheckedCreateNestedManyWithoutReservaInput
   }
@@ -25641,6 +27309,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
   }
 
   export type inventario_minibarUpdateWithoutEspacioInput = {
@@ -25688,6 +27358,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUpdateManyWithoutReservaNestedInput
     cuenta_persona?: cuenta_personaUpdateManyWithoutReservaNestedInput
     huesped?: huespedUpdateOneRequiredWithoutReservaNestedInput
@@ -25714,6 +27386,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUncheckedUpdateManyWithoutReservaNestedInput
     cuenta_persona?: cuenta_personaUncheckedUpdateManyWithoutReservaNestedInput
   }
@@ -25739,6 +27413,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type cuenta_personaCreateManyHuespedInput = {
@@ -25776,6 +27452,8 @@ export namespace Prisma {
     anotaciones?: string | null
     firma?: string | null
     fecha_creacion?: Date | string | null
+    precio_noche_snapshot?: Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: string | null
   }
 
   export type cuenta_personaUpdateWithoutHuespedInput = {
@@ -25838,6 +27516,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUpdateManyWithoutReservaNestedInput
     cuenta_persona?: cuenta_personaUpdateManyWithoutReservaNestedInput
     espacio?: espacioUpdateOneRequiredWithoutReservaNestedInput
@@ -25864,6 +27544,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
     cuenta_espacio?: cuenta_espacioUncheckedUpdateManyWithoutReservaNestedInput
     cuenta_persona?: cuenta_personaUncheckedUpdateManyWithoutReservaNestedInput
   }
@@ -25889,6 +27571,8 @@ export namespace Prisma {
     anotaciones?: NullableStringFieldUpdateOperationsInput | string | null
     firma?: NullableStringFieldUpdateOperationsInput | string | null
     fecha_creacion?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    precio_noche_snapshot?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    temporada_tipo?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type cuenta_espacioCreateManyReservaInput = {

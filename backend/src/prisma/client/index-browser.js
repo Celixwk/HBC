@@ -210,7 +210,9 @@ exports.Prisma.ReservaScalarFieldEnum = {
   monto_pagado: 'monto_pagado',
   anotaciones: 'anotaciones',
   firma: 'firma',
-  fecha_creacion: 'fecha_creacion'
+  fecha_creacion: 'fecha_creacion',
+  precio_noche_snapshot: 'precio_noche_snapshot',
+  temporada_tipo: 'temporada_tipo'
 };
 
 exports.Prisma.Configuracion_hotelScalarFieldEnum = {
@@ -232,7 +234,24 @@ exports.Prisma.Tipo_espacio_configScalarFieldEnum = {
   precio_base: 'precio_base',
   recargo_pareja: 'recargo_pareja',
   recargo_adicional: 'recargo_adicional',
-  max_personas_adicionales: 'max_personas_adicionales'
+  max_personas_adicionales: 'max_personas_adicionales',
+  precio_base_media: 'precio_base_media',
+  precio_base_alta: 'precio_base_alta',
+  recargo_pareja_media: 'recargo_pareja_media',
+  recargo_pareja_alta: 'recargo_pareja_alta',
+  recargo_adicional_media: 'recargo_adicional_media',
+  recargo_adicional_alta: 'recargo_adicional_alta'
+};
+
+exports.Prisma.TemporadaScalarFieldEnum = {
+  id: 'id',
+  nombre: 'nombre',
+  tipo: 'tipo',
+  fecha_inicio: 'fecha_inicio',
+  fecha_fin: 'fecha_fin',
+  activo: 'activo',
+  anio: 'anio',
+  fecha_creacion: 'fecha_creacion'
 };
 
 exports.Prisma.Categoria_inventarioScalarFieldEnum = {
@@ -333,6 +352,7 @@ exports.Prisma.ModelName = {
   reserva: 'reserva',
   configuracion_hotel: 'configuracion_hotel',
   tipo_espacio_config: 'tipo_espacio_config',
+  temporada: 'temporada',
   categoria_inventario: 'categoria_inventario',
   proveedor: 'proveedor',
   producto_inventario: 'producto_inventario',

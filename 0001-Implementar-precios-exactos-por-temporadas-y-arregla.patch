@@ -1,0 +1,2063 @@
+From b4fe001ef8ba18b62c129bf87459afdc18d922f3 Mon Sep 17 00:00:00 2001
+From: Celixwk <celixwk@users.noreply.github.com>
+Date: Tue, 4 Aug 2026 20:01:55 -0500
+Subject: [PATCH] Implementar precios exactos por temporadas y arreglar UI
+
+---
+ backend/prisma/schema.prisma                  |  86 +++--
+ .../src/controllers/espacios.controller.js    |  83 ++---
+ .../src/controllers/reservas.controller.js    |  12 +-
+ .../src/controllers/temporadas.controller.js  | 149 +++++++++
+ backend/src/index.js                          |   8 +-
+ backend/src/routes/temporadas.routes.js       |  19 ++
+ .../NewReservationModal.tsx                   |  39 ++-
+ frontend/src/components/Receipt/Receipt.tsx   |  88 +-----
+ frontend/src/pages/Gastos/Gastos.tsx          |   2 +-
+ frontend/src/pages/Guests/Guests.tsx          |   4 +-
+ .../pages/Settings/BackupRestoreSettings.tsx  | 145 +++++++++
+ .../pages/Settings/MetodosPagoSettings.tsx    | 128 ++++++++
+ .../src/pages/Settings/OrigenesSettings.tsx   | 146 +++++++++
+ .../src/pages/Settings/SecuritySettings.tsx   | 118 +++++++
+ frontend/src/pages/Settings/Settings.css      |  39 +++
+ frontend/src/pages/Settings/Settings.tsx      |  51 ++-
+ .../src/pages/Settings/TemporadasSettings.tsx | 294 ++++++++++++++++++
+ .../pages/Settings/TiposEspacioSettings.tsx   | 263 +++++++++++-----
+ frontend/src/pages/Spaces/Spaces.tsx          |   1 +
+ 19 files changed, 1422 insertions(+), 253 deletions(-)
+ create mode 100644 backend/src/controllers/temporadas.controller.js
+ create mode 100644 backend/src/routes/temporadas.routes.js
+ create mode 100644 frontend/src/pages/Settings/BackupRestoreSettings.tsx
+ create mode 100644 frontend/src/pages/Settings/MetodosPagoSettings.tsx
+ create mode 100644 frontend/src/pages/Settings/OrigenesSettings.tsx
+ create mode 100644 frontend/src/pages/Settings/SecuritySettings.tsx
+ create mode 100644 frontend/src/pages/Settings/TemporadasSettings.tsx
+
+diff --git a/backend/prisma/schema.prisma b/backend/prisma/schema.prisma
+index e459907..f3b10e3 100644
+--- a/backend/prisma/schema.prisma
++++ b/backend/prisma/schema.prisma
+@@ -86,30 +86,33 @@ model inventario_minibar {
+ 
+ /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+ model reserva {
+-  id_reserva       Int              @id @default(autoincrement())
+-  id_huesped       Int
+-  id_espacio       Int
+-  tipo_reserva     String           @default("alojamiento") @db.VarChar(15)
+-  dni_tipo         String?          @default("reserva") @db.VarChar(20)
+-  check_in         DateTime?        @db.Date
+-  check_out        DateTime?        @db.Date
+-  cantidad_adultos Int?             @default(1)
+-  cantidad_ninos   Int?             @default(0)
+-  fecha_evento     DateTime?        @db.Date
+-  hora_inicio      DateTime?        @db.Time(6)
+-  hora_fin         DateTime?        @db.Time(6)
+-  estado_reserva   String           @default("activa") @db.VarChar(20)
+-  monto_total      Decimal?         @db.Decimal(12, 2)
+-  estado_pago      String?          @default("pendiente") @db.VarChar(20)
+-  metodo_pago      String?          @db.VarChar(50)
+-  monto_pagado     Decimal?         @default(0) @db.Decimal(12, 2)
+-  anotaciones      String?
+-  firma            String?
+-  fecha_creacion   DateTime?        @default(now()) @db.Timestamp(6)
+-  cuenta_espacio   cuenta_espacio[]
+-  cuenta_persona   cuenta_persona[]
+-  espacio          espacio          @relation(fields: [id_espacio], references: [id_espacio], onDelete: NoAction, onUpdate: NoAction)
+-  huesped          huesped          @relation(fields: [id_huesped], references: [id_huesped], onDelete: NoAction, onUpdate: NoAction)
++  id_reserva            Int              @id @default(autoincrement())
++  id_huesped            Int
++  id_espacio            Int
++  tipo_reserva          String           @default("alojamiento") @db.VarChar(15)
++  dni_tipo              String?          @default("reserva") @db.VarChar(20)
++  check_in              DateTime?        @db.Date
++  check_out             DateTime?        @db.Date
++  cantidad_adultos      Int?             @default(1)
++  cantidad_ninos        Int?             @default(0)
++  fecha_evento          DateTime?        @db.Date
++  hora_inicio           DateTime?        @db.Time(6)
++  hora_fin              DateTime?        @db.Time(6)
++  estado_reserva        String           @default("activa") @db.VarChar(20)
++  monto_total           Decimal?         @db.Decimal(12, 2)
++  estado_pago           String?          @default("pendiente") @db.VarChar(20)
++  metodo_pago           String?          @db.VarChar(50)
++  monto_pagado          Decimal?         @default(0) @db.Decimal(12, 2)
++  anotaciones           String?
++  firma                 String?
++  fecha_creacion        DateTime?        @default(now()) @db.Timestamp(6)
++  // Precio congelado al momento de crear la reserva (histórico inmutable)
++  precio_noche_snapshot Decimal?         @db.Decimal(12, 2)
++  temporada_tipo        String?          @db.VarChar(10)  // "alta", "media", "baja"
++  cuenta_espacio        cuenta_espacio[]
++  cuenta_persona        cuenta_persona[]
++  espacio               espacio          @relation(fields: [id_espacio], references: [id_espacio], onDelete: NoAction, onUpdate: NoAction)
++  huesped               huesped          @relation(fields: [id_huesped], references: [id_huesped], onDelete: NoAction, onUpdate: NoAction)
+ 
+   @@index([check_in], map: "idx_reserva_checkin")
+   @@index([check_out], map: "idx_reserva_checkout")
+@@ -131,12 +134,35 @@ model configuracion_hotel {
+ }
+ 
+ model tipo_espacio_config {
+-  id                       Int       @id @default(autoincrement())
+-  nombre                   String    @unique @db.VarChar(50)
+-  precio_base              Decimal   @db.Decimal(12, 2)
+-  recargo_pareja           Decimal   @db.Decimal(12, 2)
+-  recargo_adicional        Decimal   @db.Decimal(12, 2)
+-  max_personas_adicionales Int       @default(1)
++  id                         Int       @id @default(autoincrement())
++  nombre                     String    @unique @db.VarChar(50)
++  precio_base                Decimal   @db.Decimal(12, 2)
++  recargo_pareja             Decimal   @db.Decimal(12, 2)
++  recargo_adicional          Decimal   @db.Decimal(12, 2)
++  max_personas_adicionales   Int       @default(1)
++  // Precios por temporada (null = usa precio_base/recargo_pareja)
++  precio_base_media        Decimal?  @db.Decimal(12, 2)
++  precio_base_alta         Decimal?  @db.Decimal(12, 2)
++  recargo_pareja_media     Decimal?  @db.Decimal(12, 2)
++  recargo_pareja_alta      Decimal?  @db.Decimal(12, 2)
++  recargo_adicional_media  Decimal?  @db.Decimal(12, 2)
++  recargo_adicional_alta   Decimal?  @db.Decimal(12, 2)
++}
++
++
++model temporada {
++  id           Int      @id @default(autoincrement())
++  nombre       String   @db.VarChar(100)
++  tipo         String   @db.VarChar(10)  // "alta", "media", "baja"
++  fecha_inicio DateTime @db.Date
++  fecha_fin    DateTime @db.Date
++  activo       Boolean  @default(true)
++  anio         Int?
++  fecha_creacion DateTime @default(now()) @db.Timestamp(6)
++
++  @@index([fecha_inicio], map: "idx_temporada_inicio")
++  @@index([fecha_fin],    map: "idx_temporada_fin")
++  @@index([anio],         map: "idx_temporada_anio")
+ }
+ 
+ model categoria_inventario {
+diff --git a/backend/src/controllers/espacios.controller.js b/backend/src/controllers/espacios.controller.js
+index 78dc2af..5c744f9 100644
+--- a/backend/src/controllers/espacios.controller.js
++++ b/backend/src/controllers/espacios.controller.js
+@@ -127,67 +127,42 @@ const getTiposEspacioConfig = async (req, res) => {
+ 
+ const updateTipoEspacioConfig = async (req, res) => {
+   const { id } = req.params;
+-  const { nombre, precio_base, recargo_pareja, recargo_adicional, max_personas_adicionales } = req.body;
++    nombre,
++    precio_base, recargo_pareja, recargo_adicional, max_personas_adicionales,
++    // Precios por temporada (opcionales)
++    precio_base_media, precio_base_alta,
++    recargo_pareja_media, recargo_pareja_alta,
++    recargo_adicional_media, recargo_adicional_alta
++  } = req.body;
+ 
+-  const base     = parseFloat(precio_base);
+-  const pareja   = parseFloat(recargo_pareja);
+-  const adicional = parseFloat(recargo_adicional);
++  const parseOptional = (v) => (v !== undefined && v !== '' && v !== null) ? parseFloat(v) : null;
+ 
+   try {
++    const data = {
++      nombre,
++      precio_base:              parseFloat(precio_base),
++      recargo_pareja:           parseFloat(recargo_pareja),
++      recargo_adicional:        parseFloat(recargo_adicional),
++      max_personas_adicionales: parseInt(max_personas_adicionales) || 1,
++      // Precios por temporada — null significa "usar el precio base"
++      precio_base_media:        parseOptional(precio_base_media),
++      precio_base_alta:         parseOptional(precio_base_alta),
++      recargo_pareja_media:     parseOptional(recargo_pareja_media),
++      recargo_pareja_alta:      parseOptional(recargo_pareja_alta),
++      recargo_adicional_media:  parseOptional(recargo_adicional_media),
++      recargo_adicional_alta:   parseOptional(recargo_adicional_alta),
++    };
++
+     const upserted = await prisma.tipo_espacio_config.upsert({
+       where: { id: parseInt(id) },
+-      update: {
+-        nombre,
+-        precio_base: base,
+-        recargo_pareja: pareja,
+-        recargo_adicional: adicional,
+-        max_personas_adicionales: parseInt(max_personas_adicionales) || 1
+-      },
+-      create: {
+-        nombre,
+-        precio_base: base,
+-        recargo_pareja: pareja,
+-        recargo_adicional: adicional,
+-        max_personas_adicionales: parseInt(max_personas_adicionales) || 1
+-      }
+-    });
+-
+-    // Recalcular monto_total de reservas activas/confirmadas de este tipo
+-    const habitaciones = await prisma.espacio.findMany({
+-      where: { tipo_habitacion: { equals: nombre, mode: 'insensitive' } }
++      update: data,
++      create: data
+     });
+ 
+-    for (const hab of habitaciones) {
+-      const reservasActivas = await prisma.reserva.findMany({
+-        where: {
+-          id_espacio: hab.id_espacio,
+-          estado_reserva: { in: ['activa', 'confirmada'] },
+-          tipo_reserva: 'alojamiento'
+-        }
+-      });
+-
+-      for (const r of reservasActivas) {
+-        const adultos = r.cantidad_adultos || 1;
+-        const ninos   = r.cantidad_ninos   || 0;
+-        const total   = adultos + ninos;
+-
+-        let precioPorNoche;
+-        if (total <= 1)      precioPorNoche = base;
+-        else if (total === 2) precioPorNoche = base + pareja;
+-        else                  precioPorNoche = base + pareja + adicional * (total - 2);
+-
+-        const checkIn  = new Date(r.check_in);
+-        const checkOut = new Date(r.check_out);
+-        const noches   = Math.max(1, Math.round((checkOut - checkIn) / 86400000));
+-
+-        await prisma.reserva.update({
+-          where: { id_reserva: r.id_reserva },
+-          data:  { monto_total: precioPorNoche * noches }
+-        });
+-      }
+-    }
+-
+-    res.json({ ...upserted, reservas_actualizadas: habitaciones.length });
++    // NOTA: Ya no recalculamos monto_total de reservas existentes.
++    // El precio se congela al momento de crear la reserva (precio_noche_snapshot).
++    // Los cambios de configuración solo afectan reservas nuevas.
++    res.json(upserted);
+   } catch (error) {
+     console.error('Error al actualizar tipo espacio config:', error);
+     res.status(500).json({ error: 'Error al actualizar' });
+diff --git a/backend/src/controllers/reservas.controller.js b/backend/src/controllers/reservas.controller.js
+index 7b61d32..c5a302d 100644
+--- a/backend/src/controllers/reservas.controller.js
++++ b/backend/src/controllers/reservas.controller.js
+@@ -55,7 +55,9 @@ const createReserva = async (req, res) => {
+     tipo_reserva,
+     fecha_evento,
+     hora_inicio,
+-    hora_fin
++    hora_fin,
++    precio_noche_snapshot,  // precio congelado por noche al momento de crear
++    temporada_tipo          // "alta", "media", "baja" — informativo
+   } = req.body;
+ 
+   try {
+@@ -70,8 +72,6 @@ const createReserva = async (req, res) => {
+ 
+     const nuevasReservas = [];
+ 
+-    // Validar overlap de todos los espacios y crearlos en una transacción si es posible, 
+-    // pero para mantener simplicidad lo hacemos en un loop.
+     for (const espacioId of espaciosArray) {
+       const overlapping = await prisma.reserva.findFirst({
+         where: {
+@@ -102,7 +102,10 @@ const createReserva = async (req, res) => {
+           tipo_reserva: tipo_reserva || 'alojamiento',
+           fecha_evento: fecha_evento ? new Date(fecha_evento) : null,
+           hora_inicio: hora_inicio || null,
+-          hora_fin: hora_fin || null
++          hora_fin: hora_fin || null,
++          // Congelar el precio por noche en el momento de la creación
++          precio_noche_snapshot: precio_noche_snapshot ? parseFloat(precio_noche_snapshot) : null,
++          temporada_tipo: temporada_tipo || null
+         },
+         include: {
+           espacio: true,
+@@ -113,7 +116,6 @@ const createReserva = async (req, res) => {
+       nuevasReservas.push(nuevaReserva);
+     }
+     
+-    // Si se enviaron múltiples, devolvemos el array. Si fue uno, devolvemos el objeto por compatibilidad.
+     if (Array.isArray(id_espacio)) {
+       res.status(201).json(nuevasReservas);
+     } else {
+diff --git a/backend/src/controllers/temporadas.controller.js b/backend/src/controllers/temporadas.controller.js
+new file mode 100644
+index 0000000..f90229c
+--- /dev/null
++++ b/backend/src/controllers/temporadas.controller.js
+@@ -0,0 +1,149 @@
++const prisma = require('../config/prisma');
++
++// ─── Listar temporadas ─────────────────────────────────────────────────────
++const getTemporadas = async (req, res) => {
++  const { anio } = req.query;
++  try {
++    const where = anio ? { anio: parseInt(anio) } : {};
++    const temporadas = await prisma.temporada.findMany({
++      where,
++      orderBy: [{ fecha_inicio: 'asc' }]
++    });
++    res.json(temporadas);
++  } catch (error) {
++    console.error('Error al obtener temporadas:', error);
++    res.status(500).json({ error: 'Error al obtener temporadas' });
++  }
++};
++
++// ─── Detectar temporada para una fecha ─────────────────────────────────────
++// GET /api/temporadas/detectar?fecha=YYYY-MM-DD
++const detectarTemporada = async (req, res) => {
++  const { fecha } = req.query;
++  if (!fecha) return res.status(400).json({ error: 'Falta el parámetro fecha' });
++
++  try {
++    const fechaObj = new Date(fecha + 'T00:00:00Z');
++
++    // Buscar temporada activa que contenga esta fecha
++    const temporada = await prisma.temporada.findFirst({
++      where: {
++        activo: true,
++        fecha_inicio: { lte: fechaObj },
++        fecha_fin:    { gte: fechaObj }
++      },
++      orderBy: [
++        // Si hay múltiples (ej. media y alta), priorizar alta
++        { tipo: 'asc' } // 'alta' < 'baja' < 'media' → 'alta' primero
++      ]
++    });
++
++    if (temporada) {
++      res.json({ tipo: temporada.tipo, nombre: temporada.nombre, id: temporada.id });
++    } else {
++      // Sin temporada definida = baja por defecto
++      res.json({ tipo: 'baja', nombre: 'Temporada Baja (por defecto)', id: null });
++    }
++  } catch (error) {
++    console.error('Error al detectar temporada:', error);
++    res.status(500).json({ error: 'Error al detectar temporada' });
++  }
++};
++
++// ─── Crear temporada ────────────────────────────────────────────────────────
++const createTemporada = async (req, res) => {
++  const { nombre, tipo, fecha_inicio, fecha_fin, activo, anio } = req.body;
++
++  if (!nombre || !tipo || !fecha_inicio || !fecha_fin) {
++    return res.status(400).json({ error: 'Faltan campos requeridos: nombre, tipo, fecha_inicio, fecha_fin' });
++  }
++
++  if (!['alta', 'media', 'baja'].includes(tipo)) {
++    return res.status(400).json({ error: 'El tipo debe ser: alta, media o baja' });
++  }
++
++  try {
++    const inicio = new Date(fecha_inicio + 'T00:00:00Z');
++    const fin    = new Date(fecha_fin + 'T00:00:00Z');
++
++    if (fin < inicio) {
++      return res.status(400).json({ error: 'La fecha de fin debe ser posterior a la de inicio' });
++    }
++
++    const nueva = await prisma.temporada.create({
++      data: {
++        nombre,
++        tipo,
++        fecha_inicio: inicio,
++        fecha_fin:    fin,
++        activo:       activo !== undefined ? activo : true,
++        anio:         anio ? parseInt(anio) : inicio.getUTCFullYear()
++      }
++    });
++    res.status(201).json(nueva);
++  } catch (error) {
++    console.error('Error al crear temporada:', error);
++    res.status(500).json({ error: 'Error al crear temporada' });
++  }
++};
++
++// ─── Actualizar temporada ───────────────────────────────────────────────────
++const updateTemporada = async (req, res) => {
++  const { id } = req.params;
++  const { nombre, tipo, fecha_inicio, fecha_fin, activo, anio } = req.body;
++
++  try {
++    const data = {};
++    if (nombre !== undefined)       data.nombre = nombre;
++    if (tipo   !== undefined)       data.tipo   = tipo;
++    if (activo !== undefined)       data.activo = activo;
++    if (anio   !== undefined)       data.anio   = parseInt(anio);
++    if (fecha_inicio !== undefined) data.fecha_inicio = new Date(fecha_inicio + 'T00:00:00Z');
++    if (fecha_fin    !== undefined) data.fecha_fin    = new Date(fecha_fin + 'T00:00:00Z');
++
++    const updated = await prisma.temporada.update({
++      where: { id: parseInt(id) },
++      data
++    });
++    res.json(updated);
++  } catch (error) {
++    console.error('Error al actualizar temporada:', error);
++    res.status(500).json({ error: 'Error al actualizar temporada' });
++  }
++};
++
++// ─── Eliminar temporada ─────────────────────────────────────────────────────
++const deleteTemporada = async (req, res) => {
++  const { id } = req.params;
++  try {
++    await prisma.temporada.delete({ where: { id: parseInt(id) } });
++    res.json({ success: true });
++  } catch (error) {
++    console.error('Error al eliminar temporada:', error);
++    res.status(500).json({ error: 'Error al eliminar temporada' });
++  }
++};
++
++// ─── Años disponibles ───────────────────────────────────────────────────────
++const getAniosDisponibles = async (req, res) => {
++  try {
++    const rows = await prisma.temporada.findMany({
++      select: { anio: true },
++      distinct: ['anio'],
++      orderBy: { anio: 'asc' }
++    });
++    const anios = rows.map(r => r.anio).filter(Boolean);
++    res.json(anios);
++  } catch (error) {
++    res.status(500).json({ error: 'Error al obtener años' });
++  }
++};
++
++module.exports = {
++  getTemporadas,
++  detectarTemporada,
++  createTemporada,
++  updateTemporada,
++  deleteTemporada,
++  getAniosDisponibles
++};
+diff --git a/backend/src/index.js b/backend/src/index.js
+index b3602d9..768a366 100644
+--- a/backend/src/index.js
++++ b/backend/src/index.js
+@@ -14,6 +14,8 @@ const proveedoresRoutes = require('./routes/proveedores.routes');
+ const inventarioRoutes  = require('./routes/inventario.routes');
+ const gastosRoutes      = require('./routes/gastos.routes');
+ const reportesRoutes    = require('./routes/reportes.routes');
++const temporadasRoutes  = require('./routes/temporadas.routes');
++
+ 
+ const { verifyToken } = require('./middleware/auth.middleware');
+ 
+@@ -54,8 +56,10 @@ app.use('/api/configuracion', verifyToken, configuracionRoutes);
+ app.use('/api/dashboard', verifyToken, dashboardRoutes);
+ app.use('/api/proveedores', verifyToken, proveedoresRoutes);
+ app.use('/api/inventario', verifyToken, inventarioRoutes);
+-app.use('/api/gastos',     verifyToken, gastosRoutes);
+-app.use('/api/reportes',   verifyToken, reportesRoutes);
++app.use('/api/gastos',      verifyToken, gastosRoutes);
++app.use('/api/reportes',    verifyToken, reportesRoutes);
++app.use('/api/temporadas',  verifyToken, temporadasRoutes);
++
+ 
+ // Start server
+ app.listen(PORT, () => {
+diff --git a/backend/src/routes/temporadas.routes.js b/backend/src/routes/temporadas.routes.js
+new file mode 100644
+index 0000000..37302b2
+--- /dev/null
++++ b/backend/src/routes/temporadas.routes.js
+@@ -0,0 +1,19 @@
++const express = require('express');
++const router = express.Router();
++const {
++  getTemporadas,
++  detectarTemporada,
++  createTemporada,
++  updateTemporada,
++  deleteTemporada,
++  getAniosDisponibles
++} = require('../controllers/temporadas.controller');
++
++router.get('/detectar',  detectarTemporada);
++router.get('/anios',     getAniosDisponibles);
++router.get('/',          getTemporadas);
++router.post('/',         createTemporada);
++router.put('/:id',       updateTemporada);
++router.delete('/:id',    deleteTemporada);
++
++module.exports = router;
+diff --git a/frontend/src/components/NewReservationModal/NewReservationModal.tsx b/frontend/src/components/NewReservationModal/NewReservationModal.tsx
+index 5a53b6f..6162e7b 100644
+--- a/frontend/src/components/NewReservationModal/NewReservationModal.tsx
++++ b/frontend/src/components/NewReservationModal/NewReservationModal.tsx
+@@ -27,6 +27,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
+   const [selectedGuestId, setSelectedGuestId] = useState<number | null>(null);
+   const guestDropRef = useRef<HTMLDivElement>(null);
+ 
++  const [temporada, setTemporada] = useState<{tipo: string, nombre: string, id: number | null} | null>(null);
++
+   const [formData, setFormData] = useState({
+     nombre_huesped: '',
+     documento: '',
+@@ -78,9 +80,13 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
+     const totalPersonas = adultos + ninos;
+     const tipoConfig = tiposConfig.find(t => t.nombre.toLowerCase() === room.tipo_habitacion?.toLowerCase());
+     if (tipoConfig) {
+-      const base = parseFloat(tipoConfig.precio_base || '0');
+-      const recPareja = parseFloat(tipoConfig.recargo_pareja || '0');
+-      const recAdicional = parseFloat(tipoConfig.recargo_adicional || '0');
++      const isMedia = temporada?.tipo === 'media';
++      const isAlta = temporada?.tipo === 'alta';
++
++      const base = parseFloat((isAlta && tipoConfig.precio_base_alta) || (isMedia && tipoConfig.precio_base_media) || tipoConfig.precio_base || '0');
++      const recPareja = parseFloat((isAlta && tipoConfig.recargo_pareja_alta) || (isMedia && tipoConfig.recargo_pareja_media) || tipoConfig.recargo_pareja || '0');
++      const recAdicional = parseFloat((isAlta && tipoConfig.recargo_adicional_alta) || (isMedia && tipoConfig.recargo_adicional_media) || tipoConfig.recargo_adicional || '0');
++
+       if (totalPersonas <= 1) return base;
+       if (totalPersonas === 2) return base + recPareja;
+       return base + recPareja + recAdicional * (totalPersonas - 2);
+@@ -92,7 +98,18 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
+     if (adultos <= 1) return p1;
+     if (adultos === 2) return p2;
+     return p2 + (adultos - 2) * pAdd + ninos * pAdd;
+-  }, [tiposConfig]);
++  }, [tiposConfig, temporada]);
++
++  useEffect(() => {
++    if (formData.check_in) {
++      apiFetch(`/temporadas/detectar?fecha=${formData.check_in}`)
++        .then(r => r.json())
++        .then(setTemporada)
++        .catch(console.error);
++    } else {
++      setTemporada(null);
++    }
++  }, [formData.check_in]);
+ 
+   useEffect(() => {
+     if (!formData.check_in || !formData.check_out || formData.id_espacios.length === 0) {
+@@ -113,6 +130,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
+     setMontoTotal(totalNoche * nights);
+   }, [formData.check_in, formData.check_out, formData.id_espacios, formData.cantidad_adultos, formData.cantidad_ninos, precioSalon, isSalon, selectedRooms, getPriceForRoom]);
+ 
++
+   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+     const { name, value } = e.target;
+     setFormData(prev => ({ ...prev, [name]: value }));
+@@ -216,6 +234,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
+           fecha_evento: isSalon && fechaEvento ? fechaEvento : null,
+           hora_inicio: isSalon && horaInicio ? horaInicio : null,
+           hora_fin: isSalon && horaFin ? horaFin : null,
++          precio_noche_snapshot: noches > 0 && !isSalon ? montoTotal / noches : null,
++          temporada_tipo: temporada?.tipo || null,
+         })
+       });
+ 
+@@ -325,6 +345,17 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
+               Entrada a partir de las <strong>{config.hora_check_in}</strong> · Salida hasta las <strong>{config.hora_check_out}</strong>
+             </div>
+           )}
++          {temporada && (
++            <div className="text-xs" style={{ 
++              marginTop: '8px', padding: '6px 10px', borderRadius: '6px', 
++              background: temporada.tipo === 'alta' ? 'rgba(239,68,68,0.1)' : temporada.tipo === 'media' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)', 
++              color: temporada.tipo === 'alta' ? '#ef4444' : temporada.tipo === 'media' ? '#f59e0b' : '#10b981', 
++              border: `1px solid ${temporada.tipo === 'alta' ? '#ef444440' : temporada.tipo === 'media' ? '#f59e0b40' : '#10b98140'}`, 
++              display: 'inline-block' 
++            }}>
++              {temporada.tipo === 'alta' ? '🔴' : temporada.tipo === 'media' ? '🟡' : '🟢'} <strong>Temporada {temporada.tipo.charAt(0).toUpperCase() + temporada.tipo.slice(1)}:</strong> {temporada.nombre}
++            </div>
++          )}
+         </div>
+ 
+         {/* ── Habitaciones ── */}
+diff --git a/frontend/src/components/Receipt/Receipt.tsx b/frontend/src/components/Receipt/Receipt.tsx
+index fd49abf..6db3937 100644
+--- a/frontend/src/components/Receipt/Receipt.tsx
++++ b/frontend/src/components/Receipt/Receipt.tsx
+@@ -1,8 +1,7 @@
+-import React, { useRef, useState, useEffect } from 'react';
++import React, { useRef } from 'react';
+ import { Modal } from '../Modal/Modal';
+ import { Button } from '../Button/Button';
+ import { Printer } from 'lucide-react';
+-import { apiFetch } from '../../utils/apiFetch';
+ import { fmtLocalDate } from '../../utils/dateUtils';
+ import './Receipt.css';
+ 
+@@ -15,52 +14,10 @@ interface ReceiptProps {
+ 
+ export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, items }) => {
+   const contentRef = useRef<HTMLDivElement>(null);
+-  const [tiposConfig, setTiposConfig] = useState<any[]>([]);
+-
+-  useEffect(() => {
+-    if (!isOpen) return;
+-    apiFetch('/espacios/config/tipos')
+-      .then(r => r.json())
+-      .then(d => setTiposConfig(Array.isArray(d) ? d : []))
+-      .catch(() => {});
+-  }, [isOpen]);
+-
+-  // When config loads, if the stored monto_total is stale, silently correct it in the DB
+-  useEffect(() => {
+-    if (!reserva || tiposConfig.length === 0) return;
+-    const tipoNombre = reserva.espacio?.tipo_habitacion;
+-    if (!tipoNombre) return;
+-    const config = tiposConfig.find(
+-      (t: any) => t.nombre.toLowerCase() === tipoNombre.toLowerCase()
+-    );
+-    if (!config) return;
+-
+-    const base      = parseFloat(config.precio_base);
+-    const pareja    = parseFloat(config.recargo_pareja);
+-    const adicional = parseFloat(config.recargo_adicional);
+-    const adultos   = reserva.cantidad_adultos || 1;
+-    const ninos     = reserva.cantidad_ninos   || 0;
+-    const personas  = adultos + ninos;
+-
+-    let precioNoche: number;
+-    if (personas <= 1)      precioNoche = base;
+-    else if (personas === 2) precioNoche = base + pareja;
+-    else                     precioNoche = base + pareja + adicional * (personas - 2);
+-
+-    const start  = new Date(reserva.check_in);
+-    const end    = new Date(reserva.check_out);
+-    const noches = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+-    const montoCalculado = Math.round(precioNoche * noches);
+-    const montoActual    = parseFloat(reserva.monto_total || '0');
+-
+-    if (Math.abs(montoCalculado - montoActual) > 1) {
+-      apiFetch(`/reservas/${reserva.id_reserva}/monto`, {
+-        method: 'PATCH',
+-        headers: { 'Content-Type': 'application/json' },
+-        body: JSON.stringify({ monto_total: montoCalculado })
+-      }).catch(() => {});
+-    }
+-  }, [tiposConfig, reserva]);
++
++  // Snapshot congelado al crear la reserva — no recalcular desde config
++  // para no sobreescribir precios históricos al abrir el receipt
++
+ 
+   if (!reserva) return null;
+ 
+@@ -82,34 +39,19 @@ export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, item
+     return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+   };
+ 
+-  // Calculates the correct per-night price from current tipo_espacio_config
+-  const calcularPrecioPorNocheDesdeConfig = (): number | null => {
+-    const tipoNombre = reserva.espacio?.tipo_habitacion;
+-    if (!tipoNombre || tiposConfig.length === 0) return null;
+-    const config = tiposConfig.find(
+-      (t: any) => t.nombre.toLowerCase() === tipoNombre.toLowerCase()
+-    );
+-    if (!config) return null;
+-
+-    const base     = parseFloat(config.precio_base);
+-    const pareja   = parseFloat(config.recargo_pareja);
+-    const adicional = parseFloat(config.recargo_adicional);
+-    const adultos  = reserva.cantidad_adultos || 1;
+-    const ninos    = reserva.cantidad_ninos   || 0;
+-    const personas = adultos + ninos;
+-
+-    if (personas <= 1) return base;
+-    if (personas === 2) return base + pareja;
+-    return base + pareja + adicional * (personas - 2);
+-  };
++
++
+ 
+   const noches = calcularNoches();
+-  const precioPorNocheConfig = calcularPrecioPorNocheDesdeConfig();
+ 
+-  // Use config-based price if available; fallback to stored monto_total / noches
+-  const precioPorNoche = precioPorNocheConfig ?? (noches > 0
+-    ? parseFloat(reserva.monto_total || '0') / noches
+-    : parseFloat(reserva.monto_total || '0'));
++  // Usar precio_noche_snapshot (precio congelado al crear la reserva)
++  // Si no existe (reservas antiguas), dividir monto_total entre noches como fallback
++  const precioPorNoche = reserva.precio_noche_snapshot
++    ? parseFloat(reserva.precio_noche_snapshot)
++    : noches > 0
++      ? parseFloat(reserva.monto_total || '0') / noches
++      : parseFloat(reserva.monto_total || '0');
++
+ 
+   const subtotalAlojamiento = Math.round(precioPorNoche * noches);
+   const subtotalConsumos = items
+diff --git a/frontend/src/pages/Gastos/Gastos.tsx b/frontend/src/pages/Gastos/Gastos.tsx
+index d988d85..1bde6aa 100644
+--- a/frontend/src/pages/Gastos/Gastos.tsx
++++ b/frontend/src/pages/Gastos/Gastos.tsx
+@@ -1,5 +1,5 @@
+ import React, { useState, useEffect, useCallback } from 'react';
+-import { Plus, Edit2, Trash2, RefreshCw, Loader2, Receipt, AlertCircle, Repeat, Tags, X } from 'lucide-react';
++import { Plus, Edit2, Trash2, Loader2, Receipt, AlertCircle, Repeat, Tags, X } from 'lucide-react';
+ import { Button } from '../../components/Button/Button';
+ import { Modal } from '../../components/Modal/Modal';
+ import { format, parseISO } from 'date-fns';
+diff --git a/frontend/src/pages/Guests/Guests.tsx b/frontend/src/pages/Guests/Guests.tsx
+index 3b33a35..004f1f7 100644
+--- a/frontend/src/pages/Guests/Guests.tsx
++++ b/frontend/src/pages/Guests/Guests.tsx
+@@ -100,9 +100,9 @@ export const Guests: React.FC = () => {
+   // Aplanar: una fila por reserva (o una fila si no tiene reservas)
+   const flatRows: GuestRow[] = guests.flatMap(guest => {
+     if (!guest.reserva || guest.reserva.length === 0) {
+-      return [{ ...guest, _reserva: null }];
++      return [{ ...guest, _reserva: null } as GuestRow];
+     }
+-    return guest.reserva.map(res => ({ ...guest, _reserva: res }));
++    return guest.reserva.map(res => ({ ...guest, _reserva: res } as GuestRow));
+   });
+ 
+   const filteredRows = flatRows.filter(row =>
+diff --git a/frontend/src/pages/Settings/BackupRestoreSettings.tsx b/frontend/src/pages/Settings/BackupRestoreSettings.tsx
+new file mode 100644
+index 0000000..4b40baf
+--- /dev/null
++++ b/frontend/src/pages/Settings/BackupRestoreSettings.tsx
+@@ -0,0 +1,145 @@
++import React, { useState, useRef } from 'react';
++import { Download, Upload, AlertTriangle, CheckCircle, Database } from 'lucide-react';
++import { Button } from '../../components/Button/Button';
++import { useAuth } from '../../context/AuthContext';
++
++export const BackupRestoreSettings: React.FC = () => {
++  const { logout } = useAuth();
++  const fileInputRef = useRef<HTMLInputElement>(null);
++  const [restoring, setRestoring] = useState(false);
++  const [error, setError] = useState('');
++  const [success, setSuccess] = useState('');
++
++  const handleDownloadBackup = () => {
++    // Open the download URL in a new tab to trigger the browser's download
++    window.open('http://127.0.0.1:5001/api/configuracion/backup', '_blank');
++  };
++
++  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
++    const file = e.target.files?.[0];
++    if (!file) return;
++
++    if (!file.name.endsWith('.sql')) {
++      setError('Por favor, selecciona un archivo SQL válido (.sql)');
++      return;
++    }
++
++    const confirmMessage = "⚠️ ADVERTENCIA MUY IMPORTANTE ⚠️\n\nAl restaurar esta copia de seguridad, TODA la información actual del sistema (huéspedes, reservas, facturas, configuración) será ELIMINADA y reemplazada por la del archivo.\n\n¿Estás COMPLETAMENTE SEGURO de que deseas continuar?";
++    
++    if (window.confirm(confirmMessage)) {
++      restoreFromFile(file);
++    }
++    
++    // Reset file input
++    if (fileInputRef.current) {
++      fileInputRef.current.value = '';
++    }
++  };
++
++  const restoreFromFile = async (file: File) => {
++    setRestoring(true);
++    setError('');
++    setSuccess('');
++
++    try {
++      const sqlContent = await file.text();
++      
++      const res = await fetch('http://127.0.0.1:5001/api/configuracion/restore', {
++        method: 'POST',
++        headers: {
++          'Content-Type': 'text/plain',
++        },
++        body: sqlContent
++      });
++
++      const data = await res.json();
++
++      if (!res.ok) {
++        throw new Error(data.error || 'Error al restaurar la base de datos');
++      }
++
++      setSuccess('Base de datos restaurada correctamente. Reiniciando sesión...');
++      
++      // Give time to read message then force logout so the app refreshes state from DB
++      setTimeout(() => {
++        logout();
++      }, 3000);
++
++    } catch (err: any) {
++      console.error(err);
++      setError(err.message || 'Ocurrió un error inesperado al restaurar');
++    } finally {
++      setRestoring(false);
++    }
++  };
++
++  return (
++    <div className="settings-form glass-panel mt-6">
++      <div className="settings-section-title">
++        <Database size={16} /> Respaldo y Restauración
++      </div>
++
++      <p className="text-sm text-gray-500 mb-6">
++        Guarda una copia de seguridad de toda tu información o restaura el sistema desde una copia anterior. Es recomendable hacer respaldos periódicos.
++      </p>
++
++      {error && (
++        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 flex items-start">
++          <AlertTriangle className="mr-2 flex-shrink-0" size={20} />
++          <span>{error}</span>
++        </div>
++      )}
++
++      {success && (
++        <div className="bg-green-50 text-green-700 p-4 rounded-lg mb-6 flex items-start">
++          <CheckCircle className="mr-2 flex-shrink-0" size={20} />
++          <span>{success}</span>
++        </div>
++      )}
++
++      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
++        {/* Backup Card */}
++        <div className="border border-gray-200 rounded-xl p-6 flex flex-col items-center text-center bg-white">
++          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-4">
++            <Download size={32} />
++          </div>
++          <h3 className="font-semibold text-gray-800 mb-2">Crear Copia de Seguridad</h3>
++          <p className="text-sm text-gray-500 mb-6 flex-grow">
++            Descarga un archivo .sql con toda la información actual de tu base de datos.
++          </p>
++          <Button variant="primary" onClick={handleDownloadBackup} className="w-full justify-center">
++            Descargar Respaldo
++          </Button>
++        </div>
++
++        {/* Restore Card */}
++        <div className="border border-gray-200 rounded-xl p-6 flex flex-col items-center text-center bg-white">
++          <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mb-4">
++            <Upload size={32} />
++          </div>
++          <h3 className="font-semibold text-gray-800 mb-2">Restaurar Sistema</h3>
++          <p className="text-sm text-gray-500 mb-6 flex-grow">
++            Carga un archivo de respaldo anterior. <strong className="text-red-500">¡Reemplazará tus datos actuales!</strong>
++          </p>
++          
++          <input 
++            type="file" 
++            accept=".sql" 
++            ref={fileInputRef} 
++            onChange={handleFileSelect} 
++            className="hidden" 
++          />
++          
++          <Button 
++            variant="danger" 
++            onClick={() => fileInputRef.current?.click()} 
++            disabled={restoring}
++            className="w-full justify-center"
++          >
++            {restoring ? 'Restaurando...' : 'Subir Archivo y Restaurar'}
++          </Button>
++        </div>
++      </div>
++    </div>
++  );
++};
+diff --git a/frontend/src/pages/Settings/MetodosPagoSettings.tsx b/frontend/src/pages/Settings/MetodosPagoSettings.tsx
+new file mode 100644
+index 0000000..8085393
+--- /dev/null
++++ b/frontend/src/pages/Settings/MetodosPagoSettings.tsx
+@@ -0,0 +1,128 @@
++import { useState, useEffect } from 'react';
++import { Button } from '../../components/Button/Button';
++import { Plus, Trash2, Edit2, CreditCard } from 'lucide-react';
++
++export const MetodosPagoSettings = () => {
++  const [metodos, setMetodos] = useState<string[]>([]);
++  const [nuevoMetodo, setNuevoMetodo] = useState('');
++  const [editando, setEditando] = useState<{ index: number, valor: string } | null>(null);
++
++  useEffect(() => {
++    const guardados = localStorage.getItem('hbc_metodos_pago');
++    if (guardados) {
++      setMetodos(JSON.parse(guardados));
++    } else {
++      // Valores por defecto
++      const porDefecto = ['Efectivo', 'Tarjeta', 'Transferencia', 'Nequi', 'Daviplata', 'Otro'];
++      setMetodos(porDefecto);
++      localStorage.setItem('hbc_metodos_pago', JSON.stringify(porDefecto));
++    }
++  }, []);
++
++  const handleAgregar = (e: React.FormEvent) => {
++    e.preventDefault();
++    if (!nuevoMetodo.trim()) return;
++    
++    if (metodos.includes(nuevoMetodo.trim())) {
++      alert('Este método de pago ya existe.');
++      return;
++    }
++
++    const actualizados = [...metodos, nuevoMetodo.trim()];
++    setMetodos(actualizados);
++    localStorage.setItem('hbc_metodos_pago', JSON.stringify(actualizados));
++    setNuevoMetodo('');
++  };
++
++  const handleEliminar = (index: number) => {
++    const actualizados = metodos.filter((_, i) => i !== index);
++    setMetodos(actualizados);
++    localStorage.setItem('hbc_metodos_pago', JSON.stringify(actualizados));
++  };
++
++  const handleGuardarEdicion = (e: React.FormEvent) => {
++    e.preventDefault();
++    if (!editando || !editando.valor.trim()) return;
++
++    const actualizados = [...metodos];
++    actualizados[editando.index] = editando.valor.trim();
++    setMetodos(actualizados);
++    localStorage.setItem('hbc_metodos_pago', JSON.stringify(actualizados));
++    setEditando(null);
++  };
++
++  return (
++    <div className="settings-section" style={{ maxWidth: '800px', margin: '0 auto' }}>
++      <div className="settings-section-title" style={{ marginBottom: '8px' }}>
++        <CreditCard size={16} /> Métodos de Pago
++      </div>
++      <p className="text-muted" style={{ marginBottom: '24px', fontSize: '13px' }}>
++        Administra las opciones que aparecerán en la lista de métodos de pago al finalizar una reserva o registrar un gasto.
++      </p>
++
++      <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
++        <form onSubmit={handleAgregar} style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginBottom: '24px', maxWidth: '500px' }}>
++          <div style={{ flex: 1 }}>
++            <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}>Nuevo método de pago</label>
++            <input
++              type="text"
++              className="form-input"
++              placeholder="Ej. Bitcoin, Zelle, etc."
++              value={nuevoMetodo}
++              onChange={(e) => setNuevoMetodo(e.target.value)}
++            />
++          </div>
++          <Button type="submit" variant="primary" style={{ padding: '10px 16px', height: '42px' }}>
++            <Plus size={16} /> Agregar
++          </Button>
++        </form>
++
++        <div className="list-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
++          {metodos.map((metodo, index) => (
++            <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--border-medium)', transition: 'all 0.2s' }}>
++              {editando?.index === index ? (
++                <form onSubmit={handleGuardarEdicion} style={{ display: 'flex', gap: '10px', flex: 1, maxWidth: '400px' }}>
++                  <input
++                    type="text"
++                    className="form-input"
++                    value={editando.valor}
++                    onChange={(e) => setEditando({ ...editando, valor: e.target.value })}
++                    autoFocus
++                    style={{ flex: 1 }}
++                  />
++                  <Button type="submit" variant="primary" size="sm">Guardar</Button>
++                  <Button type="button" variant="ghost" size="sm" onClick={() => setEditando(null)}>Cancelar</Button>
++                </form>
++              ) : (
++                <>
++                  <span style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '14px' }}>{metodo}</span>
++                  <div style={{ display: 'flex', gap: '8px' }}>
++                    <button
++                      className="icon-action edit"
++                      onClick={() => setEditando({ index, valor: metodo })}
++                      title="Editar"
++                      style={{ color: 'var(--primary)' }}
++                    >
++                      <Edit2 size={16} />
++                    </button>
++                    <button
++                      className="icon-action delete"
++                      onClick={() => handleEliminar(index)}
++                      title="Eliminar"
++                      style={{ color: '#ef4444' }}
++                    >
++                      <Trash2 size={16} />
++                    </button>
++                  </div>
++                </>
++              )}
++            </div>
++          ))}
++          {metodos.length === 0 && (
++            <p className="text-muted" style={{ textAlign: 'center', padding: '20px' }}>No hay métodos de pago configurados.</p>
++          )}
++        </div>
++      </div>
++    </div>
++  );
++};
+diff --git a/frontend/src/pages/Settings/OrigenesSettings.tsx b/frontend/src/pages/Settings/OrigenesSettings.tsx
+new file mode 100644
+index 0000000..fd840b1
+--- /dev/null
++++ b/frontend/src/pages/Settings/OrigenesSettings.tsx
+@@ -0,0 +1,146 @@
++import React, { useState, useEffect } from 'react';
++import { Button } from '../../components/Button/Button';
++import { Plus, Trash2, Globe, Loader2 } from 'lucide-react';
++import { apiFetch } from '../../utils/apiFetch';
++
++export const OrigenesSettings = () => {
++  const [origenes, setOrigenes] = useState<any[]>([]);
++  const [nuevoOrigen, setNuevoOrigen] = useState('');
++  const [loading, setLoading] = useState(true);
++  const [saving, setSaving] = useState(false);
++  const [error, setError] = useState('');
++
++  useEffect(() => {
++    fetchOrigenes();
++  }, []);
++
++  const fetchOrigenes = async () => {
++    try {
++      setLoading(true);
++      const res = await apiFetch('/configuracion/origenes');
++      if (res.ok) {
++        setOrigenes(await res.json());
++      }
++    } catch (e: any) {
++      setError(e.message);
++    } finally {
++      setLoading(false);
++    }
++  };
++
++  const handleAgregar = async (e: React.FormEvent) => {
++    e.preventDefault();
++    if (!nuevoOrigen.trim()) return;
++    setSaving(true);
++    setError('');
++
++    try {
++      const res = await apiFetch('/configuracion/origenes', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ nombre: nuevoOrigen.trim() })
++      });
++      if (res.ok) {
++        setNuevoOrigen('');
++        fetchOrigenes();
++      } else {
++        const d = await res.json();
++        setError(d.error || 'Error al agregar origen');
++      }
++    } catch (err: any) {
++      setError(err.message);
++    } finally {
++      setSaving(false);
++    }
++  };
++
++  const handleEliminar = async (id: number, nombre: string) => {
++    if (nombre === 'Propia') {
++      alert('El origen "Propia" es el sistema base y no se puede eliminar.');
++      return;
++    }
++    if (!window.confirm(`¿Eliminar origen ${nombre}?`)) return;
++
++    try {
++      const res = await apiFetch(`/configuracion/origenes/${id}`, { method: 'DELETE' });
++      if (res.ok) fetchOrigenes();
++    } catch (err) {
++      console.error(err);
++    }
++  };
++
++  return (
++    <div className="settings-section" style={{ maxWidth: '800px', margin: '0 auto' }}>
++      <div className="settings-section-title" style={{ marginBottom: '8px' }}>
++        <Globe size={16} /> Orígenes de Reserva (Booking, Airbnb, etc.)
++      </div>
++      <p className="text-muted" style={{ marginBottom: '24px', fontSize: '13px' }}>
++        Administra las plataformas de donde provienen tus reservas. Si seleccionas un origen distinto a "Propia", el sistema te permitirá ingresar el precio de forma manual.
++      </p>
++
++      {error && <div className="form-error" style={{ marginBottom: '16px' }}>{error}</div>}
++
++      <div style={{ background: 'var(--surface-50)', padding: '24px', borderRadius: '12px', border: '1px solid var(--border-light)' }}>
++        <form onSubmit={handleAgregar} style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
++          <input
++            type="text"
++            value={nuevoOrigen}
++            onChange={(e) => setNuevoOrigen(e.target.value)}
++            placeholder="Ej. Booking.com"
++            className="form-input"
++            style={{ flex: 1 }}
++          />
++          <Button type="submit" variant="primary" disabled={saving || !nuevoOrigen.trim()}>
++            {saving ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
++            Agregar
++          </Button>
++        </form>
++
++        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
++          {loading ? (
++            <div style={{ padding: '20px', textAlign: 'center' }}><Loader2 className="animate-spin" size={24} /></div>
++          ) : origenes.map((origen) => (
++            <div
++              key={origen.id_origen}
++              style={{
++                display: 'flex',
++                alignItems: 'center',
++                justifyContent: 'space-between',
++                padding: '12px 16px',
++                background: 'var(--surface)',
++                border: '1px solid var(--border-light)',
++                borderRadius: '8px'
++              }}
++            >
++              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
++                <span style={{ fontWeight: 500, fontSize: '14px' }}>
++                  {origen.nombre}
++                </span>
++                {origen.nombre === 'Propia' && (
++                  <span style={{ fontSize: '11px', padding: '2px 6px', background: 'var(--primary-light)', color: 'var(--primary)', borderRadius: '4px' }}>
++                    Por defecto
++                  </span>
++                )}
++              </div>
++              {origen.nombre !== 'Propia' && (
++                <button
++                  onClick={() => handleEliminar(origen.id_origen, origen.nombre)}
++                  style={{
++                    background: 'none', border: 'none', color: 'var(--danger)',
++                    cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center',
++                    opacity: 0.7, transition: 'opacity 0.2s'
++                  }}
++                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
++                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
++                  title="Eliminar"
++                >
++                  <Trash2 size={16} />
++                </button>
++              )}
++            </div>
++          ))}
++        </div>
++      </div>
++    </div>
++  );
++};
+diff --git a/frontend/src/pages/Settings/SecuritySettings.tsx b/frontend/src/pages/Settings/SecuritySettings.tsx
+new file mode 100644
+index 0000000..9cf5133
+--- /dev/null
++++ b/frontend/src/pages/Settings/SecuritySettings.tsx
+@@ -0,0 +1,118 @@
++import React, { useState } from 'react';
++import { Save, Lock, CheckCircle } from 'lucide-react';
++import { Button } from '../../components/Button/Button';
++import { apiFetch } from '../../utils/apiFetch';
++import { useAuth } from '../../context/AuthContext';
++
++export const SecuritySettings: React.FC = () => {
++  const { logout } = useAuth();
++  const [form, setForm] = useState({
++    newUsuario: '',
++    currentPassword: '',
++    newPassword: '',
++    confirmPassword: ''
++  });
++  const [saving, setSaving] = useState(false);
++  const [saved, setSaved] = useState(false);
++  const [error, setError] = useState('');
++
++  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
++    setForm({ ...form, [e.target.name]: e.target.value });
++    setSaved(false);
++    setError('');
++  };
++
++  const handleSave = async (e: React.FormEvent) => {
++    e.preventDefault();
++    if (form.newPassword !== form.confirmPassword) {
++      setError('Las contraseñas nuevas no coinciden');
++      return;
++    }
++    
++    setSaving(true);
++    setError('');
++    
++    try {
++      const res = await apiFetch('/auth/credentials', {
++        method: 'PUT',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({
++          currentPassword: form.currentPassword,
++          newUsuario: form.newUsuario,
++          newPassword: form.newPassword
++        })
++      });
++      
++      const data = await res.json();
++      
++      if (!res.ok) {
++        throw new Error(data.error || 'Error al actualizar credenciales');
++      }
++      
++      setSaved(true);
++      setTimeout(() => {
++        logout(); // Force logout to re-authenticate with new credentials
++      }, 2000);
++      
++    } catch (err: any) {
++      setError(err.message || 'Error de conexión');
++    } finally {
++      setSaving(false);
++    }
++  };
++
++  return (
++    <form onSubmit={handleSave} className="settings-form glass-panel mt-6">
++      <div className="settings-section-title">
++        <Lock size={16} /> Credenciales de Acceso
++      </div>
++
++      {error && <div className="form-error">{error}</div>}
++      
++      <p className="text-sm text-gray-500 mb-4">
++        Al actualizar el usuario y/o la contraseña, la sesión actual se cerrará por seguridad y deberás volver a iniciar sesión con las nuevas credenciales.
++      </p>
++
++      <div className="settings-grid">
++        <div className="form-group settings-full-col">
++          <label htmlFor="newUsuario">Nuevo Nombre de Usuario *</label>
++          <input type="text" id="newUsuario" name="newUsuario"
++            value={form.newUsuario} onChange={handleChange}
++            className="form-input" placeholder="admin" required />
++        </div>
++
++        <div className="form-group settings-full-col">
++          <label htmlFor="currentPassword">Contraseña Actual *</label>
++          <input type="password" id="currentPassword" name="currentPassword"
++            value={form.currentPassword} onChange={handleChange}
++            className="form-input" placeholder="Contraseña actual para verificar" required />
++        </div>
++
++        <div className="form-group">
++          <label htmlFor="newPassword">Nueva Contraseña *</label>
++          <input type="password" id="newPassword" name="newPassword"
++            value={form.newPassword} onChange={handleChange}
++            className="form-input" placeholder="Nueva contraseña" required minLength={6} />
++        </div>
++
++        <div className="form-group">
++          <label htmlFor="confirmPassword">Confirmar Nueva Contraseña *</label>
++          <input type="password" id="confirmPassword" name="confirmPassword"
++            value={form.confirmPassword} onChange={handleChange}
++            className="form-input" placeholder="Repite la nueva contraseña" required minLength={6} />
++        </div>
++      </div>
++
++      <div className="settings-actions">
++        {saved && (
++          <div className="saved-badge">
++            <CheckCircle size={15} /> Actualizado. Cerrando sesión...
++          </div>
++        )}
++        <Button variant="danger" type="submit" disabled={saving}>
++          <Save size={16} /> {saving ? 'Actualizando...' : 'Actualizar Credenciales'}
++        </Button>
++      </div>
++    </form>
++  );
++};
+diff --git a/frontend/src/pages/Settings/Settings.css b/frontend/src/pages/Settings/Settings.css
+index 6b69d39..410c326 100644
+--- a/frontend/src/pages/Settings/Settings.css
++++ b/frontend/src/pages/Settings/Settings.css
+@@ -13,6 +13,45 @@
+   align-items: flex-end;
+ }
+ 
++.settings-tabs-container {
++  border-bottom: 1px solid var(--border-light);
++  margin-top: 10px;
++}
++
++.settings-tabs {
++  display: flex;
++  gap: 8px;
++  overflow-x: auto;
++  padding-bottom: 8px;
++}
++
++.settings-tab {
++  display: flex;
++  align-items: center;
++  gap: 6px;
++  padding: 8px 16px;
++  background: transparent;
++  border: none;
++  border-radius: 8px;
++  color: var(--text-muted);
++  font-size: 0.9rem;
++  font-weight: 500;
++  cursor: pointer;
++  transition: all 0.2s;
++  white-space: nowrap;
++}
++
++.settings-tab:hover {
++  background: rgba(255, 255, 255, 0.05);
++  color: var(--text);
++}
++
++.settings-tab.active {
++  background: var(--primary);
++  color: white;
++  box-shadow: 0 0 12px rgba(52, 211, 153, 0.3);
++}
++
+ .settings-body {
+   display: flex;
+   flex-direction: column;
+diff --git a/frontend/src/pages/Settings/Settings.tsx b/frontend/src/pages/Settings/Settings.tsx
+index 2f5bdf7..2df41a5 100644
+--- a/frontend/src/pages/Settings/Settings.tsx
++++ b/frontend/src/pages/Settings/Settings.tsx
+@@ -4,6 +4,8 @@ import { Button } from '../../components/Button/Button';
+ import './Settings.css';
+ import { apiFetch } from '../../utils/apiFetch';
+ import { TiposEspacioSettings } from './TiposEspacioSettings';
++import { TemporadasSettings } from './TemporadasSettings';
++
+ 
+ interface ConfigData {
+   nombre_hotel: string;
+@@ -17,6 +19,7 @@ interface ConfigData {
+ }
+ 
+ export const Settings: React.FC = () => {
++  const [activeTab, setActiveTab] = useState('hotel');
+   const [form, setForm] = useState<ConfigData>({
+     nombre_hotel: '', direccion: '', telefono: '', nit: '', email: '', ciudad: '', hora_check_in: '15:00', hora_check_out: '13:00'
+   });
+@@ -88,15 +91,42 @@ export const Settings: React.FC = () => {
+       <div className="settings-header">
+         <div>
+           <h1 className="page-title">Configuración</h1>
+-          <p className="page-subtitle">Datos del hotel para recibos y reportes</p>
++          <p className="page-subtitle">Gestiona las preferencias y parámetros del sistema</p>
++        </div>
++      </div>
++
++      <div className="settings-tabs-container">
++        <div className="settings-tabs">
++          <button className={`settings-tab ${activeTab === 'hotel' ? 'active' : ''}`} onClick={() => setActiveTab('hotel')}>
++            Hotel
++          </button>
++          <button className={`settings-tab ${activeTab === 'tipos' ? 'active' : ''}`} onClick={() => setActiveTab('tipos')}>
++            Tipos de Espacio
++          </button>
++          <button className={`settings-tab ${activeTab === 'temporadas' ? 'active' : ''}`} onClick={() => setActiveTab('temporadas')}>
++            Temporadas
++          </button>
++          <button className={`settings-tab ${activeTab === 'origenes' ? 'active' : ''}`} onClick={() => setActiveTab('origenes')}>
++            Orígenes
++          </button>
++          <button className={`settings-tab ${activeTab === 'pagos' ? 'active' : ''}`} onClick={() => setActiveTab('pagos')}>
++            Pagos
++          </button>
++          <button className={`settings-tab ${activeTab === 'seguridad' ? 'active' : ''}`} onClick={() => setActiveTab('seguridad')}>
++            Seguridad
++          </button>
++          <button className={`settings-tab ${activeTab === 'respaldo' ? 'active' : ''}`} onClick={() => setActiveTab('respaldo')}>
++            Respaldo
++          </button>
+         </div>
+       </div>
+ 
+       <div className="settings-body">
+-        <form onSubmit={handleSave} className="settings-form glass-panel">
+-          <div className="settings-section-title">
+-            <Building2 size={16} /> Información del Hotel
+-          </div>
++        {activeTab === 'hotel' && (
++          <form onSubmit={handleSave} className="settings-form glass-panel">
++            <div className="settings-section-title">
++              <Building2 size={16} /> Información del Hotel
++            </div>
+ 
+           {error && <div className="form-error">{error}</div>}
+ 
+@@ -179,8 +209,17 @@ export const Settings: React.FC = () => {
+             </Button>
+           </div>
+         </form>
++        )}
+ 
+-        <TiposEspacioSettings />
++        {activeTab === 'tipos' && <TiposEspacioSettings />}
++        {activeTab === 'temporadas' && <TemporadasSettings />}
++
++        {['origenes', 'pagos', 'seguridad', 'respaldo'].includes(activeTab) && (
++          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', marginTop: '20px' }}>
++            <h3 style={{ marginBottom: '10px', color: 'var(--text)', fontSize: '16px' }}>Próximamente</h3>
++            <p>Esta sección estará disponible en una futura actualización.</p>
++          </div>
++        )}
+       </div>
+     </div>
+   );
+diff --git a/frontend/src/pages/Settings/TemporadasSettings.tsx b/frontend/src/pages/Settings/TemporadasSettings.tsx
+new file mode 100644
+index 0000000..7e529fc
+--- /dev/null
++++ b/frontend/src/pages/Settings/TemporadasSettings.tsx
+@@ -0,0 +1,294 @@
++import React, { useState, useEffect } from 'react';
++import { CalendarDays, Plus, Trash2, Save, Loader2, X, Info } from 'lucide-react';
++import { Button } from '../../components/Button/Button';
++import { apiFetch } from '../../utils/apiFetch';
++import { format } from 'date-fns';
++import { es } from 'date-fns/locale';
++
++type TipoTemporada = 'alta' | 'media' | 'baja';
++
++interface Temporada {
++  id: number;
++  nombre: string;
++  tipo: TipoTemporada;
++  fecha_inicio: string;
++  fecha_fin: string;
++  activo: boolean;
++  anio: number | null;
++}
++
++const tipoConfig: Record<TipoTemporada, { label: string; color: string; bg: string; emoji: string }> = {
++  alta:  { label: 'Alta',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   emoji: '🔴' },
++  media: { label: 'Media', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)',  emoji: '🟡' },
++  baja:  { label: 'Baja',  color: '#10b981', bg: 'rgba(16,185,129,0.12)', emoji: '🟢' },
++};
++
++const emptyForm = {
++  nombre: '',
++  tipo: 'alta' as TipoTemporada,
++  fecha_inicio: '',
++  fecha_fin: '',
++  anio: new Date().getFullYear().toString(),
++};
++
++export const TemporadasSettings: React.FC = () => {
++  const [temporadas, setTemporadas] = useState<Temporada[]>([]);
++  const [loading, setLoading]       = useState(true);
++  const [anioFiltro, setAnioFiltro] = useState<number>(new Date().getFullYear());
++  const [anios, setAnios]           = useState<number[]>([]);
++  const [showForm, setShowForm]     = useState(false);
++  const [form, setForm]             = useState({ ...emptyForm });
++  const [saving, setSaving]         = useState(false);
++  const [deleting, setDeleting]     = useState<number | null>(null);
++  const [error, setError]           = useState('');
++
++  useEffect(() => { fetchData(); }, [anioFiltro]);
++
++  const fetchData = async () => {
++    setLoading(true);
++    try {
++      const [resT, resA] = await Promise.all([
++        apiFetch(`/temporadas?anio=${anioFiltro}`),
++        apiFetch('/temporadas/anios'),
++      ]);
++      if (resT.ok) setTemporadas(await resT.json());
++      if (resA.ok) {
++        const a: number[] = await resA.json();
++        // Asegurar que el año actual siempre esté en la lista
++        const cur = new Date().getFullYear();
++        const merged = Array.from(new Set([...a, cur, cur + 1])).sort((x, y) => x - y);
++        setAnios(merged);
++      }
++    } catch (e) {
++      setError('Error al conectar con el servidor');
++    } finally {
++      setLoading(false);
++    }
++  };
++
++  const handleSubmit = async () => {
++    if (!form.nombre.trim() || !form.fecha_inicio || !form.fecha_fin) {
++      setError('Completa todos los campos obligatorios');
++      return;
++    }
++    setSaving(true);
++    setError('');
++    try {
++      const res = await apiFetch('/temporadas', {
++        method: 'POST',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify(form)
++      });
++      if (!res.ok) {
++        const err = await res.json().catch(() => ({}));
++        setError(err.error || 'Error al crear temporada');
++        return;
++      }
++      setForm({ ...emptyForm, anio: anioFiltro.toString() });
++      setShowForm(false);
++      await fetchData();
++    } catch {
++      setError('Error al guardar');
++    } finally {
++      setSaving(false);
++    }
++  };
++
++  const handleDelete = async (t: Temporada) => {
++    if (!window.confirm(`¿Eliminar "${t.nombre}"?`)) return;
++    setDeleting(t.id);
++    try {
++      await apiFetch(`/temporadas/${t.id}`, { method: 'DELETE' });
++      await fetchData();
++    } catch {
++      setError('Error al eliminar');
++    } finally {
++      setDeleting(null);
++    }
++  };
++
++  const handleToggle = async (t: Temporada) => {
++    try {
++      await apiFetch(`/temporadas/${t.id}`, {
++        method: 'PUT',
++        headers: { 'Content-Type': 'application/json' },
++        body: JSON.stringify({ activo: !t.activo })
++      });
++      await fetchData();
++    } catch {
++      setError('Error al actualizar');
++    }
++  };
++
++  const fmtDate = (d: string) => {
++    try { return format(new Date(d), "d MMM", { locale: es }); }
++    catch { return d; }
++  };
++
++  return (
++    <div className="glass-panel" style={{ marginTop: '20px', padding: '20px' }}>
++      {/* Header */}
++      <div className="settings-section-title flex justify-between items-center" style={{ marginBottom: '15px' }}>
++        <span><CalendarDays size={16} /> Temporadas del Año</span>
++        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
++          {/* Selector de año */}
++          <select
++            className="form-input"
++            style={{ width: 'auto', padding: '4px 10px', fontSize: '13px' }}
++            value={anioFiltro}
++            onChange={e => setAnioFiltro(parseInt(e.target.value))}
++          >
++            {anios.map(a => <option key={a} value={a}>{a}</option>)}
++          </select>
++          {!showForm && (
++            <Button variant="ghost" size="sm" onClick={() => { setShowForm(true); setForm({ ...emptyForm, anio: anioFiltro.toString() }); }}
++              className="flex items-center gap-1">
++              <Plus size={14} /> Agregar
++            </Button>
++          )}
++        </div>
++      </div>
++
++      {/* Leyenda */}
++      <div style={{ display: 'flex', gap: '16px', marginBottom: '14px', flexWrap: 'wrap' }}>
++        {(Object.entries(tipoConfig) as [TipoTemporada, typeof tipoConfig.alta][]).map(([key, cfg]) => (
++          <span key={key} style={{ fontSize: '12px', color: cfg.color, display: 'flex', alignItems: 'center', gap: '4px' }}>
++            {cfg.emoji} Temporada {cfg.label}
++          </span>
++        ))}
++        <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
++          <Info size={11} style={{ display: 'inline', marginRight: 3 }} />
++          🟢 Baja es el precio default fuera de cualquier temporada
++        </span>
++      </div>
++
++      {error && (
++        <div style={{ color: '#f87171', fontSize: '13px', padding: '8px 12px', background: 'rgba(248,113,113,0.08)', borderRadius: '8px', border: '1px solid rgba(248,113,113,0.2)', marginBottom: '12px' }}>
++          {error}
++          <button onClick={() => setError('')} style={{ marginLeft: 8, cursor: 'pointer', background: 'none', border: 'none', color: '#f87171' }}><X size={12} /></button>
++        </div>
++      )}
++
++      {loading ? (
++        <div style={{ textAlign: 'center', padding: '20px' }}><Loader2 className="animate-spin inline" /></div>
++      ) : (
++        <div style={{ display: 'grid', gap: '8px' }}>
++          {temporadas.length === 0 && !showForm && (
++            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
++              No hay temporadas definidas para {anioFiltro}.<br />
++              <span style={{ fontSize: '12px' }}>Los precios de 🟢 Temporada Baja se aplicarán por defecto.</span>
++            </div>
++          )}
++
++          {temporadas.map(t => {
++            const cfg = tipoConfig[t.tipo as TipoTemporada] || tipoConfig.baja;
++            return (
++              <div key={t.id} style={{
++                display: 'grid',
++                gridTemplateColumns: '1fr auto auto auto auto',
++                gap: '12px',
++                alignItems: 'center',
++                padding: '12px 15px',
++                backgroundColor: t.activo ? cfg.bg : 'rgba(255,255,255,0.01)',
++                borderRadius: '8px',
++                border: `1px solid ${t.activo ? cfg.color + '40' : 'rgba(255,255,255,0.04)'}`,
++                opacity: t.activo ? 1 : 0.5,
++              }}>
++                <div>
++                  <div style={{ fontWeight: 600, fontSize: '14px', color: t.activo ? cfg.color : 'var(--text-muted)' }}>
++                    {cfg.emoji} {t.nombre}
++                  </div>
++                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
++                    {fmtDate(t.fecha_inicio)} — {fmtDate(t.fecha_fin)}
++                  </div>
++                </div>
++
++                {/* Badge tipo */}
++                <span style={{
++                  padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700,
++                  background: cfg.bg, color: cfg.color, textTransform: 'uppercase', letterSpacing: '0.05em',
++                  border: `1px solid ${cfg.color}40`
++                }}>
++                  {cfg.label}
++                </span>
++
++                {/* Toggle activo */}
++                <button
++                  title={t.activo ? 'Desactivar' : 'Activar'}
++                  onClick={() => handleToggle(t)}
++                  style={{
++                    background: t.activo ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
++                    border: `1px solid ${t.activo ? '#10b981' : 'rgba(255,255,255,0.1)'}`,
++                    color: t.activo ? '#10b981' : 'var(--text-muted)',
++                    borderRadius: '6px', padding: '4px 8px', fontSize: '11px', cursor: 'pointer', fontWeight: 600
++                  }}>
++                  {t.activo ? 'Activa' : 'Inactiva'}
++                </button>
++
++                {/* Eliminar */}
++                <Button variant="ghost" size="sm" onClick={() => handleDelete(t)} disabled={deleting === t.id}
++                  style={{ color: '#f87171', padding: '4px 6px' }}>
++                  {deleting === t.id ? <Loader2 className="animate-spin" size={14} /> : <Trash2 size={14} />}
++                </Button>
++              </div>
++            );
++          })}
++
++          {/* Formulario inline */}
++          {showForm && (
++            <div style={{
++              display: 'grid', gap: '10px', padding: '16px',
++              backgroundColor: 'rgba(99,179,130,0.06)', borderRadius: '10px',
++              border: '1px solid rgba(99,179,130,0.25)'
++            }}>
++              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
++                Nueva Temporada para {anioFiltro}
++              </div>
++              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px' }}>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label>Nombre *</label>
++                  <input type="text" className="form-input" placeholder="Ej: Semana Santa 2027"
++                    value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} autoFocus />
++                </div>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label>Tipo *</label>
++                  <select className="form-input" value={form.tipo}
++                    onChange={e => setForm({ ...form, tipo: e.target.value as TipoTemporada })}>
++                    <option value="alta">🔴 Alta</option>
++                    <option value="media">🟡 Media</option>
++                    <option value="baja">🟢 Baja</option>
++                  </select>
++                </div>
++              </div>
++              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label>Fecha inicio *</label>
++                  <input type="date" className="form-input" value={form.fecha_inicio}
++                    onChange={e => setForm({ ...form, fecha_inicio: e.target.value })} />
++                </div>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label>Fecha fin *</label>
++                  <input type="date" className="form-input" value={form.fecha_fin}
++                    onChange={e => setForm({ ...form, fecha_fin: e.target.value })} />
++                </div>
++              </div>
++              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
++                <Button variant="ghost" size="sm" onClick={() => { setShowForm(false); setError(''); }}>
++                  <X size={14} /> Cancelar
++                </Button>
++                <Button variant="primary" size="sm" onClick={handleSubmit} disabled={saving}>
++                  {saving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />} Guardar
++                </Button>
++              </div>
++            </div>
++          )}
++        </div>
++      )}
++
++      <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px' }}>
++        * Las temporadas activas se aplican automáticamente al crear una nueva reserva según la fecha de check-in.
++        Si no hay ninguna temporada activa para esa fecha, se usa el precio de Temporada Baja.
++      </p>
++    </div>
++  );
++};
+diff --git a/frontend/src/pages/Settings/TiposEspacioSettings.tsx b/frontend/src/pages/Settings/TiposEspacioSettings.tsx
+index 1a2673e..0dfb1f0 100644
+--- a/frontend/src/pages/Settings/TiposEspacioSettings.tsx
++++ b/frontend/src/pages/Settings/TiposEspacioSettings.tsx
+@@ -1,5 +1,5 @@
+ import React, { useState, useEffect } from 'react';
+-import { Save, Bed, Loader2, CheckCircle, Plus, X, Trash2 } from 'lucide-react';
++import { Save, Bed, Loader2, CheckCircle, Plus, X, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+ import { Button } from '../../components/Button/Button';
+ import { apiFetch } from '../../utils/apiFetch';
+ 
+@@ -8,7 +8,26 @@ const emptyNew = {
+   precio_base: '',
+   recargo_pareja: '',
+   recargo_adicional: '',
+-  max_personas_adicionales: '1'
++  max_personas_adicionales: '1',
++  precio_base_media: '',
++  precio_base_alta: '',
++  recargo_pareja_media: '',
++  recargo_pareja_alta: '',
++  recargo_adicional_media: '',
++  recargo_adicional_alta: '',
++};
++
++const SeasonBadge: React.FC<{ tipo: 'baja' | 'media' | 'alta' }> = ({ tipo }) => {
++  const cfg = {
++    baja:  { emoji: '🟢', label: 'Baja',  color: '#10b981' },
++    media: { emoji: '🟡', label: 'Media', color: '#f59e0b' },
++    alta:  { emoji: '🔴', label: 'Alta',  color: '#ef4444' },
++  }[tipo];
++  return (
++    <span style={{ fontSize: '11px', color: cfg.color, fontWeight: 600, letterSpacing: '0.03em' }}>
++      {cfg.emoji} {cfg.label}
++    </span>
++  );
+ };
+ 
+ export const TiposEspacioSettings: React.FC = () => {
+@@ -22,6 +41,7 @@ export const TiposEspacioSettings: React.FC = () => {
+   const [showAddForm, setShowAddForm] = useState(false);
+   const [newTipo, setNewTipo] = useState({ ...emptyNew });
+   const [addingNew, setAddingNew] = useState(false);
++  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+ 
+   useEffect(() => { fetchTipos(); }, []);
+ 
+@@ -110,7 +130,13 @@ export const TiposEspacioSettings: React.FC = () => {
+           precio_base: parseFloat(newTipo.precio_base) || 0,
+           recargo_pareja: parseFloat(newTipo.recargo_pareja) || 0,
+           recargo_adicional: parseFloat(newTipo.recargo_adicional) || 0,
+-          max_personas_adicionales: parseInt(newTipo.max_personas_adicionales) || 1
++          max_personas_adicionales: parseInt(newTipo.max_personas_adicionales) || 1,
++          precio_base_media: newTipo.precio_base_media ? parseFloat(newTipo.precio_base_media) : null,
++          precio_base_alta: newTipo.precio_base_alta ? parseFloat(newTipo.precio_base_alta) : null,
++          recargo_pareja_media: newTipo.recargo_pareja_media ? parseFloat(newTipo.recargo_pareja_media) : null,
++          recargo_pareja_alta: newTipo.recargo_pareja_alta ? parseFloat(newTipo.recargo_pareja_alta) : null,
++          recargo_adicional_media: newTipo.recargo_adicional_media ? parseFloat(newTipo.recargo_adicional_media) : null,
++          recargo_adicional_alta: newTipo.recargo_adicional_alta ? parseFloat(newTipo.recargo_adicional_alta) : null,
+         })
+       });
+       setNewTipo({ ...emptyNew });
+@@ -123,6 +149,8 @@ export const TiposEspacioSettings: React.FC = () => {
+     }
+   };
+ 
++  const fmtMoney = (v: number) => `$${v.toLocaleString('es-CO', { maximumFractionDigits: 0 })}`;
++
+   if (loading) return <div className="p-8 text-center"><Loader2 className="animate-spin inline" /></div>;
+   if (fetchError) return (
+     <div className="glass-panel" style={{ marginTop: '20px', padding: '20px' }}>
+@@ -135,8 +163,6 @@ export const TiposEspacioSettings: React.FC = () => {
+     </div>
+   );
+ 
+-  const colStyle = { gridTemplateColumns: '1.2fr 1fr 1fr 1fr 0.7fr auto auto', gap: '10px', alignItems: 'end' };
+-
+   return (
+     <div className="glass-panel" style={{ marginTop: '20px', padding: '20px' }}>
+       <div className="settings-section-title flex justify-between items-center" style={{ marginBottom: '15px' }}>
+@@ -148,79 +174,161 @@ export const TiposEspacioSettings: React.FC = () => {
+         )}
+       </div>
+ 
+-      {/* Header labels */}
+-      {tipos.length > 0 && (
+-        <div style={{ display: 'grid', ...colStyle, padding: '0 15px', marginBottom: '4px' }}>
+-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tipo</span>
+-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Precio Base (1 pers.)</span>
+-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recargo Pareja (+1)</span>
+-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Adicional c/u</span>
+-          <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Máx. Adic.</span>
+-          <span></span>
+-          <span></span>
+-        </div>
+-      )}
++      <div style={{ display: 'grid', gap: '10px' }}>
++        {tipos.map((tipo, idx) => {
++          const isExpanded = expanded[tipo.id];
++          return (
++            <div key={tipo.id} style={{
++              borderRadius: '10px', border: '1px solid rgba(255,255,255,0.07)',
++              backgroundColor: 'rgba(255,255,255,0.02)', overflow: 'hidden'
++            }}>
++              {/* Fila principal */}
++              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr 0.6fr auto auto auto', gap: '10px', alignItems: 'center', padding: '12px 15px' }}>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tipo</label>
++                  <input type="text" className="form-input" value={tipo.nombre} style={{ fontWeight: 600 }}
++                    onChange={(e) => handleChange(idx, 'nombre', e.target.value)} />
++                </div>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label style={{ fontSize: '10px', color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.05em' }}>🟢 Base (Baja)</label>
++                  <input type="number" className="form-input" value={tipo.precio_base} onChange={(e) => handleChange(idx, 'precio_base', e.target.value)} />
++                </div>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recargo Pareja</label>
++                  <input type="number" className="form-input" value={tipo.recargo_pareja} onChange={(e) => handleChange(idx, 'recargo_pareja', e.target.value)} />
++                </div>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Adic. c/u</label>
++                  <input type="number" className="form-input" value={tipo.recargo_adicional} onChange={(e) => handleChange(idx, 'recargo_adicional', e.target.value)} />
++                </div>
++                <div className="form-group" style={{ margin: 0 }}>
++                  <label style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Máx. Adic.</label>
++                  <input type="number" className="form-input text-center" value={tipo.max_personas_adicionales ?? 1} min={0} max={10}
++                    onChange={(e) => handleChange(idx, 'max_personas_adicionales', e.target.value)} />
++                </div>
++                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
++                  <Button variant="secondary" onClick={() => handleSave(tipo)} disabled={saving === tipo.id}>
++                    {saving === tipo.id ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
++                  </Button>
++                  {saved === tipo.id && <CheckCircle size={14} style={{ color: '#10b981' }} />}
++                </div>
++                {/* Expandir precios de temporada */}
++                <button
++                  title="Precios por temporada"
++                  onClick={() => setExpanded(e => ({ ...e, [tipo.id]: !e[tipo.id] }))}
++                  style={{ background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer', color: 'var(--text-muted)', padding: '6px 8px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px' }}>
++                  {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
++                  Temp.
++                </button>
++                <div style={{ display: 'flex', alignItems: 'center' }}>
++                  <Button variant="ghost" onClick={() => handleDelete(tipo)} disabled={deleting === tipo.id}
++                    style={{ color: '#f87171', padding: '6px' }} title="Eliminar tipo">
++                    {deleting === tipo.id ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
++                  </Button>
++                </div>
++              </div>
+ 
+-      <div style={{ display: 'grid', gap: '8px' }}>
+-        {tipos.map((tipo, idx) => (
+-          <div key={tipo.id} style={{ display: 'grid', ...colStyle, padding: '12px 15px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="text" className="form-input" value={tipo.nombre} style={{ fontWeight: 600 }}
+-                onChange={(e) => handleChange(idx, 'nombre', e.target.value)} />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input" value={tipo.precio_base} onChange={(e) => handleChange(idx, 'precio_base', e.target.value)} />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input" value={tipo.recargo_pareja} onChange={(e) => handleChange(idx, 'recargo_pareja', e.target.value)} />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input" value={tipo.recargo_adicional} onChange={(e) => handleChange(idx, 'recargo_adicional', e.target.value)} />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input text-center" value={tipo.max_personas_adicionales ?? 1} min={0} max={10}
+-                onChange={(e) => handleChange(idx, 'max_personas_adicionales', e.target.value)} />
+-            </div>
+-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+-              <Button variant="secondary" onClick={() => handleSave(tipo)} disabled={saving === tipo.id}>
+-                {saving === tipo.id ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+-              </Button>
+-              {saved === tipo.id && <CheckCircle size={14} style={{ color: '#10b981' }} />}
+-            </div>
+-            <div style={{ display: 'flex', alignItems: 'center' }}>
+-              <Button variant="ghost" onClick={() => handleDelete(tipo)} disabled={deleting === tipo.id}
+-                style={{ color: '#f87171', padding: '6px' }} title="Eliminar tipo">
+-                {deleting === tipo.id ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+-              </Button>
++              {isExpanded && (
++                <div style={{ padding: '12px 15px 16px', borderTop: '1px solid rgba(255,255,255,0.06)', backgroundColor: 'rgba(0,0,0,0.1)' }}>
++                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
++                    Precios por Temporada (dejar vacío = usar precio baja)
++                  </div>
++                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
++                    {/* Temporada Media */}
++                    <div style={{ padding: '10px', background: 'rgba(245,158,11,0.06)', borderRadius: '8px', border: '1px solid rgba(245,158,11,0.2)' }}>
++                      <div style={{ marginBottom: '8px' }}><SeasonBadge tipo="media" /></div>
++                      <div className="form-group" style={{ margin: '0 0 6px' }}>
++                        <label style={{ fontSize: '11px' }}>Precio Base</label>
++                        <input type="number" className="form-input" placeholder={`Vacío = ${fmtMoney(parseFloat(tipo.precio_base || 0))}`}
++                          value={tipo.precio_base_media ?? ''} onChange={e => handleChange(idx, 'precio_base_media', e.target.value)} />
++                      </div>
++                      <div className="form-group" style={{ margin: '0 0 6px' }}>
++                        <label style={{ fontSize: '11px' }}>Rec. Pareja</label>
++                        <input type="number" className="form-input" placeholder={`Vacío = ${fmtMoney(parseFloat(tipo.recargo_pareja || 0))}`}
++                          value={tipo.recargo_pareja_media ?? ''} onChange={e => handleChange(idx, 'recargo_pareja_media', e.target.value)} />
++                      </div>
++                      <div className="form-group" style={{ margin: 0 }}>
++                        <label style={{ fontSize: '11px' }}>Rec. Adicional</label>
++                        <input type="number" className="form-input" placeholder={`Vacío = ${fmtMoney(parseFloat(tipo.recargo_adicional || 0))}`}
++                          value={tipo.recargo_adicional_media ?? ''} onChange={e => handleChange(idx, 'recargo_adicional_media', e.target.value)} />
++                      </div>
++                    </div>
++
++                    {/* Temporada Alta */}
++                    <div style={{ padding: '10px', background: 'rgba(239,68,68,0.06)', borderRadius: '8px', border: '1px solid rgba(239,68,68,0.2)' }}>
++                      <div style={{ marginBottom: '8px' }}><SeasonBadge tipo="alta" /></div>
++                      <div className="form-group" style={{ margin: '0 0 6px' }}>
++                        <label style={{ fontSize: '11px' }}>Precio Base</label>
++                        <input type="number" className="form-input" placeholder={`Vacío = ${fmtMoney(parseFloat(tipo.precio_base || 0))}`}
++                          value={tipo.precio_base_alta ?? ''} onChange={e => handleChange(idx, 'precio_base_alta', e.target.value)} />
++                      </div>
++                      <div className="form-group" style={{ margin: '0 0 6px' }}>
++                        <label style={{ fontSize: '11px' }}>Rec. Pareja</label>
++                        <input type="number" className="form-input" placeholder={`Vacío = ${fmtMoney(parseFloat(tipo.recargo_pareja || 0))}`}
++                          value={tipo.recargo_pareja_alta ?? ''} onChange={e => handleChange(idx, 'recargo_pareja_alta', e.target.value)} />
++                      </div>
++                      <div className="form-group" style={{ margin: 0 }}>
++                        <label style={{ fontSize: '11px' }}>Rec. Adicional</label>
++                        <input type="number" className="form-input" placeholder={`Vacío = ${fmtMoney(parseFloat(tipo.recargo_adicional || 0))}`}
++                          value={tipo.recargo_adicional_alta ?? ''} onChange={e => handleChange(idx, 'recargo_adicional_alta', e.target.value)} />
++                      </div>
++                    </div>
++
++                    {/* Preview resumen */}
++                    <div style={{ padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
++                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Precios Resultantes (Base)</div>
++                      <div style={{ display: 'grid', gap: '4px', fontSize: '12px' }}>
++                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
++                          <span style={{ color: '#10b981' }}>🟢 Baja:</span>
++                          <span>{fmtMoney(parseFloat(tipo.precio_base || 0))}</span>
++                        </div>
++                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
++                          <span style={{ color: '#f59e0b' }}>🟡 Media:</span>
++                          <span>{tipo.precio_base_media ? fmtMoney(parseFloat(tipo.precio_base_media)) : '= Baja'}</span>
++                        </div>
++                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
++                          <span style={{ color: '#ef4444' }}>🔴 Alta:</span>
++                          <span>{tipo.precio_base_alta ? fmtMoney(parseFloat(tipo.precio_base_alta)) : '= Baja'}</span>
++                        </div>
++                      </div>
++                      <div style={{ marginTop: '10px' }}>
++                        <Button variant="secondary" size="sm" onClick={() => handleSave(tipo)} disabled={saving === tipo.id} style={{ width: '100%' }}>
++                          {saving === tipo.id ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />} Guardar Precios
++                        </Button>
++                      </div>
++                    </div>
++                  </div>
++                </div>
++              )}
+             </div>
+-          </div>
+-        ))}
++          );
++        })}
+ 
+-        {/* Inline add form */}
++        {/* Formulario agregar nuevo */}
+         {showAddForm && (
+-          <div style={{ display: 'grid', ...colStyle, padding: '12px 15px', backgroundColor: 'rgba(99,179,130,0.06)', borderRadius: '8px', border: '1px solid rgba(99,179,130,0.25)' }}>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="text" className="form-input" placeholder="Ej: Presidencial"
+-                value={newTipo.nombre} onChange={e => setNewTipo({ ...newTipo, nombre: e.target.value })}
+-                autoFocus />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input" placeholder="170000"
+-                value={newTipo.precio_base} onChange={e => setNewTipo({ ...newTipo, precio_base: e.target.value })} />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input" placeholder="50000"
+-                value={newTipo.recargo_pareja} onChange={e => setNewTipo({ ...newTipo, recargo_pareja: e.target.value })} />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input" placeholder="80000"
+-                value={newTipo.recargo_adicional} onChange={e => setNewTipo({ ...newTipo, recargo_adicional: e.target.value })} />
+-            </div>
+-            <div className="form-group" style={{ margin: 0 }}>
+-              <input type="number" className="form-input text-center" placeholder="1" min={0} max={10}
+-                value={newTipo.max_personas_adicionales} onChange={e => setNewTipo({ ...newTipo, max_personas_adicionales: e.target.value })} />
+-            </div>
+-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
++          <div style={{ padding: '16px', backgroundColor: 'rgba(99,179,130,0.06)', borderRadius: '10px', border: '1px solid rgba(99,179,130,0.25)' }}>
++            <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '10px', color: 'var(--text-muted)' }}>Nuevo tipo de habitación</div>
++            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr 1fr 0.6fr auto auto', gap: '10px', alignItems: 'end' }}>
++              <div className="form-group" style={{ margin: 0 }}>
++                <input type="text" className="form-input" placeholder="Ej: Presidencial"
++                  value={newTipo.nombre} onChange={e => setNewTipo({ ...newTipo, nombre: e.target.value })} autoFocus />
++              </div>
++              <div className="form-group" style={{ margin: 0 }}>
++                <input type="number" className="form-input" placeholder="Precio base"
++                  value={newTipo.precio_base} onChange={e => setNewTipo({ ...newTipo, precio_base: e.target.value })} />
++              </div>
++              <div className="form-group" style={{ margin: 0 }}>
++                <input type="number" className="form-input" placeholder="Rec. pareja"
++                  value={newTipo.recargo_pareja} onChange={e => setNewTipo({ ...newTipo, recargo_pareja: e.target.value })} />
++              </div>
++              <div className="form-group" style={{ margin: 0 }}>
++                <input type="number" className="form-input" placeholder="Rec. adicional"
++                  value={newTipo.recargo_adicional} onChange={e => setNewTipo({ ...newTipo, recargo_adicional: e.target.value })} />
++              </div>
++              <div className="form-group" style={{ margin: 0 }}>
++                <input type="number" className="form-input text-center" placeholder="1" min={0} max={10}
++                  value={newTipo.max_personas_adicionales} onChange={e => setNewTipo({ ...newTipo, max_personas_adicionales: e.target.value })} />
++              </div>
+               <Button variant="primary" size="sm" onClick={handleAddSubmit} disabled={addingNew || !newTipo.nombre.trim()}>
+                 {addingNew ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+               </Button>
+@@ -228,7 +336,9 @@ export const TiposEspacioSettings: React.FC = () => {
+                 <X size={16} />
+               </Button>
+             </div>
+-            <div /> {/* columna vacía para alinear con el botón eliminar */}
++            <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '8px' }}>
++              Los precios por temporada (Media/Alta) se pueden configurar después expandiendo el tipo creado.
++            </p>
+           </div>
+         )}
+       </div>
+@@ -240,7 +350,8 @@ export const TiposEspacioSettings: React.FC = () => {
+       )}
+ 
+       <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '15px' }}>
+-        * Si una habitación en específico no pertenece a ninguno de estos tipos, usará los precios que tenga configurados de forma individual.
++        * Si una habitación no pertenece a ninguno de estos tipos, usará los precios configurados de forma individual.
++        Los cambios de precio solo afectan reservas nuevas — los precios históricos se mantienen intactos.
+       </p>
+     </div>
+   );
+diff --git a/frontend/src/pages/Spaces/Spaces.tsx b/frontend/src/pages/Spaces/Spaces.tsx
+index 2580b2f..8bb5669 100644
+--- a/frontend/src/pages/Spaces/Spaces.tsx
++++ b/frontend/src/pages/Spaces/Spaces.tsx
+@@ -18,6 +18,7 @@ interface Espacio {
+   precio_adicional: string | null;
+   activo: boolean;
+   tiene_minibar: boolean;
++  estado_limpieza?: string;
+ }
+ 
+ export const Spaces: React.FC = () => {
+-- 
+2.50.0.windows.1
+
