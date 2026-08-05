@@ -127,6 +127,7 @@ const getTiposEspacioConfig = async (req, res) => {
 
 const updateTipoEspacioConfig = async (req, res) => {
   const { id } = req.params;
+  const {
     nombre,
     precio_base, recargo_pareja, recargo_adicional, max_personas_adicionales,
     // Precios por temporada (opcionales)
