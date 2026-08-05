@@ -15,8 +15,8 @@ interface ReceiptProps {
 export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, items }) => {
   const contentRef = useRef<HTMLDivElement>(null);
 
-
-  // Se eliminó la actualización silenciosa del monto_total para evitar cambiar precios de reservas pasadas.
+  // Snapshot congelado al crear la reserva — no recalcular desde config
+  // para no sobreescribir precios históricos al abrir el receipt
 
   if (!reserva) return null;
 
@@ -40,9 +40,15 @@ export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, item
 
   const noches = calcularNoches();
 
-  // Siempre usamos el precio histórico almacenado en la reserva. No recalculamos basados en la config actual.
+  // Siempre usamos el precio histórico almacenado en la reserva.
   const subtotalAlojamiento = parseFloat(reserva.monto_total || '0');
-  const precioPorNoche = noches > 0 ? subtotalAlojamiento / noches : subtotalAlojamiento;
+  
+  // Usar precio_noche_snapshot si existe, de lo contrario fallback a monto_total / noches
+  const precioPorNoche = reserva.precio_noche_snapshot
+    ? parseFloat(reserva.precio_noche_snapshot)
+    : noches > 0
+      ? subtotalAlojamiento / noches
+      : subtotalAlojamiento;
   const subtotalConsumos = items
     .filter(i => i.estado === 'pagado')
     .reduce((acc, item) => acc + parseFloat(item.valor_total || '0'), 0);

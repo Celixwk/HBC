@@ -4,6 +4,7 @@ import { Button } from '../../components/Button/Button';
 import './Settings.css';
 import { apiFetch } from '../../utils/apiFetch';
 import { TiposEspacioSettings } from './TiposEspacioSettings';
+import { TemporadasSettings } from './TemporadasSettings';
 import { SecuritySettings } from './SecuritySettings';
 import { BackupRestoreSettings } from './BackupRestoreSettings';
 import { MetodosPagoSettings } from './MetodosPagoSettings';
@@ -21,6 +22,7 @@ interface ConfigData {
 }
 
 export const Settings: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('general');
   const [form, setForm] = useState<ConfigData>({
     nombre_hotel: '', direccion: '', telefono: '', nit: '', email: '', ciudad: '', hora_check_in: '15:00', hora_check_out: '13:00'
   });
@@ -28,7 +30,6 @@ export const Settings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState('general');
 
   useEffect(() => { fetchConfig(); }, []);
 
@@ -102,6 +103,9 @@ export const Settings: React.FC = () => {
         </button>
         <button className={`settings-tab ${activeTab === 'tipos' ? 'active' : ''}`} onClick={() => setActiveTab('tipos')}>
           Tipos de Espacio
+        </button>
+        <button className={`settings-tab ${activeTab === 'temporadas' ? 'active' : ''}`} onClick={() => setActiveTab('temporadas')}>
+          Temporadas
         </button>
         <button className={`settings-tab ${activeTab === 'origenes' ? 'active' : ''}`} onClick={() => setActiveTab('origenes')}>
           <Globe size={15} /> Orígenes
@@ -215,8 +219,9 @@ export const Settings: React.FC = () => {
             </div>
           </form>
         )}
-        
+
         {activeTab === 'tipos' && <TiposEspacioSettings />}
+        {activeTab === 'temporadas' && <TemporadasSettings />}
         {activeTab === 'origenes' && <OrigenesSettings />}
         {activeTab === 'pagos' && <MetodosPagoSettings />}
         {activeTab === 'seguridad' && <SecuritySettings />}

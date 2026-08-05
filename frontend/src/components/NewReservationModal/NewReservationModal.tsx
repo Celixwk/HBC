@@ -28,6 +28,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
   const [selectedGuestId, setSelectedGuestId] = useState<number | null>(null);
   const guestDropRef = useRef<HTMLDivElement>(null);
 
+  const [temporada, setTemporada] = useState<{tipo: string, nombre: string, id: number | null} | null>(null);
+
   const [formData, setFormData] = useState({
     nombre_huesped: '',
     documento: '',
@@ -82,9 +84,13 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
     const totalPersonas = adultos + ninos;
     const tipoConfig = tiposConfig.find(t => t.nombre.toLowerCase() === room.tipo_habitacion?.toLowerCase());
     if (tipoConfig) {
-      const base = parseFloat(tipoConfig.precio_base || '0');
-      const recPareja = parseFloat(tipoConfig.recargo_pareja || '0');
-      const recAdicional = parseFloat(tipoConfig.recargo_adicional || '0');
+      const isMedia = temporada?.tipo === 'media';
+      const isAlta = temporada?.tipo === 'alta';
+
+      const base = parseFloat((isAlta && tipoConfig.precio_base_alta) || (isMedia && tipoConfig.precio_base_media) || tipoConfig.precio_base || '0');
+      const recPareja = parseFloat((isAlta && tipoConfig.recargo_pareja_alta) || (isMedia && tipoConfig.recargo_pareja_media) || tipoConfig.recargo_pareja || '0');
+      const recAdicional = parseFloat((isAlta && tipoConfig.recargo_adicional_alta) || (isMedia && tipoConfig.recargo_adicional_media) || tipoConfig.recargo_adicional || '0');
+
       if (totalPersonas <= 1) return base;
       if (totalPersonas === 2) return base + recPareja;
       return base + recPareja + recAdicional * (totalPersonas - 2);
@@ -96,7 +102,18 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
     if (adultos <= 1) return p1;
     if (adultos === 2) return p2;
     return p2 + (adultos - 2) * pAdd + ninos * pAdd;
-  }, [tiposConfig]);
+  }, [tiposConfig, temporada]);
+
+  useEffect(() => {
+    if (formData.check_in) {
+      apiFetch(`/temporadas/detectar?fecha=${formData.check_in}`)
+        .then(r => r.json())
+        .then(setTemporada)
+        .catch(console.error);
+    } else {
+      setTemporada(null);
+    }
+  }, [formData.check_in]);
 
   useEffect(() => {
     if (!formData.check_in || !formData.check_out || formData.id_espacios.length === 0) {
@@ -116,6 +133,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
     const totalNoche = selectedRooms.reduce((sum, r) => sum + getPriceForRoom(r, adultos, ninos), 0);
     setMontoTotal(totalNoche * nights);
   }, [formData.check_in, formData.check_out, formData.id_espacios, formData.cantidad_adultos, formData.cantidad_ninos, precioSalon, isSalon, selectedRooms, getPriceForRoom]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -221,6 +239,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
           fecha_evento: isSalon && fechaEvento ? fechaEvento : null,
           hora_inicio: isSalon && horaInicio ? horaInicio : null,
           hora_fin: isSalon && horaFin ? horaFin : null,
+          precio_noche_snapshot: noches > 0 && !isSalon ? montoTotal / noches : null,
+          temporada_tipo: temporada?.tipo || null,
         })
       });
 
@@ -328,6 +348,17 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
             <div className="text-xs text-muted">
               <Info size={12} style={{ display: 'inline', marginRight: 4 }} />
               Entrada a partir de las <strong>{config.hora_check_in}</strong> · Salida hasta las <strong>{config.hora_check_out}</strong>
+            </div>
+          )}
+          {temporada && (
+            <div className="text-xs" style={{ 
+              marginTop: '8px', padding: '6px 10px', borderRadius: '6px', 
+              background: temporada.tipo === 'alta' ? 'rgba(239,68,68,0.1)' : temporada.tipo === 'media' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)', 
+              color: temporada.tipo === 'alta' ? '#ef4444' : temporada.tipo === 'media' ? '#f59e0b' : '#10b981', 
+              border: `1px solid ${temporada.tipo === 'alta' ? '#ef444440' : temporada.tipo === 'media' ? '#f59e0b40' : '#10b98140'}`, 
+              display: 'inline-block' 
+            }}>
+              {temporada.tipo === 'alta' ? '🔴' : temporada.tipo === 'media' ? '🟡' : '🟢'} <strong>Temporada {temporada.tipo.charAt(0).toUpperCase() + temporada.tipo.slice(1)}:</strong> {temporada.nombre}
             </div>
           )}
         </div>

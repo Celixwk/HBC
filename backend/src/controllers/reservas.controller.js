@@ -33,7 +33,9 @@ const createReserva = async (req, res) => {
     tipo_reserva,
     fecha_evento,
     hora_inicio,
-    hora_fin
+    hora_fin,
+    precio_noche_snapshot,  // precio congelado por noche al momento de crear
+    temporada_tipo          // "alta", "media", "baja" — informativo
   } = req.body;
 
   try {
@@ -48,8 +50,6 @@ const createReserva = async (req, res) => {
 
     const nuevasReservas = [];
 
-    // Validar overlap de todos los espacios y crearlos en una transacción si es posible, 
-    // pero para mantener simplicidad lo hacemos en un loop.
     for (const espacioId of espaciosArray) {
       const overlapping = await prisma.reserva.findFirst({
         where: {
@@ -80,7 +80,10 @@ const createReserva = async (req, res) => {
           tipo_reserva: tipo_reserva || 'alojamiento',
           fecha_evento: fecha_evento ? new Date(fecha_evento) : null,
           hora_inicio: hora_inicio || null,
-          hora_fin: hora_fin || null
+          hora_fin: hora_fin || null,
+          // Congelar el precio por noche en el momento de la creación
+          precio_noche_snapshot: precio_noche_snapshot ? parseFloat(precio_noche_snapshot) : null,
+          temporada_tipo: temporada_tipo || null
         },
         include: {
           espacio: true,
@@ -91,7 +94,6 @@ const createReserva = async (req, res) => {
       nuevasReservas.push(nuevaReserva);
     }
     
-    // Si se enviaron múltiples, devolvemos el array. Si fue uno, devolvemos el objeto por compatibilidad.
     if (Array.isArray(id_espacio)) {
       res.status(201).json(nuevasReservas);
     } else {

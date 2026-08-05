@@ -113,9 +113,9 @@ export const Guests: React.FC = () => {
   // Aplanar: una fila por reserva (o una fila si no tiene reservas)
   const flatRows: GuestRow[] = guests.flatMap((guest): GuestRow[] => {
     if (!guest.reserva || guest.reserva.length === 0) {
-      return [{ ...guest, _reserva: null }];
+      return [{ ...guest, _reserva: null } as GuestRow];
     }
-    return guest.reserva.map(res => ({ ...guest, _reserva: res }));
+    return guest.reserva.map(res => ({ ...guest, _reserva: res } as GuestRow));
   });
 
   const filteredRows = flatRows.filter(row =>
