@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Edit2, Trash2, RefreshCw, Loader2, Receipt, AlertCircle, Repeat, Tags, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Receipt, AlertCircle, Repeat, Tags, X } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
 import { format, parseISO } from 'date-fns';

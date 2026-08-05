@@ -86,30 +86,33 @@ model inventario_minibar {
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model reserva {
-  id_reserva       Int              @id @default(autoincrement())
-  id_huesped       Int
-  id_espacio       Int
-  tipo_reserva     String           @default("alojamiento") @db.VarChar(15)
-  dni_tipo         String?          @default("reserva") @db.VarChar(20)
-  check_in         DateTime?        @db.Date
-  check_out        DateTime?        @db.Date
-  cantidad_adultos Int?             @default(1)
-  cantidad_ninos   Int?             @default(0)
-  fecha_evento     DateTime?        @db.Date
-  hora_inicio      DateTime?        @db.Time(6)
-  hora_fin         DateTime?        @db.Time(6)
-  estado_reserva   String           @default("activa") @db.VarChar(20)
-  monto_total      Decimal?         @db.Decimal(12, 2)
-  estado_pago      String?          @default("pendiente") @db.VarChar(20)
-  metodo_pago      String?          @db.VarChar(50)
-  monto_pagado     Decimal?         @default(0) @db.Decimal(12, 2)
-  anotaciones      String?
-  firma            String?
-  fecha_creacion   DateTime?        @default(now()) @db.Timestamp(6)
-  cuenta_espacio   cuenta_espacio[]
-  cuenta_persona   cuenta_persona[]
-  espacio          espacio          @relation(fields: [id_espacio], references: [id_espacio], onDelete: NoAction, onUpdate: NoAction)
-  huesped          huesped          @relation(fields: [id_huesped], references: [id_huesped], onDelete: NoAction, onUpdate: NoAction)
+  id_reserva            Int              @id @default(autoincrement())
+  id_huesped            Int
+  id_espacio            Int
+  tipo_reserva          String           @default("alojamiento") @db.VarChar(15)
+  dni_tipo              String?          @default("reserva") @db.VarChar(20)
+  check_in              DateTime?        @db.Date
+  check_out             DateTime?        @db.Date
+  cantidad_adultos      Int?             @default(1)
+  cantidad_ninos        Int?             @default(0)
+  fecha_evento          DateTime?        @db.Date
+  hora_inicio           DateTime?        @db.Time(6)
+  hora_fin              DateTime?        @db.Time(6)
+  estado_reserva        String           @default("activa") @db.VarChar(20)
+  monto_total           Decimal?         @db.Decimal(12, 2)
+  estado_pago           String?          @default("pendiente") @db.VarChar(20)
+  metodo_pago           String?          @db.VarChar(50)
+  monto_pagado          Decimal?         @default(0) @db.Decimal(12, 2)
+  anotaciones           String?
+  firma                 String?
+  fecha_creacion        DateTime?        @default(now()) @db.Timestamp(6)
+  // Precio congelado al momento de crear la reserva (histórico inmutable)
+  precio_noche_snapshot Decimal?         @db.Decimal(12, 2)
+  temporada_tipo        String?          @db.VarChar(10)  // "alta", "media", "baja"
+  cuenta_espacio        cuenta_espacio[]
+  cuenta_persona        cuenta_persona[]
+  espacio               espacio          @relation(fields: [id_espacio], references: [id_espacio], onDelete: NoAction, onUpdate: NoAction)
+  huesped               huesped          @relation(fields: [id_huesped], references: [id_huesped], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([check_in], map: "idx_reserva_checkin")
   @@index([check_out], map: "idx_reserva_checkout")
@@ -131,12 +134,35 @@ model configuracion_hotel {
 }
 
 model tipo_espacio_config {
-  id                       Int       @id @default(autoincrement())
-  nombre                   String    @unique @db.VarChar(50)
-  precio_base              Decimal   @db.Decimal(12, 2)
-  recargo_pareja           Decimal   @db.Decimal(12, 2)
-  recargo_adicional        Decimal   @db.Decimal(12, 2)
-  max_personas_adicionales Int       @default(1)
+  id                         Int       @id @default(autoincrement())
+  nombre                     String    @unique @db.VarChar(50)
+  precio_base                Decimal   @db.Decimal(12, 2)
+  recargo_pareja             Decimal   @db.Decimal(12, 2)
+  recargo_adicional          Decimal   @db.Decimal(12, 2)
+  max_personas_adicionales   Int       @default(1)
+  // Precios por temporada (null = usa precio_base/recargo_pareja)
+  precio_base_media        Decimal?  @db.Decimal(12, 2)
+  precio_base_alta         Decimal?  @db.Decimal(12, 2)
+  recargo_pareja_media     Decimal?  @db.Decimal(12, 2)
+  recargo_pareja_alta      Decimal?  @db.Decimal(12, 2)
+  recargo_adicional_media  Decimal?  @db.Decimal(12, 2)
+  recargo_adicional_alta   Decimal?  @db.Decimal(12, 2)
+}
+
+
+model temporada {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(100)
+  tipo         String   @db.VarChar(10)  // "alta", "media", "baja"
+  fecha_inicio DateTime @db.Date
+  fecha_fin    DateTime @db.Date
+  activo       Boolean  @default(true)
+  anio         Int?
+  fecha_creacion DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([fecha_inicio], map: "idx_temporada_inicio")
+  @@index([fecha_fin],    map: "idx_temporada_fin")
+  @@index([anio],         map: "idx_temporada_anio")
 }
 
 model categoria_inventario {

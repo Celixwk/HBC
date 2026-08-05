@@ -18,6 +18,7 @@ interface Espacio {
   precio_adicional: string | null;
   activo: boolean;
   tiene_minibar: boolean;
+  estado_limpieza?: string;
 }
 
 export const Spaces: React.FC = () => {

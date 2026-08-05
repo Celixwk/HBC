@@ -127,67 +127,42 @@ const getTiposEspacioConfig = async (req, res) => {
 
 const updateTipoEspacioConfig = async (req, res) => {
   const { id } = req.params;
-  const { nombre, precio_base, recargo_pareja, recargo_adicional, max_personas_adicionales } = req.body;
+    nombre,
+    precio_base, recargo_pareja, recargo_adicional, max_personas_adicionales,
+    // Precios por temporada (opcionales)
+    precio_base_media, precio_base_alta,
+    recargo_pareja_media, recargo_pareja_alta,
+    recargo_adicional_media, recargo_adicional_alta
+  } = req.body;
 
-  const base     = parseFloat(precio_base);
-  const pareja   = parseFloat(recargo_pareja);
-  const adicional = parseFloat(recargo_adicional);
+  const parseOptional = (v) => (v !== undefined && v !== '' && v !== null) ? parseFloat(v) : null;
 
   try {
+    const data = {
+      nombre,
+      precio_base:              parseFloat(precio_base),
+      recargo_pareja:           parseFloat(recargo_pareja),
+      recargo_adicional:        parseFloat(recargo_adicional),
+      max_personas_adicionales: parseInt(max_personas_adicionales) || 1,
+      // Precios por temporada — null significa "usar el precio base"
+      precio_base_media:        parseOptional(precio_base_media),
+      precio_base_alta:         parseOptional(precio_base_alta),
+      recargo_pareja_media:     parseOptional(recargo_pareja_media),
+      recargo_pareja_alta:      parseOptional(recargo_pareja_alta),
+      recargo_adicional_media:  parseOptional(recargo_adicional_media),
+      recargo_adicional_alta:   parseOptional(recargo_adicional_alta),
+    };
+
     const upserted = await prisma.tipo_espacio_config.upsert({
       where: { id: parseInt(id) },
-      update: {
-        nombre,
-        precio_base: base,
-        recargo_pareja: pareja,
-        recargo_adicional: adicional,
-        max_personas_adicionales: parseInt(max_personas_adicionales) || 1
-      },
-      create: {
-        nombre,
-        precio_base: base,
-        recargo_pareja: pareja,
-        recargo_adicional: adicional,
-        max_personas_adicionales: parseInt(max_personas_adicionales) || 1
-      }
+      update: data,
+      create: data
     });
 
-    // Recalcular monto_total de reservas activas/confirmadas de este tipo
-    const habitaciones = await prisma.espacio.findMany({
-      where: { tipo_habitacion: { equals: nombre, mode: 'insensitive' } }
-    });
-
-    for (const hab of habitaciones) {
-      const reservasActivas = await prisma.reserva.findMany({
-        where: {
-          id_espacio: hab.id_espacio,
-          estado_reserva: { in: ['activa', 'confirmada'] },
-          tipo_reserva: 'alojamiento'
-        }
-      });
-
-      for (const r of reservasActivas) {
-        const adultos = r.cantidad_adultos || 1;
-        const ninos   = r.cantidad_ninos   || 0;
-        const total   = adultos + ninos;
-
-        let precioPorNoche;
-        if (total <= 1)      precioPorNoche = base;
-        else if (total === 2) precioPorNoche = base + pareja;
-        else                  precioPorNoche = base + pareja + adicional * (total - 2);
-
-        const checkIn  = new Date(r.check_in);
-        const checkOut = new Date(r.check_out);
-        const noches   = Math.max(1, Math.round((checkOut - checkIn) / 86400000));
-
-        await prisma.reserva.update({
-          where: { id_reserva: r.id_reserva },
-          data:  { monto_total: precioPorNoche * noches }
-        });
-      }
-    }
-
-    res.json({ ...upserted, reservas_actualizadas: habitaciones.length });
+    // NOTA: Ya no recalculamos monto_total de reservas existentes.
+    // El precio se congela al momento de crear la reserva (precio_noche_snapshot).
+    // Los cambios de configuración solo afectan reservas nuevas.
+    res.json(upserted);
   } catch (error) {
     console.error('Error al actualizar tipo espacio config:', error);
     res.status(500).json({ error: 'Error al actualizar' });

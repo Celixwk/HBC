@@ -13,6 +13,45 @@
   align-items: flex-end;
 }
 
+.settings-tabs-container {
+  border-bottom: 1px solid var(--border-light);
+  margin-top: 10px;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.settings-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+.settings-tab.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.3);
+}
+
 .settings-body {
   display: flex;
   flex-direction: column;

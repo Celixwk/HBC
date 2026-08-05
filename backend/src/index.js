@@ -14,6 +14,8 @@ const proveedoresRoutes = require('./routes/proveedores.routes');
 const inventarioRoutes  = require('./routes/inventario.routes');
 const gastosRoutes      = require('./routes/gastos.routes');
 const reportesRoutes    = require('./routes/reportes.routes');
+const temporadasRoutes  = require('./routes/temporadas.routes');
+
 
 const { verifyToken } = require('./middleware/auth.middleware');
 
@@ -54,8 +56,10 @@ app.use('/api/configuracion', verifyToken, configuracionRoutes);
 app.use('/api/dashboard', verifyToken, dashboardRoutes);
 app.use('/api/proveedores', verifyToken, proveedoresRoutes);
 app.use('/api/inventario', verifyToken, inventarioRoutes);
-app.use('/api/gastos',     verifyToken, gastosRoutes);
-app.use('/api/reportes',   verifyToken, reportesRoutes);
+app.use('/api/gastos',      verifyToken, gastosRoutes);
+app.use('/api/reportes',    verifyToken, reportesRoutes);
+app.use('/api/temporadas',  verifyToken, temporadasRoutes);
+
 
 // Start server
 app.listen(PORT, () => {

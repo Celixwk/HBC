@@ -4,6 +4,8 @@ import { Button } from '../../components/Button/Button';
 import './Settings.css';
 import { apiFetch } from '../../utils/apiFetch';
 import { TiposEspacioSettings } from './TiposEspacioSettings';
+import { TemporadasSettings } from './TemporadasSettings';
+
 
 interface ConfigData {
   nombre_hotel: string;
@@ -17,6 +19,7 @@ interface ConfigData {
 }
 
 export const Settings: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('hotel');
   const [form, setForm] = useState<ConfigData>({
     nombre_hotel: '', direccion: '', telefono: '', nit: '', email: '', ciudad: '', hora_check_in: '15:00', hora_check_out: '13:00'
   });
@@ -88,15 +91,42 @@ export const Settings: React.FC = () => {
       <div className="settings-header">
         <div>
           <h1 className="page-title">Configuración</h1>
-          <p className="page-subtitle">Datos del hotel para recibos y reportes</p>
+          <p className="page-subtitle">Gestiona las preferencias y parámetros del sistema</p>
+        </div>
+      </div>
+
+      <div className="settings-tabs-container">
+        <div className="settings-tabs">
+          <button className={`settings-tab ${activeTab === 'hotel' ? 'active' : ''}`} onClick={() => setActiveTab('hotel')}>
+            Hotel
+          </button>
+          <button className={`settings-tab ${activeTab === 'tipos' ? 'active' : ''}`} onClick={() => setActiveTab('tipos')}>
+            Tipos de Espacio
+          </button>
+          <button className={`settings-tab ${activeTab === 'temporadas' ? 'active' : ''}`} onClick={() => setActiveTab('temporadas')}>
+            Temporadas
+          </button>
+          <button className={`settings-tab ${activeTab === 'origenes' ? 'active' : ''}`} onClick={() => setActiveTab('origenes')}>
+            Orígenes
+          </button>
+          <button className={`settings-tab ${activeTab === 'pagos' ? 'active' : ''}`} onClick={() => setActiveTab('pagos')}>
+            Pagos
+          </button>
+          <button className={`settings-tab ${activeTab === 'seguridad' ? 'active' : ''}`} onClick={() => setActiveTab('seguridad')}>
+            Seguridad
+          </button>
+          <button className={`settings-tab ${activeTab === 'respaldo' ? 'active' : ''}`} onClick={() => setActiveTab('respaldo')}>
+            Respaldo
+          </button>
         </div>
       </div>
 
       <div className="settings-body">
-        <form onSubmit={handleSave} className="settings-form glass-panel">
-          <div className="settings-section-title">
-            <Building2 size={16} /> Información del Hotel
-          </div>
+        {activeTab === 'hotel' && (
+          <form onSubmit={handleSave} className="settings-form glass-panel">
+            <div className="settings-section-title">
+              <Building2 size={16} /> Información del Hotel
+            </div>
 
           {error && <div className="form-error">{error}</div>}
 
@@ -179,8 +209,17 @@ export const Settings: React.FC = () => {
             </Button>
           </div>
         </form>
+        )}
 
-        <TiposEspacioSettings />
+        {activeTab === 'tipos' && <TiposEspacioSettings />}
+        {activeTab === 'temporadas' && <TemporadasSettings />}
+
+        {['origenes', 'pagos', 'seguridad', 'respaldo'].includes(activeTab) && (
+          <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)', marginTop: '20px' }}>
+            <h3 style={{ marginBottom: '10px', color: 'var(--text)', fontSize: '16px' }}>Próximamente</h3>
+            <p>Esta sección estará disponible en una futura actualización.</p>
+          </div>
+        )}
       </div>
     </div>
   );
