@@ -126,6 +126,37 @@ EXCEPTION
   WHEN duplicate_column THEN null;
 END $$;
 
+-- Temporadas updates
+CREATE TABLE IF NOT EXISTS "temporada" (
+    "id" SERIAL NOT NULL,
+    "nombre" VARCHAR(100) NOT NULL,
+    "tipo" VARCHAR(10) NOT NULL CHECK (tipo IN ('alta', 'media', 'baja')),
+    "fecha_inicio" DATE NOT NULL,
+    "fecha_fin" DATE NOT NULL,
+    "activo" BOOLEAN DEFAULT true,
+    "created_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "temporada_pkey" PRIMARY KEY ("id")
+);
+
+DO $$ BEGIN
+  ALTER TABLE "reserva" ADD COLUMN "precio_noche_snapshot" DECIMAL(12,2);
+  ALTER TABLE "reserva" ADD COLUMN "temporada_tipo" VARCHAR(10);
+EXCEPTION
+  WHEN duplicate_column THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "tipo_espacio_config" ADD COLUMN "precio_base_media" DECIMAL(12,2);
+  ALTER TABLE "tipo_espacio_config" ADD COLUMN "precio_base_alta" DECIMAL(12,2);
+  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_pareja_media" DECIMAL(12,2);
+  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_pareja_alta" DECIMAL(12,2);
+  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_adicional_media" DECIMAL(12,2);
+  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_adicional_alta" DECIMAL(12,2);
+EXCEPTION
+  WHEN duplicate_column THEN null;
+END $$;
+
 -- CreateTable
 CREATE TABLE IF NOT EXISTS "configuracion_hotel" (
     "id" SERIAL NOT NULL,
