@@ -325,7 +325,17 @@ const CargosEspacio: React.FC = () => {
     else grouped[item.id_reserva] = { reserva: item.reserva, items: [item] };
   });
 
-  const entries = Object.values(grouped).filter(g => g.reserva);
+  const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const entries = Object.values(grouped)
+    .filter(g => g.reserva)
+    .filter(g => {
+      const r = g.reserva;
+      // Siempre visibles: en_uso y completada
+      if (['en_uso', 'completada'].includes(r.estado_reserva)) return true;
+      // Para activa/confirmada: solo mostrar si el check_in ya llegó o es hoy
+      const checkIn = (r.check_in || '').slice(0, 10);
+      return checkIn <= today;
+    });
 
   if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" size={36} /></div>;
 
