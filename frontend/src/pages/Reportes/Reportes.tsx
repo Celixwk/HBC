@@ -58,9 +58,13 @@ export const Reportes: React.FC = () => {
   // Persiste el rango en localStorage para que no se reinicie al navegar
   const [desde, setDesde]     = useState(() => localStorage.getItem('hbc_rep_desde') || inicioMes());
   const [hasta, setHasta]     = useState(() => localStorage.getItem('hbc_rep_hasta') || finMes());
-  const [pnl, setPnl]         = useState<any>(null);
-  const [meses, setMeses]     = useState<any[]>([]);
-  const [anual, setAnual]     = useState<any>(null);
+  const [pnl, setPnl] = useState<any>(null);
+  const [meses, setMeses] = useState<any[]>([]);
+  const [anual, setAnual] = useState<any>(null);
+  
+  // Paginación para detalle de ingresos
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [catAbierta, setCatAbierta] = useState<string | null>(null);
@@ -557,9 +561,9 @@ ${td(String(totales.numReservas),`${S.b};background:#E4F2E4;color:#4B5F73;font-w
                   <table className="rep-table">
                     <thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th style={{textAlign:'right'}}>Monto</th></tr></thead>
                     <tbody>
-                      {pnl.ingresos.detalle.map((d:any,i:number)=>(
+                      {pnl.ingresos.detalle.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((d:any,i:number)=>(
                         <tr key={i}>
-                          <td>{d.fecha?format(parseISO(d.fecha.slice(0,10)),'d MMM',{locale:es}):'—'}</td>
+                          <td>{d.fecha?format(parseISO(d.fecha),'d MMM',{locale:es}):'—'}</td>
                           <td><span className={`rep-tipo-badge ${d.tipo==='Hospedaje'?'hospedaje':'consumo'}`}>{d.tipo}</span></td>
                           <td style={{fontSize:'0.83rem'}}>{d.descripcion}</td>
                           <td style={{textAlign:'right',fontWeight:600}}>${fmt(d.monto)}</td>
@@ -567,6 +571,19 @@ ${td(String(totales.numReservas),`${S.b};background:#E4F2E4;color:#4B5F73;font-w
                       ))}
                     </tbody>
                   </table>
+                  
+                  {/* Paginación */}
+                  {pnl.ingresos.detalle.length > PAGE_SIZE && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderTop: '1px solid var(--border-light)' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        Mostrando {(page - 1) * PAGE_SIZE + 1} - {Math.min(page * PAGE_SIZE, pnl.ingresos.detalle.length)} de {pnl.ingresos.detalle.length} ingresos
+                      </span>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <Button variant="ghost" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Anterior</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setPage(p => Math.min(Math.ceil(pnl.ingresos.detalle.length / PAGE_SIZE), p + 1))} disabled={page >= Math.ceil(pnl.ingresos.detalle.length / PAGE_SIZE)}>Siguiente</Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </>

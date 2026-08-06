@@ -75,7 +75,11 @@ export const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, reserva, item
         <div className="receipt-guest-info">
           <p><strong>Huésped:</strong> {reserva.huesped?.nombre_completo}</p>
           <p><strong>Habitación:</strong> {tipoHab} {reserva.espacio?.numero}</p>
-          <p><strong>Fechas:</strong> {fmtLocalDate(reserva.check_in)} al {fmtLocalDate(reserva.check_out)} ({noches} {noches === 1 ? 'noche' : 'noches'})</p>
+          <div style={{ display: 'flex', gap: '20px', marginTop: '4px', marginBottom: '4px' }}>
+            <p><strong>Check-in:</strong> {fmtLocalDate(reserva.check_in)}</p>
+            <p><strong>Check-out:</strong> {fmtLocalDate(reserva.check_out)}</p>
+          </div>
+          <p><strong>Noches:</strong> {noches} {noches === 1 ? 'noche' : 'noches'}</p>
           <p><strong>Personas:</strong> {reserva.cantidad_adultos} {reserva.cantidad_adultos === 1 ? 'Adulto' : 'Adultos'}{(reserva.cantidad_ninos || 0) > 0 ? `, ${reserva.cantidad_ninos} Niño${reserva.cantidad_ninos > 1 ? 's' : ''}` : ''}</p>
         </div>
 

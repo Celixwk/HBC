@@ -376,16 +376,18 @@ const CargosEspacio: React.FC = () => {
                   <Button variant="ghost" size="sm" onClick={(e: React.MouseEvent) => handleBulkStatus(e, roomItems, 'anulado', reserva)} style={{ color: '#ef4444', borderColor: 'transparent', padding: '4px 8px' }} title="Anular todo lo pendiente">
                     <X size={16} /> Todo
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); setReceiptData({ reserva, items: roomItems }); }}
-                    className="text-info flex items-center gap-1"
-                    title="Imprimir Cuenta de Cobro"
-                    style={{ padding: '4px 8px' }}
-                  >
-                    <Printer size={16} /> Imprimir
-                  </Button>
+                  {((reserva.check_in && reserva.check_in.slice(0, 10) <= new Date().toLocaleDateString('en-CA')) || ['en_uso', 'completada'].includes(reserva.estado_reserva)) && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); setReceiptData({ reserva, items: roomItems }); }}
+                      className="text-info flex items-center gap-1"
+                      title="Imprimir Cuenta de Cobro"
+                      style={{ padding: '4px 8px' }}
+                    >
+                      <Printer size={16} /> Imprimir
+                    </Button>
+                  )}
                   <Button 
                     variant="ghost" 
                     size="sm" 
