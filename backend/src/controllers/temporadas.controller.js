@@ -83,7 +83,7 @@ const createTemporada = async (req, res) => {
     res.status(201).json(nueva);
   } catch (error) {
     console.error('Error al crear temporada:', error);
-    res.status(500).json({ error: 'Error al crear temporada' });
+    res.status(500).json({ error: error.message || 'Error interno al crear temporada' });
   }
 };
 

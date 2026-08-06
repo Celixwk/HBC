@@ -105,15 +105,14 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
   }, [tiposConfig, temporada]);
 
   useEffect(() => {
-    if (formData.check_in) {
-      apiFetch(`/temporadas/detectar?fecha=${formData.check_in}`)
-        .then(r => r.json())
-        .then(setTemporada)
-        .catch(console.error);
-    } else {
-      setTemporada(null);
-    }
-  }, [formData.check_in]);
+    // Calcular precio de la reserva con base en la fecha actual (hoy)
+    // para incentivar reservas anticipadas
+    const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+    apiFetch(`/temporadas/detectar?fecha=${today}`)
+      .then(r => r.json())
+      .then(setTemporada)
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (!formData.check_in || !formData.check_out || formData.id_espacios.length === 0) {
@@ -358,7 +357,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
               border: `1px solid ${temporada.tipo === 'alta' ? '#ef444440' : temporada.tipo === 'media' ? '#f59e0b40' : '#10b98140'}`, 
               display: 'inline-block' 
             }}>
-              {temporada.tipo === 'alta' ? '🔴' : temporada.tipo === 'media' ? '🟡' : '🟢'} <strong>Temporada {temporada.tipo.charAt(0).toUpperCase() + temporada.tipo.slice(1)}:</strong> {temporada.nombre}
+              {temporada.tipo === 'alta' ? '🔴' : temporada.tipo === 'media' ? '🟡' : '🟢'} <strong>Precio fijado hoy por Temporada {temporada.tipo.charAt(0).toUpperCase() + temporada.tipo.slice(1)}:</strong> {temporada.nombre}
             </div>
           )}
         </div>
