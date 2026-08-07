@@ -5,12 +5,10 @@ const {
   detectarTemporada,
   createTemporada,
   updateTemporada,
-  deleteTemporada,
-  getAniosDisponibles
+  deleteTemporada
 } = require('../controllers/temporadas.controller');
 
 router.get('/detectar',  detectarTemporada);
-router.get('/anios',     getAniosDisponibles);
 router.get('/',          getTemporadas);
 router.post('/',         createTemporada);
 router.put('/:id',       updateTemporada);
