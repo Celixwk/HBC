@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS "temporada" (
     "fecha_inicio" DATE NOT NULL,
     "fecha_fin" DATE NOT NULL,
     "activo" BOOLEAN DEFAULT true,
+    "anio" INTEGER,
     "created_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "temporada_pkey" PRIMARY KEY ("id")
@@ -142,6 +143,12 @@ CREATE TABLE IF NOT EXISTS "temporada" (
 DO $$ BEGIN
   ALTER TABLE "reserva" ADD COLUMN "precio_noche_snapshot" DECIMAL(12,2);
   ALTER TABLE "reserva" ADD COLUMN "temporada_tipo" VARCHAR(10);
+EXCEPTION
+  WHEN duplicate_column THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "temporada" ADD COLUMN "anio" INTEGER;
 EXCEPTION
   WHEN duplicate_column THEN null;
 END $$;

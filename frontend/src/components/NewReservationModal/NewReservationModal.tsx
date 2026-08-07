@@ -349,14 +349,8 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
               Entrada a partir de las <strong>{config.hora_check_in}</strong> · Salida hasta las <strong>{config.hora_check_out}</strong>
             </div>
           )}
-          {temporada && (
-            <div className="text-xs" style={{ 
-              marginTop: '8px', padding: '6px 10px', borderRadius: '6px', 
-              background: temporada.tipo === 'alta' ? 'rgba(239,68,68,0.1)' : temporada.tipo === 'media' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)', 
-              color: temporada.tipo === 'alta' ? '#ef4444' : temporada.tipo === 'media' ? '#f59e0b' : '#10b981', 
-              border: `1px solid ${temporada.tipo === 'alta' ? '#ef444440' : temporada.tipo === 'media' ? '#f59e0b40' : '#10b98140'}`, 
-              display: 'inline-block' 
-            }}>
+          {temporada && temporada.tipo && (
+            <div style={{ marginTop: '10px', fontSize: '13px', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               {temporada.tipo === 'alta' ? '🔴' : temporada.tipo === 'media' ? '🟡' : '🟢'} <strong>Precio fijado hoy por Temporada {temporada.tipo.charAt(0).toUpperCase() + temporada.tipo.slice(1)}:</strong> {temporada.nombre}
             </div>
           )}
