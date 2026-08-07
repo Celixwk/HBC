@@ -11,10 +11,9 @@ interface Temporada {
   id: number;
   nombre: string;
   tipo: TipoTemporada;
-  fecha_inicio: string;
-  fecha_fin: string;
+  mes_dia_inicio: string;
+  mes_dia_fin: string;
   activo: boolean;
-  anio: number | null;
 }
 
 const tipoConfig: Record<TipoTemporada, { label: string; color: string; bg: string; emoji: string }> = {
@@ -28,37 +27,24 @@ const emptyForm = {
   tipo: 'alta' as TipoTemporada,
   fecha_inicio: '',
   fecha_fin: '',
-  anio: new Date().getFullYear().toString(),
 };
 
 export const TemporadasSettings: React.FC = () => {
   const [temporadas, setTemporadas] = useState<Temporada[]>([]);
   const [loading, setLoading]       = useState(true);
-  const [anioFiltro, setAnioFiltro] = useState<number>(new Date().getFullYear());
-  const [anios, setAnios]           = useState<number[]>([]);
   const [showForm, setShowForm]     = useState(false);
   const [form, setForm]             = useState({ ...emptyForm });
   const [saving, setSaving]         = useState(false);
   const [deleting, setDeleting]     = useState<number | null>(null);
   const [error, setError]           = useState('');
 
-  useEffect(() => { fetchData(); }, [anioFiltro]);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [resT, resA] = await Promise.all([
-        apiFetch(`/temporadas?anio=${anioFiltro}`),
-        apiFetch('/temporadas/anios'),
-      ]);
+      const resT = await apiFetch(`/temporadas`);
       if (resT.ok) setTemporadas(await resT.json());
-      if (resA.ok) {
-        const a: number[] = await resA.json();
-        // Asegurar que el año actual siempre esté en la lista
-        const cur = new Date().getFullYear();
-        const merged = Array.from(new Set([...a, cur, cur + 1])).sort((x, y) => x - y);
-        setAnios(merged);
-      }
     } catch (e) {
       setError('Error al conectar con el servidor');
     } finally {
@@ -84,7 +70,7 @@ export const TemporadasSettings: React.FC = () => {
         setError(err.error || 'Error al crear temporada');
         return;
       }
-      setForm({ ...emptyForm, anio: anioFiltro.toString() });
+      setForm({ ...emptyForm });
       setShowForm(false);
       await fetchData();
     } catch {
@@ -98,10 +84,11 @@ export const TemporadasSettings: React.FC = () => {
     if (!window.confirm(`¿Eliminar "${t.nombre}"?`)) return;
     setDeleting(t.id);
     try {
-      await apiFetch(`/temporadas/${t.id}`, { method: 'DELETE' });
-      await fetchData();
+      const res = await apiFetch(`/temporadas/${t.id}`, { method: 'DELETE' });
+      if (res.ok) await fetchData();
+      else setError('Error al eliminar');
     } catch {
-      setError('Error al eliminar');
+      setError('Error de conexión');
     } finally {
       setDeleting(null);
     }
@@ -109,39 +96,34 @@ export const TemporadasSettings: React.FC = () => {
 
   const handleToggle = async (t: Temporada) => {
     try {
-      await apiFetch(`/temporadas/${t.id}`, {
+      const res = await apiFetch(`/temporadas/${t.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activo: !t.activo })
       });
-      await fetchData();
+      if (res.ok) await fetchData();
     } catch {
-      setError('Error al actualizar');
+      setError('Error al cambiar estado');
     }
   };
 
-  const fmtDate = (d: string) => {
-    try { return format(new Date(d), "d MMM", { locale: es }); }
-    catch { return d; }
+  const formatMesDia = (md: string) => {
+    if (!md) return '';
+    const [m, d] = md.split('-');
+    const date = new Date(2000, parseInt(m) - 1, parseInt(d));
+    return format(date, 'd MMM', { locale: es });
   };
 
   return (
-    <div className="glass-panel" style={{ marginTop: '20px', padding: '20px' }}>
-      {/* Header */}
-      <div className="settings-section-title flex justify-between items-center" style={{ marginBottom: '15px' }}>
-        <span><CalendarDays size={16} /> Temporadas del Año</span>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {/* Selector de año */}
-          <select
-            className="form-input"
-            style={{ width: 'auto', padding: '4px 10px', fontSize: '13px' }}
-            value={anioFiltro}
-            onChange={e => setAnioFiltro(parseInt(e.target.value))}
-          >
-            {anios.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <CalendarDays size={18} style={{ color: 'var(--primary)' }} />
+          <h2 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-main)', margin: 0 }}>Temporadas del Año (Recurrentes)</h2>
+        </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
           {!showForm && (
-            <Button variant="ghost" size="sm" onClick={() => { setShowForm(true); setForm({ ...emptyForm, anio: anioFiltro.toString() }); }}
+            <Button variant="ghost" size="sm" onClick={() => { setShowForm(true); setForm({ ...emptyForm }); }}
               className="flex items-center gap-1">
               <Plus size={14} /> Agregar
             </Button>
@@ -175,8 +157,8 @@ export const TemporadasSettings: React.FC = () => {
         <div style={{ display: 'grid', gap: '8px' }}>
           {temporadas.length === 0 && !showForm && (
             <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '13px' }}>
-              No hay temporadas definidas para {anioFiltro}.<br />
-              <span style={{ fontSize: '12px' }}>Los precios de 🟢 Temporada Baja se aplicarán por defecto.</span>
+              No hay temporadas definidas.<br />
+              <span style={{ fontSize: '12px' }}>Los precios de 🟢 Temporada Baja se aplicarán por defecto todo el año.</span>
             </div>
           )}
 
@@ -198,8 +180,8 @@ export const TemporadasSettings: React.FC = () => {
                   <div style={{ fontWeight: 600, fontSize: '14px', color: t.activo ? cfg.color : 'var(--text-muted)' }}>
                     {cfg.emoji} {t.nombre}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    {fmtDate(t.fecha_inicio)} — {fmtDate(t.fecha_fin)}
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', textTransform: 'capitalize' }}>
+                    {formatMesDia(t.mes_dia_inicio)} — {formatMesDia(t.mes_dia_fin)}
                   </div>
                 </div>
 
@@ -242,12 +224,12 @@ export const TemporadasSettings: React.FC = () => {
               border: '1px solid rgba(99,179,130,0.25)'
             }}>
               <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
-                Nueva Temporada para {anioFiltro}
+                Nueva Temporada (El año se ignora, aplica anualmente)
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label>Nombre *</label>
-                  <input type="text" className="form-input" placeholder="Ej: Semana Santa 2027"
+                  <input type="text" className="form-input" placeholder="Ej: Semana Santa"
                     value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} autoFocus />
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
@@ -262,12 +244,12 @@ export const TemporadasSettings: React.FC = () => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label>Fecha inicio *</label>
+                  <label>Día y Mes de Inicio *</label>
                   <input type="date" className="form-input" value={form.fecha_inicio}
                     onChange={e => setForm({ ...form, fecha_inicio: e.target.value })} />
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label>Fecha fin *</label>
+                  <label>Día y Mes de Fin *</label>
                   <input type="date" className="form-input" value={form.fecha_fin}
                     onChange={e => setForm({ ...form, fecha_fin: e.target.value })} />
                 </div>
@@ -286,8 +268,7 @@ export const TemporadasSettings: React.FC = () => {
       )}
 
       <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px' }}>
-        * Las temporadas activas se aplican automáticamente al crear una nueva reserva según la fecha de check-in.
-        Si no hay ninguna temporada activa para esa fecha, se usa el precio de Temporada Baja.
+        * Las temporadas se aplican automáticamente todos los años. Si una reserva cruza año nuevo (ej: del 15 Dic al 15 Ene), la temporada funcionará correctamente.
       </p>
     </div>
   );

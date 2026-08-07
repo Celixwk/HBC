@@ -158,18 +158,16 @@ model tipo_espacio_config {
 
 
 model temporada {
-  id           Int      @id @default(autoincrement())
-  nombre       String   @db.VarChar(100)
-  tipo         String   @db.VarChar(10)  // "alta", "media", "baja"
-  fecha_inicio DateTime @db.Date
-  fecha_fin    DateTime @db.Date
-  activo       Boolean  @default(true)
-  anio         Int?
-  fecha_creacion DateTime @default(now()) @db.Timestamp(6)
+  id              Int      @id @default(autoincrement())
+  nombre          String   @db.VarChar(100)
+  tipo            String   @db.VarChar(10)  // "alta", "media", "baja"
+  mes_dia_inicio  String   @db.VarChar(5)   // "MM-DD"
+  mes_dia_fin     String   @db.VarChar(5)   // "MM-DD"
+  activo          Boolean  @default(true)
+  fecha_creacion  DateTime @default(now()) @db.Timestamp(6)
 
-  @@index([fecha_inicio], map: "idx_temporada_inicio")
-  @@index([fecha_fin],    map: "idx_temporada_fin")
-  @@index([anio],         map: "idx_temporada_anio")
+  @@index([mes_dia_inicio], map: "idx_temporada_inicio")
+  @@index([mes_dia_fin],    map: "idx_temporada_fin")
 }
 
 model categoria_inventario {

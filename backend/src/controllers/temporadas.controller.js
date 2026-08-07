@@ -1,13 +1,10 @@
 const prisma = require('../config/prisma');
 
-// ─── Listar temporadas ─────────────────────────────────────────────────────
+// ─── Listar temporadas ────────────────────────────────────────────────────────
 const getTemporadas = async (req, res) => {
-  const { anio } = req.query;
   try {
-    const where = anio ? { anio: parseInt(anio) } : {};
     const temporadas = await prisma.temporada.findMany({
-      where,
-      orderBy: [{ fecha_inicio: 'asc' }]
+      orderBy: [{ mes_dia_inicio: 'asc' }]
     });
     res.json(temporadas);
   } catch (error) {
@@ -16,32 +13,45 @@ const getTemporadas = async (req, res) => {
   }
 };
 
-// ─── Detectar temporada para una fecha ─────────────────────────────────────
+// ─── Detectar temporada para una fecha ──────────────────────────────────────
 // GET /api/temporadas/detectar?fecha=YYYY-MM-DD
 const detectarTemporada = async (req, res) => {
   const { fecha } = req.query;
   if (!fecha) return res.status(400).json({ error: 'Falta el parámetro fecha' });
 
   try {
-    const fechaObj = new Date(fecha + 'T00:00:00Z');
+    // Extraer MM-DD de la fecha (ej. "2026-12-15" -> "12-15")
+    const mmdd = fecha.substring(5, 10);
 
-    // Buscar temporada activa que contenga esta fecha
-    const temporada = await prisma.temporada.findFirst({
-      where: {
-        activo: true,
-        fecha_inicio: { lte: fechaObj },
-        fecha_fin:    { gte: fechaObj }
-      },
-      orderBy: [
-        // Si hay múltiples (ej. media y alta), priorizar alta
-        { tipo: 'asc' } // 'alta' < 'baja' < 'media' → 'alta' primero
-      ]
+    const activas = await prisma.temporada.findMany({
+      where: { activo: true },
+      orderBy: { tipo: 'asc' } // 'alta' < 'baja' < 'media' -> 'alta' primero
     });
 
-    if (temporada) {
-      res.json({ tipo: temporada.tipo, nombre: temporada.nombre, id: temporada.id });
+    let detectada = null;
+
+    for (const temp of activas) {
+      const inicio = temp.mes_dia_inicio;
+      const fin = temp.mes_dia_fin;
+
+      if (inicio <= fin) {
+        // Año normal (ej. "02-15" a "03-15")
+        if (mmdd >= inicio && mmdd <= fin) {
+          detectada = temp;
+          break;
+        }
+      } else {
+        // Cruza año nuevo (ej. "12-15" a "01-15")
+        if (mmdd >= inicio || mmdd <= fin) {
+          detectada = temp;
+          break;
+        }
+      }
+    }
+
+    if (detectada) {
+      res.json({ tipo: detectada.tipo, nombre: detectada.nombre, id: detectada.id });
     } else {
-      // Sin temporada definida = baja por defecto
       res.json({ tipo: 'baja', nombre: 'Temporada Baja (por defecto)', id: null });
     }
   } catch (error) {
@@ -52,7 +62,7 @@ const detectarTemporada = async (req, res) => {
 
 // ─── Crear temporada ────────────────────────────────────────────────────────
 const createTemporada = async (req, res) => {
-  const { nombre, tipo, fecha_inicio, fecha_fin, activo, anio } = req.body;
+  const { nombre, tipo, fecha_inicio, fecha_fin, activo } = req.body;
 
   if (!nombre || !tipo || !fecha_inicio || !fecha_fin) {
     return res.status(400).json({ error: 'Faltan campos requeridos: nombre, tipo, fecha_inicio, fecha_fin' });
@@ -63,21 +73,16 @@ const createTemporada = async (req, res) => {
   }
 
   try {
-    const inicio = new Date(fecha_inicio + 'T00:00:00Z');
-    const fin    = new Date(fecha_fin + 'T00:00:00Z');
-
-    if (fin < inicio) {
-      return res.status(400).json({ error: 'La fecha de fin debe ser posterior a la de inicio' });
-    }
+    const mes_dia_inicio = fecha_inicio.substring(5, 10);
+    const mes_dia_fin = fecha_fin.substring(5, 10);
 
     const nueva = await prisma.temporada.create({
       data: {
         nombre,
         tipo,
-        fecha_inicio: inicio,
-        fecha_fin:    fin,
-        activo:       activo !== undefined ? activo : true,
-        anio:         anio ? parseInt(anio) : inicio.getUTCFullYear()
+        mes_dia_inicio,
+        mes_dia_fin,
+        activo: activo !== undefined ? activo : true
       }
     });
     res.status(201).json(nueva);
@@ -90,16 +95,15 @@ const createTemporada = async (req, res) => {
 // ─── Actualizar temporada ───────────────────────────────────────────────────
 const updateTemporada = async (req, res) => {
   const { id } = req.params;
-  const { nombre, tipo, fecha_inicio, fecha_fin, activo, anio } = req.body;
+  const { nombre, tipo, fecha_inicio, fecha_fin, activo } = req.body;
 
   try {
     const data = {};
-    if (nombre !== undefined)       data.nombre = nombre;
-    if (tipo   !== undefined)       data.tipo   = tipo;
-    if (activo !== undefined)       data.activo = activo;
-    if (anio   !== undefined)       data.anio   = parseInt(anio);
-    if (fecha_inicio !== undefined) data.fecha_inicio = new Date(fecha_inicio + 'T00:00:00Z');
-    if (fecha_fin    !== undefined) data.fecha_fin    = new Date(fecha_fin + 'T00:00:00Z');
+    if (nombre !== undefined) data.nombre = nombre;
+    if (tipo !== undefined) data.tipo = tipo;
+    if (activo !== undefined) data.activo = activo;
+    if (fecha_inicio !== undefined) data.mes_dia_inicio = fecha_inicio.substring(5, 10);
+    if (fecha_fin !== undefined) data.mes_dia_fin = fecha_fin.substring(5, 10);
 
     const updated = await prisma.temporada.update({
       where: { id: parseInt(id) },
@@ -124,26 +128,10 @@ const deleteTemporada = async (req, res) => {
   }
 };
 
-// ─── Años disponibles ───────────────────────────────────────────────────────
-const getAniosDisponibles = async (req, res) => {
-  try {
-    const rows = await prisma.temporada.findMany({
-      select: { anio: true },
-      distinct: ['anio'],
-      orderBy: { anio: 'asc' }
-    });
-    const anios = rows.map(r => r.anio).filter(Boolean);
-    res.json(anios);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener años' });
-  }
-};
-
 module.exports = {
   getTemporadas,
   detectarTemporada,
   createTemporada,
   updateTemporada,
-  deleteTemporada,
-  getAniosDisponibles
+  deleteTemporada
 };
