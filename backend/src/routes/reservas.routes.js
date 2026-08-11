@@ -26,6 +26,9 @@ router.put('/:id/pago', reservasController.updateReservaPago);
 // Actualizar titular de la reserva
 router.patch('/:id/huesped', reservasController.updateReservaHuesped);
 
+// Actualizar origen de la reserva
+router.patch('/:id/origen', reservasController.updateReservaOrigen);
+
 // Corregir monto_total (usado cuando el precio de config difiere del almacenado)
 router.patch('/:id/monto', reservasController.updateReservaMonto);
 

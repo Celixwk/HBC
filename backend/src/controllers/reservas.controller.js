@@ -364,6 +364,20 @@ const extenderReserva = async (req, res) => {
     res.status(500).json({ error: 'Error al extender la reserva' });
   }
 };
+const updateReservaOrigen = async (req, res) => {
+  const { id } = req.params;
+  const { origen } = req.body;
+  try {
+    const updated = await prisma.reserva.update({
+      where: { id_reserva: parseInt(id) },
+      data: { origen }
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error('Error al actualizar origen de reserva:', error);
+    res.status(500).json({ error: 'Error al actualizar el origen de la reserva' });
+  }
+};
 
 module.exports = {
   getReservas,
@@ -376,5 +390,6 @@ module.exports = {
   updateReservaHuesped,
   updateReservaMonto,
   reactivarReserva,
-  extenderReserva
+  extenderReserva,
+  updateReservaOrigen
 };

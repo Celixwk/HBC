@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '../Modal/Modal';
 import { Button } from '../Button/Button';
-import { Calendar, Trash2, Save, BedDouble, Users, FileText, CreditCard, Clock, UserCog } from 'lucide-react';
+import { Calendar, Trash2, Save, BedDouble, Users, FileText, CreditCard, Clock, UserCog, Search } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import '../NewReservationModal/NewReservationModal.css';
 import './EditReservationModal.css';
@@ -41,6 +41,9 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
   const [horaFin,           setHoraFin]           = useState('');
   const [estadoPago,        setEstadoPago]        = useState('pendiente');
   const [savingPago,        setSavingPago]        = useState(false);
+  const [origenesList,      setOrigenesList]      = useState<any[]>([]);
+  const [selectedOrigen,    setSelectedOrigen]    = useState('Propia');
+  const [savingOrigen,      setSavingOrigen]      = useState(false);
 
   // Inicializar cuando cambia la reserva
   useEffect(() => {
@@ -56,12 +59,18 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
       setHoraInicio(reservation.hora_inicio ? reservation.hora_inicio.substring(0, 5) : '');
       setHoraFin(reservation.hora_fin ? reservation.hora_fin.substring(0, 5) : '');
       setEstadoPago(reservation.estado_pago || 'pendiente');
+      setSelectedOrigen(reservation.origen || 'Propia');
       setError('');
       
       apiFetch('/espacios/config/tipos')
         .then(res => res.json())
         .then(data => setTiposConfig(data))
         .catch(err => console.error('Error fetching tipos config:', err));
+
+      apiFetch('/configuracion/origenes')
+        .then(res => res.json())
+        .then(data => setOrigenesList(Array.isArray(data) ? data.filter((o: any) => o.activo) : []))
+        .catch(err => console.error('Error fetching orígenes:', err));
     }
   }, [reservation]);
 
@@ -414,6 +423,55 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
               }}
             >
               {savingPago ? '...' : estadoPago === 'pagado' ? '✓ Pagado' : 'Marcar como Pagado'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Origen de Reserva ── */}
+        <div className="form-section" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <div className="form-section-title" style={{ marginBottom: 6 }}><Search size={14} /> Origen de Reserva</div>
+              <select
+                value={selectedOrigen}
+                onChange={e => setSelectedOrigen(e.target.value)}
+                className="form-input"
+                style={{ marginBottom: 0 }}
+              >
+                <option value="Propia">Propia (Por defecto)</option>
+                {origenesList.filter(o => o.nombre !== 'Propia').map((o: any) => (
+                  <option key={o.id_origen} value={o.nombre}>{o.nombre}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                setSavingOrigen(true);
+                try {
+                  const res = await apiFetch(`/reservas/${reservation.id_reserva}/origen`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origen: selectedOrigen })
+                  });
+                  if (!res.ok) throw new Error('Error al actualizar origen');
+                  onSuccess();
+                } catch (err: any) {
+                  setError(err.message);
+                } finally {
+                  setSavingOrigen(false);
+                }
+              }}
+              disabled={savingOrigen || selectedOrigen === (reservation.origen || 'Propia')}
+              style={{
+                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                fontWeight: 600, fontSize: '13px', marginTop: '22px', whiteSpace: 'nowrap',
+                background: selectedOrigen !== (reservation.origen || 'Propia') ? 'var(--primary)' : 'rgba(255,255,255,0.07)',
+                color: selectedOrigen !== (reservation.origen || 'Propia') ? '#fff' : 'var(--text-muted)',
+                transition: 'all 0.2s'
+              }}
+            >
+              {savingOrigen ? '...' : 'Guardar'}
             </button>
           </div>
         </div>
