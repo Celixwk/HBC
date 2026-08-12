@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Printer } from 'lucide-react';
+import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Printer, Search } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
 import { Receipt } from '../../components/Receipt/Receipt';
@@ -7,6 +7,7 @@ import { PersonaReceipt } from '../../components/PersonaReceipt/PersonaReceipt';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import './Accounts.css';
+import { ProductPickerModal } from './ProductPickerModal';
 import { apiFetch } from '../../utils/apiFetch';
 
 type TabType = 'espacio' | 'persona' | 'minibar' | 'historial' | 'historialHab';
@@ -19,6 +20,7 @@ const AddRowForm: React.FC<{
   const initial = Object.fromEntries(fields.map(f => [f.name, f.name === 'cantidad' ? '1' : '']));
   const [values, setValues] = useState<Record<string, string>>(initial);
   const [saving, setSaving] = useState(false);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
@@ -26,22 +28,68 @@ const AddRowForm: React.FC<{
     finally { setSaving(false); }
   };
 
+  const handleProductSelect = (product: any) => {
+    const isRoom = fields.some(f => f.name === 'nombre_producto');
+    setValues({
+      ...values,
+      [isRoom ? 'nombre_producto' : 'descripcion']: product.nombre,
+      valor_unitario: String(product.precio_venta || 0)
+    });
+    setIsPickerOpen(false);
+  };
+
   return (
-    <tr className="add-row">
-      {fields.map(f => (
-        <td key={f.name}>
-          <input type="text" value={values[f.name]}
-            onChange={e => setValues({ ...values, [f.name]: e.target.value })}
-            placeholder={f.placeholder || ''}
-            className="row-input" />
+    <>
+      <tr className="add-row">
+        {fields.map(f => {
+          const isNameField = f.name === 'nombre_producto' || f.name === 'descripcion';
+          return (
+            <td key={f.name}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input type="text" value={values[f.name]}
+                  onChange={e => setValues({ ...values, [f.name]: e.target.value })}
+                  placeholder={f.placeholder || ''}
+                  className="row-input"
+                  style={isNameField ? { paddingRight: '32px' } : {}}
+                />
+                {isNameField && (
+                  <button 
+                    type="button"
+                    onClick={() => setIsPickerOpen(true)}
+                    style={{
+                      position: 'absolute',
+                      right: '4px',
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--primary)',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '4px'
+                    }}
+                    title="Buscar producto en el inventario"
+                  >
+                    <Search size={14} />
+                  </button>
+                )}
+              </div>
+            </td>
+          );
+        })}
+        <td>
+          <button className="add-row-btn" onClick={handleSave} disabled={saving}>
+            {saving ? '...' : '+ Agregar'}
+          </button>
         </td>
-      ))}
-      <td>
-        <button className="add-row-btn" onClick={handleSave} disabled={saving}>
-          {saving ? '...' : '+ Agregar'}
-        </button>
-      </td>
-    </tr>
+      </tr>
+      <ProductPickerModal 
+        isOpen={isPickerOpen} 
+        onClose={() => setIsPickerOpen(false)} 
+        onSelect={handleProductSelect} 
+      />
+    </>
   );
 };
 
