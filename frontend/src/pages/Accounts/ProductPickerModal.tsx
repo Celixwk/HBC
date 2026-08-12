@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Modal } from '../Modal/Modal';
+
 import { Search, Package, Plus } from 'lucide-react';
 import { apiFetch } from '../../utils/apiFetch';
 
