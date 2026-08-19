@@ -95,7 +95,7 @@ const AddRowForm: React.FC<{
 
 // ─── Inline edit row ──────────────────────────────────────────────────────────
 function EditableRow<T extends { [key: string]: any }>({
-  item, fields, idKey, apiPath, onDone
+  item, fields, idKey, apiPath, onDone, onPay
 }: {
   item: T;
   fields: { name: string; label: string }[];
