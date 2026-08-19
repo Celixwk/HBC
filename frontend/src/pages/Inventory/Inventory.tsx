@@ -24,6 +24,12 @@ export const Inventory: React.FC = () => {
   const [catFilter, setCatFilter] = useState('');
   const [stockBajoOnly, setStockBajoOnly] = useState(false);
 
+  // Sistema de Mensajes (reemplaza alert/confirm nativos que bloquean Electron)
+  const [messageModal, setMessageModal] = useState<{ isOpen: boolean, type: 'alert' | 'confirm', title: string, message: string, onConfirm?: () => void }>({ isOpen: false, type: 'alert', title: '', message: '' });
+
+  const showAlert = (message: string, title = 'Atención') => setMessageModal({ isOpen: true, type: 'alert', title, message });
+  const showConfirm = (message: string, onConfirm: () => void, title = 'Confirmar') => setMessageModal({ isOpen: true, type: 'confirm', title, message, onConfirm });
+
   // Categorías modal
   const [catModal, setCatModal] = useState(false);
   const [newCatNombre, setNewCatNombre] = useState('');
@@ -75,14 +81,16 @@ export const Inventory: React.FC = () => {
       if (!res.ok) throw new Error();
       setNewCatNombre('');
       fetchCategorias();
-    } catch { alert('Error al crear categoría'); }
+    } catch { showAlert('Error al crear categoría', 'Error'); }
     finally { setSavingCat(false); }
   };
 
-  const removeCategoria = async (id: number, nombre: string) => {
-    if (!window.confirm(`¿Eliminar la categoría "${nombre}"? Los productos ya asignados la conservarán.`)) return;
-    await apiFetch(`/inventario/categorias/${id}`, { method: 'DELETE' });
-    fetchCategorias();
+  const removeCategoria = (id: number, nombre: string) => {
+    showConfirm(`¿Eliminar la categoría "${nombre}"? Los productos ya asignados la conservarán.`, async () => {
+      setMessageModal(prev => ({ ...prev, isOpen: false }));
+      await apiFetch(`/inventario/categorias/${id}`, { method: 'DELETE' });
+      fetchCategorias();
+    });
   };
 
   const fetchProductos = useCallback(async () => {
@@ -122,7 +130,7 @@ export const Inventory: React.FC = () => {
   };
 
   const saveProd = async () => {
-    if (!prodForm.nombre || !prodForm.categoria) return alert('Nombre y categoría son obligatorios');
+    if (!prodForm.nombre || !prodForm.categoria) return showAlert('Nombre y categoría son obligatorios');
     setSavingProd(true);
     try {
       const body = { ...prodForm, id_proveedor: prodForm.id_proveedor || null };
@@ -132,19 +140,21 @@ export const Inventory: React.FC = () => {
       if (!res.ok) throw new Error();
       setProdModal(false);
       fetchProductos();
-    } catch { alert('Error al guardar'); }
+    } catch { showAlert('Error al guardar', 'Error'); }
     finally { setSavingProd(false); }
   };
 
-  const deleteProd = async (id: number, nombre: string) => {
-    if (!window.confirm(`¿Desactivar el producto "${nombre}"?`)) return;
-    await apiFetch(`/inventario/productos/${id}`, { method: 'DELETE' });
-    fetchProductos();
+  const deleteProd = (id: number, nombre: string) => {
+    showConfirm(`¿Desactivar el producto "${nombre}"?`, async () => {
+      setMessageModal(prev => ({ ...prev, isOpen: false }));
+      await apiFetch(`/inventario/productos/${id}`, { method: 'DELETE' });
+      fetchProductos();
+    });
   };
 
   // ── Entrada rápida ───────────────────────────────────────────
   const saveEntrada = async () => {
-    if (!entradaForm.id_producto || !entradaForm.cantidad) return alert('Selecciona un producto e ingresa la cantidad');
+    if (!entradaForm.id_producto || !entradaForm.cantidad) return showAlert('Selecciona un producto e ingresa la cantidad');
     setSavingEntrada(true);
     try {
       const res = await apiFetch('/inventario/movimientos/entrada', {
@@ -153,14 +163,14 @@ export const Inventory: React.FC = () => {
       if (!res.ok) throw new Error();
       setEntradaForm({ id_producto: '', cantidad: '', precio_unitario: '', notas: '' });
       fetchProductos();
-      alert('Entrada registrada correctamente');
-    } catch { alert('Error al registrar entrada'); }
+      showAlert('Entrada registrada correctamente', 'Éxito');
+    } catch { showAlert('Error al registrar entrada', 'Error'); }
     finally { setSavingEntrada(false); }
   };
 
   // ── Salida manual ────────────────────────────────────────────
   const saveSalida = async () => {
-    if (!salidaForm.id_producto || !salidaForm.cantidad) return alert('Selecciona un producto e ingresa la cantidad');
+    if (!salidaForm.id_producto || !salidaForm.cantidad) return showAlert('Selecciona un producto e ingresa la cantidad');
     setSavingSalida(true);
     try {
       const res = await apiFetch('/inventario/movimientos/salida', {
@@ -170,7 +180,7 @@ export const Inventory: React.FC = () => {
       setSalidaModal(false);
       setSalidaForm({ id_producto: '', cantidad: '', motivo: 'ajuste', notas: '' });
       fetchProductos();
-    } catch { alert('Error al registrar salida'); }
+    } catch { showAlert('Error al registrar salida', 'Error'); }
     finally { setSavingSalida(false); }
   };
 
@@ -520,14 +530,40 @@ export const Inventory: React.FC = () => {
             <label>Notas</label>
             <input className="form-input" value={salidaForm.notas} onChange={sf('notas')} placeholder="Observaciones" />
           </div>
-          <div className="form-actions">
-            <Button variant="secondary" onClick={() => setSalidaModal(false)}>Cancelar</Button>
-            <Button variant="primary" onClick={saveSalida} isLoading={savingSalida}>
-              Registrar Salida
+        <div className="form-actions" style={{ marginTop: '24px' }}>
+            <Button variant="ghost" onClick={() => setSalidaModal(false)}>Cancelar</Button>
+            <Button variant="danger" onClick={saveSalida} disabled={savingSalida}>
+              {savingSalida ? 'Registrando...' : 'Registrar Salida'}
             </Button>
           </div>
         </div>
       </Modal>
+
+      {/* Message Modal for Alerts and Confirms */}
+      <Modal isOpen={messageModal.isOpen} onClose={() => setMessageModal(prev => ({ ...prev, isOpen: false }))} title={messageModal.title}>
+        <div style={{ padding: '12px 0' }}>
+          <p style={{ color: 'var(--text-primary)', marginBottom: '24px', fontSize: '14px', lineHeight: '1.5' }}>
+            {messageModal.message}
+          </p>
+          <div className="form-actions">
+            {messageModal.type === 'confirm' && (
+              <Button variant="ghost" onClick={() => setMessageModal(prev => ({ ...prev, isOpen: false }))}>
+                Cancelar
+              </Button>
+            )}
+            <Button variant="primary" onClick={() => {
+              if (messageModal.type === 'confirm' && messageModal.onConfirm) {
+                messageModal.onConfirm();
+              } else {
+                setMessageModal(prev => ({ ...prev, isOpen: false }));
+              }
+            }}>
+              {messageModal.type === 'confirm' ? 'Aceptar' : 'Cerrar'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 };

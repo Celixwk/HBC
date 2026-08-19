@@ -102,6 +102,7 @@ function EditableRow<T extends { [key: string]: any }>({
   idKey: string;
   apiPath: string;
   onDone: () => void;
+  onPay?: (item: T) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [values, setValues] = useState<Record<string, string>>(
@@ -181,10 +182,10 @@ function EditableRow<T extends { [key: string]: any }>({
           {apiPath !== 'minibar' && (
             <>
               {item.estado !== 'pagado' && (
-                <button className="icon-action save" style={{ color: '#10b981' }} onClick={() => handleChangeStatus('pagado')} title="Marcar Pagado"><Check size={14} /></button>
+                <button className="icon-action save" style={{ color: '#10b981' }} onClick={(e) => { e.stopPropagation(); onPay ? onPay(item) : handleChangeStatus('pagado'); }} title="Marcar Pagado"><Check size={14} /></button>
               )}
               {item.estado !== 'anulado' && (
-                <button className="icon-action cancel" style={{ color: '#ef4444' }} onClick={() => handleChangeStatus('anulado')} title="Anular"><X size={14} /></button>
+                <button className="icon-action cancel" style={{ color: '#ef4444' }} onClick={(e) => { e.stopPropagation(); handleChangeStatus('anulado'); }} title="Anular"><X size={14} /></button>
               )}
             </>
           )}
@@ -199,7 +200,7 @@ function EditableRow<T extends { [key: string]: any }>({
 
 // Modal de pago interno (evita window.prompt/confirm que Electron bloquea)
 type PayModalState = {
-  mode: 'pago_habitacion' | 'pago_todo' | 'anular_todo' | 'finalizar' | 'extender' | null;
+  mode: 'pago_habitacion' | 'pago_todo' | 'pago_item' | 'anular_todo' | 'finalizar' | 'extender' | null;
   reserva: any;
   items: any[];
   totalPendiente: number;
@@ -319,6 +320,14 @@ const CargosEspacio: React.FC = () => {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ estado_pago: 'pagado', metodo_pago: payMetodo, monto_pagado: parseFloat(reserva.monto_total || '0') })
         });
+      } else if (mode === 'pago_item') {
+        const item = modalItems[0];
+        if (item) {
+          await apiFetch(`/cuentas/espacio/${item.id_item}/estado`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: 'pagado', metodo_pago: payMetodo })
+          });
+        }
       } else if (mode === 'pago_todo') {
         const pending = modalItems.filter(i => i.estado === 'pendiente' || !i.estado);
         for (const item of pending) {
@@ -547,6 +556,7 @@ const CargosEspacio: React.FC = () => {
                     {/* Consumos */}
                     {roomItems.map((item: any) => (
                       <EditableRow key={item.id_item} item={item} idKey="id_item" apiPath="espacio" onDone={fetchItems}
+                        onPay={(it) => setPayModal({ mode: 'pago_item', reserva, items: [it], totalPendiente: 0 })}
                         fields={[
                           { name: 'nombre_producto', label: 'Concepto' },
                           { name: 'cantidad', label: 'Cant.' },
@@ -685,6 +695,7 @@ const CargosPersona: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [newPersona, setNewPersona] = useState('');
+  const [newPersonaProd, setNewPersonaProd] = useState({ descripcion: '', cantidad: '1', valor_unitario: '' });
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [receiptPersona, setReceiptPersona] = useState<{ nombre: string; items: any[] } | null>(null);
 
@@ -821,6 +832,16 @@ const CargosPersona: React.FC = () => {
                   >
                     <Printer size={16} /> Imprimir
                   </Button>
+                  {totalPendiente === 0 && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleBulkStatus(e, personItems, 'pagado', nombre); }}
+                      style={{ padding: '4px 12px' }}
+                    >
+                      Finalizar
+                    </Button>
+                  )}
                 </div>
                 {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
               </div>
@@ -834,6 +855,7 @@ const CargosPersona: React.FC = () => {
                   <tbody>
                     {personItems.map((item: any) => (
                       <EditableRow key={item.id_item_persona} item={item} idKey="id_item_persona" apiPath="persona" onDone={fetchItems}
+                        onPay={(it) => setPayModal({ isOpen: true, persona: nombre, items: [it] })}
                         fields={[
                           { name: 'descripcion', label: 'Descripción' },
                           { name: 'cantidad', label: 'Cant.' },
@@ -872,15 +894,25 @@ const CargosPersona: React.FC = () => {
         <div className="cargo-form">
           <div className="form-group">
             <label>Nombre de la Persona *</label>
-            <input type="text" value={newPersona} onChange={e => setNewPersona(e.target.value)} className="form-input" />
+            <input type="text" value={newPersona} onChange={e => setNewPersona(e.target.value)} className="form-input" placeholder="Ej. Juan Pérez" />
           </div>
-          <div className="form-actions">
+          <div className="form-group" style={{ marginTop: '16px' }}>
+            <label>Producto o Consumo Inicial *</label>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input type="text" placeholder="Descripción" value={newPersonaProd.descripcion} onChange={e => setNewPersonaProd({...newPersonaProd, descripcion: e.target.value})} className="form-input" style={{ flex: 2 }} />
+              <input type="number" placeholder="Cant." value={newPersonaProd.cantidad} onChange={e => setNewPersonaProd({...newPersonaProd, cantidad: e.target.value})} className="form-input" style={{ flex: 1 }} min="1" />
+              <input type="number" placeholder="Precio Unit." value={newPersonaProd.valor_unitario} onChange={e => setNewPersonaProd({...newPersonaProd, valor_unitario: e.target.value})} className="form-input" style={{ flex: 1 }} />
+            </div>
+          </div>
+          <div className="form-actions" style={{ marginTop: '24px' }}>
             <Button variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
             <Button variant="primary" onClick={async () => {
-              if (!newPersona.trim()) return;
-              await addCargo(newPersona.trim(), { descripcion: '—', cantidad: '0', valor_unitario: '0' });
-              setNewPersona(''); setIsOpen(false);
-            }}>Crear</Button>
+              if (!newPersona.trim() || !newPersonaProd.descripcion.trim() || !newPersonaProd.valor_unitario) return;
+              await addCargo(newPersona.trim(), newPersonaProd);
+              setNewPersona('');
+              setNewPersonaProd({ descripcion: '', cantidad: '1', valor_unitario: '' });
+              setIsOpen(false);
+            }}>Crear Persona y Cargo</Button>
           </div>
         </div>
       </Modal>
