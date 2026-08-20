@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Download, Upload, AlertTriangle, CheckCircle, Database } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import { useAuth } from '../../context/AuthContext';
 
 export const BackupRestoreSettings: React.FC = () => {
@@ -9,6 +10,7 @@ export const BackupRestoreSettings: React.FC = () => {
   const [restoring, setRestoring] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { dialog, close, showDanger } = useConfirmDialog();
 
   const handleDownloadBackup = () => {
     // Open the download URL in a new tab to trigger the browser's download
@@ -26,9 +28,11 @@ export const BackupRestoreSettings: React.FC = () => {
 
     const confirmMessage = "⚠️ ADVERTENCIA MUY IMPORTANTE ⚠️\n\nAl restaurar esta copia de seguridad, TODA la información actual del sistema (huéspedes, reservas, facturas, configuración) será ELIMINADA y reemplazada por la del archivo.\n\n¿Estás COMPLETAMENTE SEGURO de que deseas continuar?";
     
-    if (window.confirm(confirmMessage)) {
-      restoreFromFile(file);
-    }
+    showDanger(
+      confirmMessage,
+      () => restoreFromFile(file),
+      'Restaurar Copia de Seguridad'
+    );
     
     // Reset file input
     if (fileInputRef.current) {
@@ -138,8 +142,14 @@ export const BackupRestoreSettings: React.FC = () => {
           >
             {restoring ? 'Restaurando...' : 'Subir Archivo y Restaurar'}
           </Button>
+          
+          <AlertTriangle className="text-warning mb-4" size={48} />
+          <h2 className="text-xl font-bold mb-2">Peligro: Pérdida de Datos</h2>
+          <p className="text-muted mb-4">Restaurar una copia de seguridad sobrescribirá toda la base de datos actual. Asegúrate de tener una copia reciente antes de proceder.</p>
         </div>
       </div>
+      
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

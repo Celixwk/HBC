@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Loader2, Edit2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import { apiFetch } from '../../utils/apiFetch';
 import './Providers.css';
 
@@ -30,6 +31,7 @@ export const Providers: React.FC = () => {
   const [editing, setEditing] = useState<Proveedor | null>(null);
   const [form, setForm] = useState({ ...EMPTY });
   const [saving, setSaving] = useState(false);
+  const { dialog, close, showConfirm } = useConfirmDialog();
   const [showInactivos, setShowInactivos] = useState(false);
 
   useEffect(() => { fetchProveedores(); }, []);
@@ -64,14 +66,24 @@ export const Providers: React.FC = () => {
     finally { setSaving(false); }
   };
 
-  const toggleActivo = async (p: Proveedor) => {
+  const handleToggleActivo = (p: Proveedor) => {
     const accion = p.activo ? 'desactivar' : 'activar';
-    if (!window.confirm(`¿Deseas ${accion} a ${p.nombre}?`)) return;
-    await apiFetch(`/proveedores/${p.id_proveedor}`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ activo: !p.activo })
-    });
-    fetchProveedores();
+    showConfirm(
+      `¿Deseas ${accion} a ${p.nombre}?`,
+      async () => {
+        try {
+          const res = await apiFetch(`/proveedores/${p.id_proveedor}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ activo: !p.activo })
+          });
+          if (res.ok) fetchProveedores();
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      `${p.activo ? 'Desactivar' : 'Activar'} Proveedor`
+    );
   };
 
   const f = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
@@ -135,7 +147,7 @@ export const Providers: React.FC = () => {
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '4px' }}>
                           <Edit2 size={15} />
                         </button>
-                        <button onClick={() => toggleActivo(p)} title={p.activo ? 'Desactivar' : 'Activar'}
+                        <button onClick={() => handleToggleActivo(p)} title={p.activo ? 'Desactivar' : 'Activar'}
                           style={{ background: 'none', border: 'none', cursor: 'pointer', color: p.activo ? '#f59e0b' : '#10b981', padding: '4px' }}>
                           {p.activo ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
                         </button>
@@ -196,6 +208,8 @@ export const Providers: React.FC = () => {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

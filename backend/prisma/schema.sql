@@ -442,3 +442,17 @@ DO $$ BEGIN
     ALTER TABLE "movimiento_inventario" ADD CONSTRAINT "movimiento_inventario_id_producto_fkey" FOREIGN KEY ("id_producto") REFERENCES "producto_inventario"("id_producto") ON DELETE CASCADE ON UPDATE CASCADE;
   END IF;
 END $$;
+
+-- ── Tabla de temporadas (agnóstica al año, persiste entre actualizaciones) ─────
+CREATE TABLE IF NOT EXISTS "temporada" (
+    "id"              SERIAL NOT NULL,
+    "nombre"          VARCHAR(100) NOT NULL,
+    "tipo"            VARCHAR(10)  NOT NULL,
+    "mes_dia_inicio"  VARCHAR(5)   NOT NULL,
+    "mes_dia_fin"     VARCHAR(5)   NOT NULL,
+    "activo"          BOOLEAN      NOT NULL DEFAULT true,
+    "created_at"      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "temporada_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "temporada_tipo_check" CHECK ("tipo" IN ('alta', 'media', 'baja'))
+);

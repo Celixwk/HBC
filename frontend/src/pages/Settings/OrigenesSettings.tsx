@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/Button/Button';
 import { Plus, Trash2, Globe, Loader2 } from 'lucide-react';
 import { apiFetch } from '../../utils/apiFetch';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 
 export const OrigenesSettings = () => {
   const [origenes, setOrigenes] = useState<any[]>([]);
@@ -9,6 +10,7 @@ export const OrigenesSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const { dialog, close, showDanger } = useConfirmDialog();
 
   useEffect(() => {
     fetchOrigenes();
@@ -54,19 +56,24 @@ export const OrigenesSettings = () => {
     }
   };
 
-  const handleEliminar = async (id: number, nombre: string) => {
+  const handleEliminar = (id: number, nombre: string) => {
     if (nombre === 'Propia') {
-      alert('El origen "Propia" es el sistema base y no se puede eliminar.');
+      setError('El origen "Propia" no se puede eliminar.');
       return;
     }
-    if (!window.confirm(`¿Eliminar origen ${nombre}?`)) return;
-
-    try {
-      const res = await apiFetch(`/configuracion/origenes/${id}`, { method: 'DELETE' });
-      if (res.ok) fetchOrigenes();
-    } catch (err) {
-      console.error(err);
-    }
+    showDanger(
+      `¿Eliminar origen ${nombre}?`,
+      async () => {
+        try {
+          await apiFetch(`/configuracion/origenes/${id}`, { method: 'DELETE' });
+          fetchOrigenes();
+        } catch (error) {
+          console.error('Error al eliminar:', error);
+          setError('No se pudo eliminar el origen. Puede que esté en uso.');
+        }
+      },
+      'Eliminar Origen'
+    );
   };
 
   return (
@@ -141,6 +148,8 @@ export const OrigenesSettings = () => {
           ))}
         </div>
       </div>
+
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

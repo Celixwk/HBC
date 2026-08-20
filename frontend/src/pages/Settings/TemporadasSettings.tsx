@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CalendarDays, Plus, Trash2, Save, Loader2, X, Info } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { apiFetch } from '../../utils/apiFetch';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -35,8 +36,8 @@ export const TemporadasSettings: React.FC = () => {
   const [showForm, setShowForm]     = useState(false);
   const [form, setForm]             = useState({ ...emptyForm });
   const [saving, setSaving]         = useState(false);
-  const [deleting, setDeleting]     = useState<number | null>(null);
   const [error, setError]           = useState('');
+  const { dialog, close, showDanger } = useConfirmDialog();
 
   useEffect(() => { fetchData(); }, []);
 
@@ -80,18 +81,20 @@ export const TemporadasSettings: React.FC = () => {
     }
   };
 
-  const handleDelete = async (t: Temporada) => {
-    if (!window.confirm(`¿Eliminar "${t.nombre}"?`)) return;
-    setDeleting(t.id);
-    try {
-      const res = await apiFetch(`/temporadas/${t.id}`, { method: 'DELETE' });
-      if (res.ok) await fetchData();
-      else setError('Error al eliminar');
-    } catch {
-      setError('Error de conexión');
-    } finally {
-      setDeleting(null);
-    }
+  const handleDelete = (t: Temporada) => {
+    showDanger(
+      `¿Eliminar "${t.nombre}"?`,
+      async () => {
+        try {
+          const res = await apiFetch(`/temporadas/${t.id}`, { method: 'DELETE' });
+          if (res.ok) await fetchData();
+          else setError('Error al eliminar');
+        } catch {
+          setError('Error de conexión');
+        }
+      },
+      'Eliminar temporada'
+    );
   };
 
   const handleToggle = async (t: Temporada) => {
@@ -270,6 +273,8 @@ export const TemporadasSettings: React.FC = () => {
       <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '16px' }}>
         * Las temporadas se aplican automáticamente todos los años. Si una reserva cruza año nuevo (ej: del 15 Dic al 15 Ene), la temporada funcionará correctamente.
       </p>
+
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

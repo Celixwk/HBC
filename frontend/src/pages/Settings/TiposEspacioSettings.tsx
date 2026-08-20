@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Bed, Loader2, CheckCircle, Plus, X, Trash2, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { apiFetch } from '../../utils/apiFetch';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 
 const emptyNew = {
   nombre: '',
@@ -42,6 +43,7 @@ export const TiposEspacioSettings: React.FC = () => {
   const [newTipo, setNewTipo] = useState({ ...emptyNew });
   const [addingNew, setAddingNew] = useState(false);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+  const { dialog, close, showDanger } = useConfirmDialog();
 
   useEffect(() => { fetchTipos(); }, []);
 
@@ -99,23 +101,28 @@ export const TiposEspacioSettings: React.FC = () => {
     setTipos(newTipos);
   };
 
-  const handleDelete = async (tipo: any) => {
-    if (!window.confirm(`¿Eliminar el tipo "${tipo.nombre}"? Esta acción no se puede deshacer.`)) return;
-    setDeleting(tipo.id);
-    setDeleteError('');
-    try {
-      const res = await apiFetch(`/espacios/config/tipos/${tipo.id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        setDeleteError(err.error || 'Error al eliminar');
-        return;
-      }
-      fetchTipos();
-    } catch (e) {
-      setDeleteError('No se pudo conectar con el servidor.');
-    } finally {
-      setDeleting(null);
-    }
+  const handleDelete = (tipo: any) => {
+    showDanger(
+      `¿Eliminar el tipo "${tipo.nombre}"? Esta acción no se puede deshacer.`,
+      async () => {
+        setDeleting(tipo.id);
+        setDeleteError('');
+        try {
+          const res = await apiFetch(`/espacios/config/tipos/${tipo.id}`, { method: 'DELETE' });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            setDeleteError(err.error || 'Error al eliminar');
+            return;
+          }
+          fetchTipos();
+        } catch (e) {
+          setDeleteError('No se pudo conectar con el servidor.');
+        } finally {
+          setDeleting(null);
+        }
+      },
+      'Eliminar Tipo'
+    );
   };
 
   const handleAddSubmit = async () => {
@@ -360,6 +367,8 @@ export const TiposEspacioSettings: React.FC = () => {
         * Si una habitación no pertenece a ninguno de estos tipos, usará los precios configurados de forma individual.
         Los cambios de precio solo afectan reservas nuevas — los precios históricos se mantienen intactos.
       </p>
+
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

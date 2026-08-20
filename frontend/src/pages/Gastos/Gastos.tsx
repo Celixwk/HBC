@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit2, Trash2, Loader2, Receipt, AlertCircle, Repeat, Tags, X, Check } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { apiFetch } from '../../utils/apiFetch';
@@ -69,6 +70,7 @@ export const Gastos: React.FC = () => {
   // Modal gasto
   const [modal, setModal]     = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const { dialog, close, showDanger } = useConfirmDialog();
   const [form, setForm]       = useState({ ...EMPTY_FORM });
   const [saving, setSaving]   = useState(false);
   const [deleting, setDeleting] = useState<number | null>(null);
@@ -129,15 +131,20 @@ export const Gastos: React.FC = () => {
   };
 
   const handleDeleteCat = async (item: CatItem) => {
-    if (!window.confirm(`¿Eliminar la categoría "${item.nombre}"?`)) return;
-    setDeletingCat(item.id); setCatError('');
-    try {
-      const res = await apiFetch(`/gastos/categorias/${item.id}`, { method: 'DELETE' });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
-      showSuccess(`Categoría "${item.nombre}" eliminada`);
-      fetchData();
-    } catch (e: any) { setCatError(e.message); }
-    finally { setDeletingCat(null); }
+    showDanger(
+      `¿Eliminar la categoría "${item.nombre}"?`,
+      async () => {
+        setDeletingCat(item.id); setCatError('');
+        try {
+          const res = await apiFetch(`/gastos/categorias/${item.id}`, { method: 'DELETE' });
+          if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+          showSuccess(`Categoría "${item.nombre}" eliminada`);
+          fetchData();
+        } catch (e: any) { setCatError(e.message); }
+        finally { setDeletingCat(null); }
+      },
+      'Eliminar Categoría'
+    );
   };
 
   const startRename = (item: CatItem) => {
@@ -209,13 +216,18 @@ export const Gastos: React.FC = () => {
   };
 
   const handleDelete = async (g: any) => {
-    if (!window.confirm(`¿Eliminar "${g.descripcion}"?`)) return;
-    setDeleting(g.id_gasto);
-    try {
-      await apiFetch(`/gastos/${g.id_gasto}`, { method: 'DELETE' });
-      showSuccess('Gasto eliminado');
-      fetchData();
-    } finally { setDeleting(null); }
+    showDanger(
+      `¿Eliminar "${g.descripcion}"?`,
+      async () => {
+        setDeleting(g.id_gasto);
+        try {
+          await apiFetch(`/gastos/${g.id_gasto}`, { method: 'DELETE' });
+          showSuccess('Gasto eliminado');
+          fetchData();
+        } finally { setDeleting(null); }
+      },
+      'Eliminar Gasto'
+    );
   };
 
   const generarRecurrentes = async () => {
@@ -516,6 +528,7 @@ export const Gastos: React.FC = () => {
           </div>
         </div>
       </Modal>
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

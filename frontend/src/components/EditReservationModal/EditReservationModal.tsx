@@ -7,6 +7,7 @@ import '../NewReservationModal/NewReservationModal.css';
 import './EditReservationModal.css';
 import { apiFetch } from '../../utils/apiFetch';
 import { ChangeGuestModal } from '../ChangeGuestModal/ChangeGuestModal';
+import { ConfirmDialog, useConfirmDialog } from '../ConfirmDialog/ConfirmDialog';
 
 interface EditReservationModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState('');
   const [tiposConfig, setTiposConfig] = useState<any[]>([]);
+  const { dialog: confirmDlg, close: closeConfirm, showDanger, showConfirm } = useConfirmDialog();
 
   // State for Change Guest Modal
   const [isChangeGuestOpen, setIsChangeGuestOpen] = useState(false);
@@ -194,38 +196,48 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
     }
   };
 
-  const handleCancelar = async () => {
-    if (!window.confirm('¿Cancelar esta reserva? Quedará marcada como cancelada pero el historial se conserva.')) return;
-    setLoading(true);
-    try {
-      const res = await apiFetch(`/reservas/${reservation.id_reserva}/estado`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado_reserva: 'cancelada' })
-      });
-      if (!res.ok) throw new Error('Error al cancelar reserva');
-      onSuccess();
-      onClose();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleCancelar = () => {
+    showConfirm(
+      '¿Cancelar esta reserva? Quedará marcada como cancelada pero el historial se conserva.',
+      async () => {
+        setLoading(true);
+        try {
+          const res = await apiFetch(`/reservas/${reservation.id_reserva}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado_reserva: 'cancelada' })
+          });
+          if (!res.ok) throw new Error('Error al cancelar reserva');
+          onSuccess();
+          onClose();
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      },
+      'Cancelar Reserva'
+    );
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('¿Eliminar permanentemente esta reserva? Esta acción no se puede deshacer.')) return;
-    setLoading(true);
-    try {
-      const res = await apiFetch(`/reservas/${reservation.id_reserva}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error al eliminar reserva');
-      onSuccess();
-      onClose();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleDelete = () => {
+    showDanger(
+      '¿Eliminar permanentemente esta reserva? Esta acción no se puede deshacer.',
+      async () => {
+        setLoading(true);
+        try {
+          const res = await apiFetch(`/reservas/${reservation.id_reserva}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Error al eliminar reserva');
+          onSuccess();
+          onClose();
+        } catch (err: any) {
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      },
+      'Eliminar Reserva'
+    );
   };
 
   const handleMarcarPagado = async () => {
@@ -503,6 +515,201 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
           <div className="edit-actions-right">
             <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Cerrar</Button>
             <Button type="submit" variant="primary" disabled={loading}>
+                  value={cantAdultos} onChange={e => setCantAdultos(e.target.value)}
+                  className="form-input text-center" placeholder="Ej: 50" />
+              </div>
+              <div className="form-group" style={{ marginTop: '8px' }}>
+                <label htmlFor="edit_precio_salon">Valor total acordado *</label>
+                <input type="number" id="edit_precio_salon" min="1"
+                  value={precioSalonManual}
+                  onChange={e => setPrecioSalonManual(e.target.value)}
+                  placeholder="Ej: 500000"
+                  className="form-input" />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Personas ── */}
+        {!isSalon && (
+          <div className="form-section">
+            <div className="form-section-title"><Users size={14} /> Cantidad de Personas</div>
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label htmlFor="edit_adultos">Adultos *</label>
+                <input type="number" id="edit_adultos" min="1" max="10"
+                  value={cantAdultos} onChange={e => setCantAdultos(e.target.value)}
+                  required className="form-input" />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit_ninos">Niños</label>
+                <input type="number" id="edit_ninos" min="0" max="10"
+                  value={cantNinos} onChange={e => setCantNinos(e.target.value)}
+                  className="form-input" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Campos de Evento (solo salón) ── */}
+        {isSalon && (
+          <div className="form-section">
+            <div className="form-section-title"><Clock size={14} /> Datos del Evento</div>
+            <div className="form-group">
+              <label htmlFor="edit_fecha_evento">Fecha del evento</label>
+              <input type="date" id="edit_fecha_evento"
+                value={fechaEvento} onChange={e => setFechaEvento(e.target.value)}
+                className="form-input" />
+            </div>
+            <div className="form-grid-2" style={{ marginTop: 8 }}>
+              <div className="form-group">
+                <label htmlFor="edit_hora_inicio">Hora inicio</label>
+                <input type="time" id="edit_hora_inicio"
+                  value={horaInicio} onChange={e => setHoraInicio(e.target.value)}
+                  className="form-input" />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit_hora_fin">Hora fin</label>
+                <input type="time" id="edit_hora_fin"
+                  value={horaFin} onChange={e => setHoraFin(e.target.value)}
+                  className="form-input" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Anotaciones ── */}
+        <div className="form-section">
+          <div className="form-section-title"><FileText size={14} /> Anotaciones</div>
+          <div className="form-group">
+            <textarea id="edit_anotaciones"
+              value={anotaciones} onChange={e => setAnotaciones(e.target.value)}
+              placeholder="Notas adicionales (opcional)"
+              className="form-input" rows={2} style={{ resize: 'vertical' }} />
+          </div>
+        </div>
+
+        {/* ── Titular de la Reserva ── */}
+        <div className="form-section" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div className="form-section-title" style={{ marginBottom: 2 }}><UserCog size={14} /> Titular Actual</div>
+              <span style={{ fontSize: '13px', fontWeight: 'bold' }}>
+                {reservation.huesped?.nombre_completo} ({reservation.huesped?.documento})
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsChangeGuestOpen(true)}
+            >
+              Cambiar Titular
+            </Button>
+          </div>
+        </div>
+
+        {/* ── Estado de Pago ── */}
+        <div className="form-section" style={{ background: estadoPago === 'pagado' ? 'rgba(16,185,129,0.06)' : 'rgba(245,158,11,0.06)', border: `1px solid ${estadoPago === 'pagado' ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.25)'}`, borderRadius: 10, padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div className="form-section-title" style={{ marginBottom: 2 }}><CreditCard size={14} /> Estado de Pago</div>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                {estadoPago === 'pagado' ? 'Reserva pagada en su totalidad' : 'Pago pendiente de recibir'}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleMarcarPagado}
+              disabled={savingPago}
+              style={{
+                padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px',
+                background: estadoPago === 'pagado' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)',
+                color: estadoPago === 'pagado' ? '#10b981' : '#f59e0b',
+                transition: 'opacity 0.2s'
+              }}
+            >
+              {savingPago ? '...' : estadoPago === 'pagado' ? '✓ Pagado' : 'Marcar como Pagado'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Origen de Reserva ── */}
+        <div className="form-section" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 10, padding: '12px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+            <div style={{ flex: 1 }}>
+              <div className="form-section-title" style={{ marginBottom: 6 }}><Search size={14} /> Origen de Reserva</div>
+              <select
+                value={selectedOrigen}
+                onChange={e => setSelectedOrigen(e.target.value)}
+                className="form-input"
+                style={{ marginBottom: 0 }}
+              >
+                <option value="Propia">Propia (Por defecto)</option>
+                {origenesList.filter(o => o.nombre !== 'Propia').map((o: any) => (
+                  <option key={o.id_origen} value={o.nombre}>{o.nombre}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                setSavingOrigen(true);
+                try {
+                  const res = await apiFetch(`/reservas/${reservation.id_reserva}/origen`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ origen: selectedOrigen })
+                  });
+                  if (!res.ok) throw new Error('Error al actualizar origen');
+                  onSuccess();
+                } catch (err: any) {
+                  setError(err.message);
+                } finally {
+                  setSavingOrigen(false);
+                }
+              }}
+              disabled={savingOrigen || selectedOrigen === (reservation.origen || 'Propia')}
+              style={{
+                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                fontWeight: 600, fontSize: '13px', marginTop: '22px', whiteSpace: 'nowrap',
+                background: selectedOrigen !== (reservation.origen || 'Propia') ? 'var(--primary)' : 'rgba(255,255,255,0.07)',
+                color: selectedOrigen !== (reservation.origen || 'Propia') ? '#fff' : 'var(--text-muted)',
+                transition: 'all 0.2s'
+              }}
+            >
+              {savingOrigen ? '...' : 'Guardar'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── Resumen precio ── */}
+        {noches > 0 && (
+          <div className="price-summary" style={{ background: 'rgba(79,70,229,0.1)', border: '1px solid rgba(79,70,229,0.3)', borderRadius: '10px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+              {isSalon ? `Salón — ${noches} noche(s)` : `${noches} noche(s) × $${fmt(precioNoche)}/noche`}
+            </div>
+            <div style={{ fontSize: '18px', fontWeight: 700, color: 'var(--primary)' }}>
+              ${fmt(montoTotal)}
+            </div>
+          </div>
+        )}
+
+        {/* ── Acciones ── */}
+        <div className="edit-actions">
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button type="button" variant="ghost" onClick={handleCancelar} disabled={loading}
+              style={{ color: '#f59e0b', borderColor: '#f59e0b' }}>
+              Cancelar Reserva
+            </Button>
+            <Button type="button" variant="ghost" onClick={handleDelete} disabled={loading}
+              style={{ color: '#ef4444', borderColor: '#ef4444' }}>
+              <Trash2 size={16} /> Eliminar
+            </Button>
+          </div>
+          <div className="edit-actions-right">
+            <Button type="button" variant="secondary" onClick={onClose} disabled={loading}>Cerrar</Button>
+            <Button type="submit" variant="primary" disabled={loading}>
               <Save size={16} /> {loading ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </div>
@@ -518,6 +725,7 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
           onSuccess(); // Refresh to get the new guest data in the parent
         }}
       />
+      <ConfirmDialog {...confirmDlg} onCancel={closeConfirm} />
     </Modal>
   );
 };

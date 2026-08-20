@@ -4,6 +4,7 @@ import { Button } from '../../components/Button/Button';
 import { Card } from '../../components/Card/Card';
 import { NewSpaceModal } from '../../components/NewSpaceModal/NewSpaceModal';
 import { EditSpaceModal } from '../../components/EditSpaceModal/EditSpaceModal';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import './Spaces.css';
 import { apiFetch } from '../../utils/apiFetch';
 
@@ -27,6 +28,7 @@ export const Spaces: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<Espacio | null>(null);
+  const { dialog, close, showConfirm } = useConfirmDialog();
 
   useEffect(() => {
     fetchSpaces();
@@ -46,14 +48,19 @@ export const Spaces: React.FC = () => {
     }
   };
 
-  const handleDesactivar = async (id: number) => {
-    if (!window.confirm('¿Desactivar esta habitación? Puedes reactivarla desde el menú de edición.')) return;
-    try {
-      await apiFetch(`/espacios/${id}`, { method: 'DELETE' });
-      fetchSpaces();
-    } catch (error) {
-      console.error('Error al desactivar espacio:', error);
-    }
+  const handleDesactivar = (id: number) => {
+    showConfirm(
+      '¿Desactivar esta habitación? Puedes reactivarla desde el menú de edición.',
+      async () => {
+        try {
+          await apiFetch(`/espacios/${id}`, { method: 'DELETE' });
+          fetchSpaces();
+        } catch (error) {
+          console.error('Error al desactivar espacio:', error);
+        }
+      },
+      'Desactivar Habitación'
+    );
   };
 
   const filteredSpaces = spaces.filter(space =>
@@ -196,6 +203,7 @@ export const Spaces: React.FC = () => {
         onSuccess={() => { fetchSpaces(); setEditingSpace(null); }}
         space={editingSpace}
       />
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

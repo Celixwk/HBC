@@ -1,0 +1,99 @@
+.cdialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: cdialog-fade-in 0.15s ease;
+}
+
+@keyframes cdialog-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.cdialog-box {
+  background: var(--bg-secondary, #1a1f2e);
+  border: 1px solid var(--border-medium, rgba(255,255,255,0.12));
+  border-radius: 16px;
+  padding: 32px 28px 24px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  animation: cdialog-slide-in 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes cdialog-slide-in {
+  from { transform: scale(0.88) translateY(12px); opacity: 0; }
+  to   { transform: scale(1) translateY(0);       opacity: 1; }
+}
+
+.cdialog-icon {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+.cdialog-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, #f0f4ff);
+  margin-bottom: 10px;
+}
+
+.cdialog-message {
+  font-size: 0.9rem;
+  color: var(--text-muted, #8892a4);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.cdialog-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.cdialog-btn {
+  padding: 9px 24px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  min-width: 100px;
+}
+
+.cdialog-btn-cancel {
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border-medium, rgba(255,255,255,0.12));
+  color: var(--text-muted, #8892a4);
+}
+
+.cdialog-btn-cancel:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-primary, #f0f4ff);
+}
+
+.cdialog-btn-confirm {
+  background: var(--primary, #00d4ff);
+  color: #000;
+}
+
+.cdialog-btn-confirm:hover {
+  opacity: 0.85;
+}
+
+.cdialog-btn-confirm.danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.cdialog-btn-confirm.danger:hover {
+  background: #dc2626;
+}
