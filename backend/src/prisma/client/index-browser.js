@@ -247,10 +247,9 @@ exports.Prisma.TemporadaScalarFieldEnum = {
   id: 'id',
   nombre: 'nombre',
   tipo: 'tipo',
-  fecha_inicio: 'fecha_inicio',
-  fecha_fin: 'fecha_fin',
+  mes_dia_inicio: 'mes_dia_inicio',
+  mes_dia_fin: 'mes_dia_fin',
   activo: 'activo',
-  anio: 'anio',
   fecha_creacion: 'fecha_creacion'
 };
 

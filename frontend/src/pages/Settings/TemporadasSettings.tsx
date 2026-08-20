@@ -211,9 +211,9 @@ export const TemporadasSettings: React.FC = () => {
                 </button>
 
                 {/* Eliminar */}
-                <Button variant="ghost" size="sm" onClick={() => handleDelete(t)} disabled={deleting === t.id}
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(t)}
                   style={{ color: '#f87171', padding: '4px 6px' }}>
-                  {deleting === t.id ? <Loader2 className="animate-spin" size={14} /> : <Trash2 size={14} />}
+                  <Trash2 size={14} />
                 </Button>
               </div>
             );

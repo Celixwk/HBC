@@ -13097,22 +13097,19 @@ export namespace Prisma {
 
   export type TemporadaAvgAggregateOutputType = {
     id: number | null
-    anio: number | null
   }
 
   export type TemporadaSumAggregateOutputType = {
     id: number | null
-    anio: number | null
   }
 
   export type TemporadaMinAggregateOutputType = {
     id: number | null
     nombre: string | null
     tipo: string | null
-    fecha_inicio: Date | null
-    fecha_fin: Date | null
+    mes_dia_inicio: string | null
+    mes_dia_fin: string | null
     activo: boolean | null
-    anio: number | null
     fecha_creacion: Date | null
   }
 
@@ -13120,10 +13117,9 @@ export namespace Prisma {
     id: number | null
     nombre: string | null
     tipo: string | null
-    fecha_inicio: Date | null
-    fecha_fin: Date | null
+    mes_dia_inicio: string | null
+    mes_dia_fin: string | null
     activo: boolean | null
-    anio: number | null
     fecha_creacion: Date | null
   }
 
@@ -13131,10 +13127,9 @@ export namespace Prisma {
     id: number
     nombre: number
     tipo: number
-    fecha_inicio: number
-    fecha_fin: number
+    mes_dia_inicio: number
+    mes_dia_fin: number
     activo: number
-    anio: number
     fecha_creacion: number
     _all: number
   }
@@ -13142,22 +13137,19 @@ export namespace Prisma {
 
   export type TemporadaAvgAggregateInputType = {
     id?: true
-    anio?: true
   }
 
   export type TemporadaSumAggregateInputType = {
     id?: true
-    anio?: true
   }
 
   export type TemporadaMinAggregateInputType = {
     id?: true
     nombre?: true
     tipo?: true
-    fecha_inicio?: true
-    fecha_fin?: true
+    mes_dia_inicio?: true
+    mes_dia_fin?: true
     activo?: true
-    anio?: true
     fecha_creacion?: true
   }
 
@@ -13165,10 +13157,9 @@ export namespace Prisma {
     id?: true
     nombre?: true
     tipo?: true
-    fecha_inicio?: true
-    fecha_fin?: true
+    mes_dia_inicio?: true
+    mes_dia_fin?: true
     activo?: true
-    anio?: true
     fecha_creacion?: true
   }
 
@@ -13176,10 +13167,9 @@ export namespace Prisma {
     id?: true
     nombre?: true
     tipo?: true
-    fecha_inicio?: true
-    fecha_fin?: true
+    mes_dia_inicio?: true
+    mes_dia_fin?: true
     activo?: true
-    anio?: true
     fecha_creacion?: true
     _all?: true
   }
@@ -13274,10 +13264,9 @@ export namespace Prisma {
     id: number
     nombre: string
     tipo: string
-    fecha_inicio: Date
-    fecha_fin: Date
+    mes_dia_inicio: string
+    mes_dia_fin: string
     activo: boolean
-    anio: number | null
     fecha_creacion: Date
     _count: TemporadaCountAggregateOutputType | null
     _avg: TemporadaAvgAggregateOutputType | null
@@ -13304,10 +13293,9 @@ export namespace Prisma {
     id?: boolean
     nombre?: boolean
     tipo?: boolean
-    fecha_inicio?: boolean
-    fecha_fin?: boolean
+    mes_dia_inicio?: boolean
+    mes_dia_fin?: boolean
     activo?: boolean
-    anio?: boolean
     fecha_creacion?: boolean
   }, ExtArgs["result"]["temporada"]>
 
@@ -13315,10 +13303,9 @@ export namespace Prisma {
     id?: boolean
     nombre?: boolean
     tipo?: boolean
-    fecha_inicio?: boolean
-    fecha_fin?: boolean
+    mes_dia_inicio?: boolean
+    mes_dia_fin?: boolean
     activo?: boolean
-    anio?: boolean
     fecha_creacion?: boolean
   }, ExtArgs["result"]["temporada"]>
 
@@ -13326,10 +13313,9 @@ export namespace Prisma {
     id?: boolean
     nombre?: boolean
     tipo?: boolean
-    fecha_inicio?: boolean
-    fecha_fin?: boolean
+    mes_dia_inicio?: boolean
+    mes_dia_fin?: boolean
     activo?: boolean
-    anio?: boolean
     fecha_creacion?: boolean
   }, ExtArgs["result"]["temporada"]>
 
@@ -13337,14 +13323,13 @@ export namespace Prisma {
     id?: boolean
     nombre?: boolean
     tipo?: boolean
-    fecha_inicio?: boolean
-    fecha_fin?: boolean
+    mes_dia_inicio?: boolean
+    mes_dia_fin?: boolean
     activo?: boolean
-    anio?: boolean
     fecha_creacion?: boolean
   }
 
-  export type temporadaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "nombre" | "tipo" | "fecha_inicio" | "fecha_fin" | "activo" | "anio" | "fecha_creacion", ExtArgs["result"]["temporada"]>
+  export type temporadaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "nombre" | "tipo" | "mes_dia_inicio" | "mes_dia_fin" | "activo" | "fecha_creacion", ExtArgs["result"]["temporada"]>
 
   export type $temporadaPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "temporada"
@@ -13353,10 +13338,9 @@ export namespace Prisma {
       id: number
       nombre: string
       tipo: string
-      fecha_inicio: Date
-      fecha_fin: Date
+      mes_dia_inicio: string
+      mes_dia_fin: string
       activo: boolean
-      anio: number | null
       fecha_creacion: Date
     }, ExtArgs["result"]["temporada"]>
     composites: {}
@@ -13784,10 +13768,9 @@ export namespace Prisma {
     readonly id: FieldRef<"temporada", 'Int'>
     readonly nombre: FieldRef<"temporada", 'String'>
     readonly tipo: FieldRef<"temporada", 'String'>
-    readonly fecha_inicio: FieldRef<"temporada", 'DateTime'>
-    readonly fecha_fin: FieldRef<"temporada", 'DateTime'>
+    readonly mes_dia_inicio: FieldRef<"temporada", 'String'>
+    readonly mes_dia_fin: FieldRef<"temporada", 'String'>
     readonly activo: FieldRef<"temporada", 'Boolean'>
-    readonly anio: FieldRef<"temporada", 'Int'>
     readonly fecha_creacion: FieldRef<"temporada", 'DateTime'>
   }
     
@@ -21146,10 +21129,9 @@ export namespace Prisma {
     id: 'id',
     nombre: 'nombre',
     tipo: 'tipo',
-    fecha_inicio: 'fecha_inicio',
-    fecha_fin: 'fecha_fin',
+    mes_dia_inicio: 'mes_dia_inicio',
+    mes_dia_fin: 'mes_dia_fin',
     activo: 'activo',
-    anio: 'anio',
     fecha_creacion: 'fecha_creacion'
   };
 
@@ -22139,10 +22121,9 @@ export namespace Prisma {
     id?: IntFilter<"temporada"> | number
     nombre?: StringFilter<"temporada"> | string
     tipo?: StringFilter<"temporada"> | string
-    fecha_inicio?: DateTimeFilter<"temporada"> | Date | string
-    fecha_fin?: DateTimeFilter<"temporada"> | Date | string
+    mes_dia_inicio?: StringFilter<"temporada"> | string
+    mes_dia_fin?: StringFilter<"temporada"> | string
     activo?: BoolFilter<"temporada"> | boolean
-    anio?: IntNullableFilter<"temporada"> | number | null
     fecha_creacion?: DateTimeFilter<"temporada"> | Date | string
   }
 
@@ -22150,10 +22131,9 @@ export namespace Prisma {
     id?: SortOrder
     nombre?: SortOrder
     tipo?: SortOrder
-    fecha_inicio?: SortOrder
-    fecha_fin?: SortOrder
+    mes_dia_inicio?: SortOrder
+    mes_dia_fin?: SortOrder
     activo?: SortOrder
-    anio?: SortOrderInput | SortOrder
     fecha_creacion?: SortOrder
   }
 
@@ -22164,10 +22144,9 @@ export namespace Prisma {
     NOT?: temporadaWhereInput | temporadaWhereInput[]
     nombre?: StringFilter<"temporada"> | string
     tipo?: StringFilter<"temporada"> | string
-    fecha_inicio?: DateTimeFilter<"temporada"> | Date | string
-    fecha_fin?: DateTimeFilter<"temporada"> | Date | string
+    mes_dia_inicio?: StringFilter<"temporada"> | string
+    mes_dia_fin?: StringFilter<"temporada"> | string
     activo?: BoolFilter<"temporada"> | boolean
-    anio?: IntNullableFilter<"temporada"> | number | null
     fecha_creacion?: DateTimeFilter<"temporada"> | Date | string
   }, "id">
 
@@ -22175,10 +22154,9 @@ export namespace Prisma {
     id?: SortOrder
     nombre?: SortOrder
     tipo?: SortOrder
-    fecha_inicio?: SortOrder
-    fecha_fin?: SortOrder
+    mes_dia_inicio?: SortOrder
+    mes_dia_fin?: SortOrder
     activo?: SortOrder
-    anio?: SortOrderInput | SortOrder
     fecha_creacion?: SortOrder
     _count?: temporadaCountOrderByAggregateInput
     _avg?: temporadaAvgOrderByAggregateInput
@@ -22194,10 +22172,9 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"temporada"> | number
     nombre?: StringWithAggregatesFilter<"temporada"> | string
     tipo?: StringWithAggregatesFilter<"temporada"> | string
-    fecha_inicio?: DateTimeWithAggregatesFilter<"temporada"> | Date | string
-    fecha_fin?: DateTimeWithAggregatesFilter<"temporada"> | Date | string
+    mes_dia_inicio?: StringWithAggregatesFilter<"temporada"> | string
+    mes_dia_fin?: StringWithAggregatesFilter<"temporada"> | string
     activo?: BoolWithAggregatesFilter<"temporada"> | boolean
-    anio?: IntNullableWithAggregatesFilter<"temporada"> | number | null
     fecha_creacion?: DateTimeWithAggregatesFilter<"temporada"> | Date | string
   }
 
@@ -23512,10 +23489,9 @@ export namespace Prisma {
   export type temporadaCreateInput = {
     nombre: string
     tipo: string
-    fecha_inicio: Date | string
-    fecha_fin: Date | string
+    mes_dia_inicio: string
+    mes_dia_fin: string
     activo?: boolean
-    anio?: number | null
     fecha_creacion?: Date | string
   }
 
@@ -23523,20 +23499,18 @@ export namespace Prisma {
     id?: number
     nombre: string
     tipo: string
-    fecha_inicio: Date | string
-    fecha_fin: Date | string
+    mes_dia_inicio: string
+    mes_dia_fin: string
     activo?: boolean
-    anio?: number | null
     fecha_creacion?: Date | string
   }
 
   export type temporadaUpdateInput = {
     nombre?: StringFieldUpdateOperationsInput | string
     tipo?: StringFieldUpdateOperationsInput | string
-    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
-    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    mes_dia_inicio?: StringFieldUpdateOperationsInput | string
+    mes_dia_fin?: StringFieldUpdateOperationsInput | string
     activo?: BoolFieldUpdateOperationsInput | boolean
-    anio?: NullableIntFieldUpdateOperationsInput | number | null
     fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -23544,10 +23518,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     nombre?: StringFieldUpdateOperationsInput | string
     tipo?: StringFieldUpdateOperationsInput | string
-    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
-    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    mes_dia_inicio?: StringFieldUpdateOperationsInput | string
+    mes_dia_fin?: StringFieldUpdateOperationsInput | string
     activo?: BoolFieldUpdateOperationsInput | boolean
-    anio?: NullableIntFieldUpdateOperationsInput | number | null
     fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -23555,20 +23528,18 @@ export namespace Prisma {
     id?: number
     nombre: string
     tipo: string
-    fecha_inicio: Date | string
-    fecha_fin: Date | string
+    mes_dia_inicio: string
+    mes_dia_fin: string
     activo?: boolean
-    anio?: number | null
     fecha_creacion?: Date | string
   }
 
   export type temporadaUpdateManyMutationInput = {
     nombre?: StringFieldUpdateOperationsInput | string
     tipo?: StringFieldUpdateOperationsInput | string
-    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
-    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    mes_dia_inicio?: StringFieldUpdateOperationsInput | string
+    mes_dia_fin?: StringFieldUpdateOperationsInput | string
     activo?: BoolFieldUpdateOperationsInput | boolean
-    anio?: NullableIntFieldUpdateOperationsInput | number | null
     fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -23576,10 +23547,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     nombre?: StringFieldUpdateOperationsInput | string
     tipo?: StringFieldUpdateOperationsInput | string
-    fecha_inicio?: DateTimeFieldUpdateOperationsInput | Date | string
-    fecha_fin?: DateTimeFieldUpdateOperationsInput | Date | string
+    mes_dia_inicio?: StringFieldUpdateOperationsInput | string
+    mes_dia_fin?: StringFieldUpdateOperationsInput | string
     activo?: BoolFieldUpdateOperationsInput | boolean
-    anio?: NullableIntFieldUpdateOperationsInput | number | null
     fecha_creacion?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -24906,26 +24876,23 @@ export namespace Prisma {
     id?: SortOrder
     nombre?: SortOrder
     tipo?: SortOrder
-    fecha_inicio?: SortOrder
-    fecha_fin?: SortOrder
+    mes_dia_inicio?: SortOrder
+    mes_dia_fin?: SortOrder
     activo?: SortOrder
-    anio?: SortOrder
     fecha_creacion?: SortOrder
   }
 
   export type temporadaAvgOrderByAggregateInput = {
     id?: SortOrder
-    anio?: SortOrder
   }
 
   export type temporadaMaxOrderByAggregateInput = {
     id?: SortOrder
     nombre?: SortOrder
     tipo?: SortOrder
-    fecha_inicio?: SortOrder
-    fecha_fin?: SortOrder
+    mes_dia_inicio?: SortOrder
+    mes_dia_fin?: SortOrder
     activo?: SortOrder
-    anio?: SortOrder
     fecha_creacion?: SortOrder
   }
 
@@ -24933,16 +24900,14 @@ export namespace Prisma {
     id?: SortOrder
     nombre?: SortOrder
     tipo?: SortOrder
-    fecha_inicio?: SortOrder
-    fecha_fin?: SortOrder
+    mes_dia_inicio?: SortOrder
+    mes_dia_fin?: SortOrder
     activo?: SortOrder
-    anio?: SortOrder
     fecha_creacion?: SortOrder
   }
 
   export type temporadaSumOrderByAggregateInput = {
     id?: SortOrder
-    anio?: SortOrder
   }
 
   export type categoria_inventarioCountOrderByAggregateInput = {
