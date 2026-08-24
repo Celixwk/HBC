@@ -448,11 +448,28 @@ CREATE TABLE IF NOT EXISTS "temporada" (
     "id"              SERIAL NOT NULL,
     "nombre"          VARCHAR(100) NOT NULL,
     "tipo"            VARCHAR(10)  NOT NULL,
-    "mes_dia_inicio"  VARCHAR(5)   NOT NULL,
-    "mes_dia_fin"     VARCHAR(5)   NOT NULL,
+    "mes_dia_inicio"  VARCHAR(5)   NOT NULL DEFAULT '01-01',
+    "mes_dia_fin"     VARCHAR(5)   NOT NULL DEFAULT '12-31',
     "activo"          BOOLEAN      NOT NULL DEFAULT true,
     "created_at"      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    -- Campos para temporadas exactas (con año específico, ej. Semana Santa 2026)
+    "es_exacta"            BOOLEAN NOT NULL DEFAULT false,
+    "fecha_exacta_inicio"  VARCHAR(10),
+    "fecha_exacta_fin"     VARCHAR(10),
 
     CONSTRAINT "temporada_pkey" PRIMARY KEY ("id"),
     CONSTRAINT "temporada_tipo_check" CHECK ("tipo" IN ('alta', 'media', 'baja'))
 );
+
+-- Agregar columnas si ya existe la tabla (para actualizaciones)
+DO $$ BEGIN
+  ALTER TABLE "temporada" ADD COLUMN "es_exacta" BOOLEAN NOT NULL DEFAULT false;
+EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "temporada" ADD COLUMN "fecha_exacta_inicio" VARCHAR(10);
+EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "temporada" ADD COLUMN "fecha_exacta_fin" VARCHAR(10);
+EXCEPTION WHEN duplicate_column THEN NULL; END $$;

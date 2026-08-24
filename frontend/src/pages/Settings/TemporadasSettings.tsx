@@ -15,7 +15,17 @@ interface Temporada {
   mes_dia_inicio: string;
   mes_dia_fin: string;
   activo: boolean;
+  es_exacta: boolean;
+  fecha_exacta_inicio?: string | null;
+  fecha_exacta_fin?: string | null;
 }
+
+const MESES = [
+  { v: '01', l: 'Enero' }, { v: '02', l: 'Febrero' }, { v: '03', l: 'Marzo' },
+  { v: '04', l: 'Abril' }, { v: '05', l: 'Mayo' }, { v: '06', l: 'Junio' },
+  { v: '07', l: 'Julio' }, { v: '08', l: 'Agosto' }, { v: '09', l: 'Septiembre' },
+  { v: '10', l: 'Octubre' }, { v: '11', l: 'Noviembre' }, { v: '12', l: 'Diciembre' },
+];
 
 const tipoConfig: Record<TipoTemporada, { label: string; color: string; bg: string; emoji: string }> = {
   alta:  { label: 'Alta',  color: '#ef4444', bg: 'rgba(239,68,68,0.12)',   emoji: '🔴' },
@@ -26,6 +36,11 @@ const tipoConfig: Record<TipoTemporada, { label: string; color: string; bg: stri
 const emptyForm = {
   nombre: '',
   tipo: 'alta' as TipoTemporada,
+  es_exacta: false,
+  // Recurrente (anual)
+  mes_inicio: '01', dia_inicio: '01',
+  mes_fin:    '12', dia_fin:    '31',
+  // Exacta (con año)
   fecha_inicio: '',
   fecha_fin: '',
 };
@@ -54,17 +69,31 @@ export const TemporadasSettings: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    if (!form.nombre.trim() || !form.fecha_inicio || !form.fecha_fin) {
-      setError('Completa todos los campos obligatorios');
+    if (!form.nombre.trim()) {
+      setError('El nombre es obligatorio');
       return;
+    }
+    // Validar fechas
+    if (form.es_exacta) {
+      if (!form.fecha_inicio || !form.fecha_fin) { setError('Ingresa fecha de inicio y fin'); return; }
+    } else {
+      if (!form.dia_inicio || !form.dia_fin) { setError('Ingresa el día de inicio y fin'); return; }
     }
     setSaving(true);
     setError('');
     try {
+      let body: any;
+      if (form.es_exacta) {
+        body = { nombre: form.nombre, tipo: form.tipo, es_exacta: true, fecha_inicio: form.fecha_inicio, fecha_fin: form.fecha_fin };
+      } else {
+        const ini = `${form.mes_inicio}-${form.dia_inicio.padStart(2,'0')}`;
+        const fin = `${form.mes_fin}-${form.dia_fin.padStart(2,'0')}`;
+        body = { nombre: form.nombre, tipo: form.tipo, es_exacta: false, fecha_inicio: ini, fecha_fin: fin };
+      }
       const res = await apiFetch('/temporadas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(body)
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -116,6 +145,30 @@ export const TemporadasSettings: React.FC = () => {
     const date = new Date(2000, parseInt(m) - 1, parseInt(d));
     return format(date, 'd MMM', { locale: es });
   };
+
+  const formatRango = (t: Temporada) => {
+    if (t.es_exacta && t.fecha_exacta_inicio && t.fecha_exacta_fin) {
+      return `${t.fecha_exacta_inicio} — ${t.fecha_exacta_fin}`;
+    }
+    const ini = formatMesDia(t.mes_dia_inicio);
+    const fin = formatMesDia(t.mes_dia_fin);
+    return `${ini} — ${fin} (anual)`;
+  };
+
+  // Selector de día y mes para temporadas recurrentes
+  const DayMonthPicker = ({ label, mes, dia, onMes, onDia }: any) => (
+    <div className="form-group" style={{ margin: 0 }}>
+      <label>{label} *</label>
+      <div style={{ display: 'flex', gap: '6px' }}>
+        <input type="number" min="1" max="31" className="form-input" style={{ flex: 1 }}
+          placeholder="Día" value={dia}
+          onChange={e => onDia(e.target.value)} />
+        <select className="form-input" style={{ flex: 2 }} value={mes} onChange={e => onMes(e.target.value)}>
+          {MESES.map(m => <option key={m.v} value={m.v}>{m.l}</option>)}
+        </select>
+      </div>
+    </div>
+  );
 
   return (
     <div>
@@ -182,9 +235,16 @@ export const TemporadasSettings: React.FC = () => {
                 <div>
                   <div style={{ fontWeight: 600, fontSize: '14px', color: t.activo ? cfg.color : 'var(--text-muted)' }}>
                     {cfg.emoji} {t.nombre}
+                    {t.es_exacta && (
+                      <span style={{ marginLeft: '6px', fontSize: '10px', fontWeight: 700,
+                        background: 'rgba(139,92,246,0.2)', color: '#a78bfa',
+                        padding: '2px 6px', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.3)' }}>
+                        FECHA EXACTA
+                      </span>
+                    )}
                   </div>
-                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px', textTransform: 'capitalize' }}>
-                    {formatMesDia(t.mes_dia_inicio)} — {formatMesDia(t.mes_dia_fin)}
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    {formatRango(t)}
                   </div>
                 </div>
 
@@ -226,9 +286,30 @@ export const TemporadasSettings: React.FC = () => {
               backgroundColor: 'rgba(99,179,130,0.06)', borderRadius: '10px',
               border: '1px solid rgba(99,179,130,0.25)'
             }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px' }}>
-                Nueva Temporada (El año se ignora, aplica anualmente)
+              {/* Tipo de temporada (Anual vs Exacta) */}
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '2px' }}>
+                <button type="button"
+                  onClick={() => setForm({ ...form, es_exacta: false })}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '12px',
+                    border: `2px solid ${!form.es_exacta ? '#10b981' : 'rgba(255,255,255,0.1)'}`,
+                    background: !form.es_exacta ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
+                    color: !form.es_exacta ? '#10b981' : 'var(--text-muted)'
+                  }}>
+                  Anual (todos los anos)
+                </button>
+                <button type="button"
+                  onClick={() => setForm({ ...form, es_exacta: true })}
+                  style={{
+                    flex: 1, padding: '8px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '12px',
+                    border: `2px solid ${form.es_exacta ? '#a78bfa' : 'rgba(255,255,255,0.1)'}`,
+                    background: form.es_exacta ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.03)',
+                    color: form.es_exacta ? '#a78bfa' : 'var(--text-muted)'
+                  }}>
+                  Fecha Exacta (ej. Semana Santa 2027)
+                </button>
               </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label>Nombre *</label>
@@ -239,24 +320,44 @@ export const TemporadasSettings: React.FC = () => {
                   <label>Tipo *</label>
                   <select className="form-input" value={form.tipo}
                     onChange={e => setForm({ ...form, tipo: e.target.value as TipoTemporada })}>
-                    <option value="alta">🔴 Alta</option>
-                    <option value="media">🟡 Media</option>
-                    <option value="baja">🟢 Baja</option>
+                    <option value="alta">Alta</option>
+                    <option value="media">Media</option>
+                    <option value="baja">Baja</option>
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label>Día y Mes de Inicio *</label>
-                  <input type="date" className="form-input" value={form.fecha_inicio}
-                    onChange={e => setForm({ ...form, fecha_inicio: e.target.value })} />
+
+              {/* Fechas segun modo */}
+              {form.es_exacta ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label>Fecha de Inicio (con ano) *</label>
+                    <input type="date" className="form-input" value={form.fecha_inicio}
+                      onChange={e => setForm({ ...form, fecha_inicio: e.target.value })} />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label>Fecha de Fin (con ano) *</label>
+                    <input type="date" className="form-input" value={form.fecha_fin}
+                      onChange={e => setForm({ ...form, fecha_fin: e.target.value })} />
+                  </div>
                 </div>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label>Día y Mes de Fin *</label>
-                  <input type="date" className="form-input" value={form.fecha_fin}
-                    onChange={e => setForm({ ...form, fecha_fin: e.target.value })} />
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <DayMonthPicker
+                    label="Inicio (dia + mes)"
+                    dia={form.dia_inicio} mes={form.mes_inicio}
+                    onDia={(v: string) => setForm({ ...form, dia_inicio: v })}
+                    onMes={(v: string) => setForm({ ...form, mes_inicio: v })}
+                  />
+                  <DayMonthPicker
+                    label="Fin (dia + mes)"
+                    dia={form.dia_fin} mes={form.mes_fin}
+                    onDia={(v: string) => setForm({ ...form, dia_fin: v })}
+                    onMes={(v: string) => setForm({ ...form, mes_fin: v })}
+                  />
                 </div>
-              </div>
+              )}
+
               <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '4px' }}>
                 <Button variant="ghost" size="sm" onClick={() => { setShowForm(false); setError(''); }}>
                   <X size={14} /> Cancelar

@@ -1,11 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { addDays, format, subDays, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Loader2, Tag } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { TimelineCalendar } from '../../components/TimelineCalendar/TimelineCalendar';
 import { NewReservationModal } from '../../components/NewReservationModal/NewReservationModal';
 import { EditReservationModal } from '../../components/EditReservationModal/EditReservationModal';
+import { PricingModal } from './PricingModal';
 import './Reservations.css';
 import { apiFetch } from '../../utils/apiFetch';
 
@@ -27,15 +28,24 @@ export const Reservations: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReserva, setEditingReserva] = useState<any | null>(null);
+  const [isPricingOpen, setIsPricingOpen] = useState(false);
+
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const goTo = (d: Date) => { setCurrentDate(d); saveDate(d); };
   const handlePrevDay = () => goTo(subDays(currentDate, 1));
   const handleNextDay = () => goTo(addDays(currentDate, 1));
   const handleToday  = () => goTo(startOfToday());
 
+  const handleMonthClick = () => {
+    // Intentar abrir el picker nativo; si no, el input ya es clicable vía overlay
+    if (dateInputRef.current) {
+      try { (dateInputRef.current as any).showPicker(); } catch { dateInputRef.current.click(); }
+    }
+  };
+
   useEffect(() => { fetchData(); }, []);
 
-  // Refrescar cuando la pestaña/ventana recupera el foco (cubre borrados desde otras páginas)
   useEffect(() => {
     const onFocus = () => fetchData();
     window.addEventListener('focus', onFocus);
@@ -71,12 +81,21 @@ export const Reservations: React.FC = () => {
         </div>
         <div className="res-page-actions">
           <Button variant="secondary" onClick={handleToday}>Hoy</Button>
+
+          {/* Navegación de fechas */}
           <div className="res-date-nav">
             <Button variant="ghost" onClick={handlePrevDay} className="icon-btn">
               <ChevronLeft size={20} />
             </Button>
-            <span className="res-date-label" style={{ position: 'relative', display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+            <span
+              className="res-date-label"
+              onClick={handleMonthClick}
+              title="Clic para ir a una fecha exacta"
+              style={{ position: 'relative', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+            >
+              {/* Input nativo oculto — se abre programáticamente */}
               <input
+                ref={dateInputRef}
                 type="date"
                 className="res-date-picker-hidden"
                 value={format(currentDate, 'yyyy-MM-dd')}
@@ -86,7 +105,7 @@ export const Reservations: React.FC = () => {
                     goTo(new Date(Number(year), Number(month) - 1, Number(day)));
                   }
                 }}
-                title="Seleccionar fecha exacta"
+                tabIndex={-1}
               />
               <span className="res-date-text text-capitalize">
                 {format(currentDate, "MMMM yyyy", { locale: es })}
@@ -96,6 +115,12 @@ export const Reservations: React.FC = () => {
               <ChevronRight size={20} />
             </Button>
           </div>
+
+          {/* Botón precios */}
+          <Button variant="secondary" onClick={() => setIsPricingOpen(true)}>
+            <Tag size={15} /> Consultar Precios
+          </Button>
+
           <Button variant="primary" onClick={() => setIsModalOpen(true)}>
             <Plus size={18} /> Nueva Reserva
           </Button>
@@ -133,6 +158,12 @@ export const Reservations: React.FC = () => {
         reservation={editingReserva}
         rooms={rooms}
         reservations={reservations}
+      />
+
+      <PricingModal
+        isOpen={isPricingOpen}
+        onClose={() => setIsPricingOpen(false)}
+        fecha={currentDate}
       />
     </div>
   );

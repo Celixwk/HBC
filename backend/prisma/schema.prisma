@@ -161,10 +161,14 @@ model temporada {
   id              Int      @id @default(autoincrement())
   nombre          String   @db.VarChar(100)
   tipo            String   @db.VarChar(10)  // "alta", "media", "baja"
-  mes_dia_inicio  String   @db.VarChar(5)   // "MM-DD"
-  mes_dia_fin     String   @db.VarChar(5)   // "MM-DD"
+  mes_dia_inicio  String   @db.VarChar(5)   // "MM-DD" (para recurrentes)
+  mes_dia_fin     String   @db.VarChar(5)   // "MM-DD" (para recurrentes)
   activo          Boolean  @default(true)
   fecha_creacion  DateTime @default(now()) @db.Timestamp(6)
+  // Campos para temporadas exactas (año específico, ej. Semana Santa)
+  es_exacta            Boolean @default(false)
+  fecha_exacta_inicio  String? @db.VarChar(10) // "YYYY-MM-DD"
+  fecha_exacta_fin     String? @db.VarChar(10) // "YYYY-MM-DD"
 
   @@index([mes_dia_inicio], map: "idx_temporada_inicio")
   @@index([mes_dia_fin],    map: "idx_temporada_fin")

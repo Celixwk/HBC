@@ -428,7 +428,9 @@ ${td(String(totales.numReservas),`${S.b};background:#E4F2E4;color:#4B5F73;font-w
                 <div className={`rep-kpi ${pnl.resumen.utilidadNeta>=0?'utilidad-pos':'utilidad-neg'}`}>
                   <div className="kpi-icon">{pnl.resumen.utilidadNeta>=0?<TrendingUp size={20}/>:<TrendingDown size={20}/>}</div>
                   <div>
-                    <div className="kpi-label">Utilidad Neta</div>
+                    <div className="kpi-label">
+                      {pnl.resumen.utilidadNeta >= 0 ? '▲ Ganancia Neta' : '▼ Pérdida Neta'}
+                    </div>
                     <div className="kpi-valor">${fmt(Math.abs(pnl.resumen.utilidadNeta))}</div>
                     <div className={`kpi-margen ${pnl.resumen.margenNeto>=0?'pos':'neg'}`}>{pct(pnl.resumen.margenNeto)} margen</div>
                   </div>

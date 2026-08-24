@@ -699,6 +699,7 @@ const CargosPersona: React.FC = () => {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [receiptPersona, setReceiptPersona] = useState<{ nombre: string; items: any[] } | null>(null);
 
+  const [isNewPersonaPickerOpen, setIsNewPersonaPickerOpen] = useState(false);
   const [payModal, setPayModal] = useState<{ isOpen: boolean, items: any[], persona: string }>({ isOpen: false, items: [], persona: '' });
   const [payMetodo, setPayMetodo] = useState('Efectivo');
   const [metodosPago, setMetodosPago] = useState<string[]>([]);
@@ -899,7 +900,21 @@ const CargosPersona: React.FC = () => {
           <div className="form-group" style={{ marginTop: '16px' }}>
             <label>Producto o Consumo Inicial *</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <input type="text" placeholder="Descripción" value={newPersonaProd.descripcion} onChange={e => setNewPersonaProd({...newPersonaProd, descripcion: e.target.value})} className="form-input" style={{ flex: 2 }} />
+              <div style={{ position: 'relative', flex: 2 }}>
+                <input type="text" placeholder="Descripción" value={newPersonaProd.descripcion} onChange={e => setNewPersonaProd({...newPersonaProd, descripcion: e.target.value})} className="form-input" style={{ width: '100%', paddingRight: '40px' }} />
+                <button
+                  type="button"
+                  onClick={() => setIsNewPersonaPickerOpen(true)}
+                  style={{
+                    position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'var(--primary)', border: 'none', color: '#fff',
+                    padding: '4px 6px', cursor: 'pointer', borderRadius: '4px'
+                  }}
+                  title="Buscar producto en el inventario"
+                >
+                  <Search size={14} />
+                </button>
+              </div>
               <input type="number" placeholder="Cant." value={newPersonaProd.cantidad} onChange={e => setNewPersonaProd({...newPersonaProd, cantidad: e.target.value})} className="form-input" style={{ flex: 1 }} min="1" />
               <input type="number" placeholder="Precio Unit." value={newPersonaProd.valor_unitario} onChange={e => setNewPersonaProd({...newPersonaProd, valor_unitario: e.target.value})} className="form-input" style={{ flex: 1 }} />
             </div>
@@ -916,6 +931,19 @@ const CargosPersona: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      <ProductPickerModal 
+        isOpen={isNewPersonaPickerOpen} 
+        onClose={() => setIsNewPersonaPickerOpen(false)} 
+        onSelect={(prod) => {
+          setNewPersonaProd({
+            ...newPersonaProd,
+            descripcion: prod.nombre,
+            valor_unitario: prod.precio_venta?.toString() ?? ''
+          });
+          setIsNewPersonaPickerOpen(false);
+        }} 
+      />
 
       <Modal isOpen={payModal.isOpen} onClose={() => setPayModal({ isOpen: false, items: [], persona: '' })} title={`Pagar Cargos: ${payModal.persona}`}>
         <div className="cargo-form">

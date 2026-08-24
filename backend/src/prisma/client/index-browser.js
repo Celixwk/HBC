@@ -250,7 +250,10 @@ exports.Prisma.TemporadaScalarFieldEnum = {
   mes_dia_inicio: 'mes_dia_inicio',
   mes_dia_fin: 'mes_dia_fin',
   activo: 'activo',
-  fecha_creacion: 'fecha_creacion'
+  fecha_creacion: 'fecha_creacion',
+  es_exacta: 'es_exacta',
+  fecha_exacta_inicio: 'fecha_exacta_inicio',
+  fecha_exacta_fin: 'fecha_exacta_fin'
 };
 
 exports.Prisma.Categoria_inventarioScalarFieldEnum = {

@@ -20,40 +20,41 @@ const detectarTemporada = async (req, res) => {
   if (!fecha) return res.status(400).json({ error: 'Falta el parámetro fecha' });
 
   try {
-    // Extraer MM-DD de la fecha (ej. "2026-12-15" -> "12-15")
-    const mmdd = fecha.substring(5, 10);
+    const activas = await prisma.temporada.findMany({ where: { activo: true } });
 
-    const activas = await prisma.temporada.findMany({
-      where: { activo: true },
-      orderBy: { tipo: 'asc' } // 'alta' < 'baja' < 'media' -> 'alta' primero
-    });
-
-    let detectada = null;
-
-    for (const temp of activas) {
-      const inicio = temp.mes_dia_inicio;
-      const fin = temp.mes_dia_fin;
-
-      if (inicio <= fin) {
-        // Año normal (ej. "02-15" a "03-15")
-        if (mmdd >= inicio && mmdd <= fin) {
-          detectada = temp;
-          break;
-        }
-      } else {
-        // Cruza año nuevo (ej. "12-15" a "01-15")
-        if (mmdd >= inicio || mmdd <= fin) {
-          detectada = temp;
-          break;
-        }
+    // 1) Prioridad: temporadas EXACTAS (con año específico)
+    const exactas = activas.filter(t => t.es_exacta && t.fecha_exacta_inicio && t.fecha_exacta_fin);
+    for (const temp of exactas) {
+      if (fecha >= temp.fecha_exacta_inicio && fecha <= temp.fecha_exacta_fin) {
+        return res.json({ tipo: temp.tipo, nombre: temp.nombre, id: temp.id, exacta: true });
       }
     }
 
-    if (detectada) {
-      res.json({ tipo: detectada.tipo, nombre: detectada.nombre, id: detectada.id });
-    } else {
-      res.json({ tipo: 'baja', nombre: 'Temporada Baja (por defecto)', id: null });
+    // 2) Fallback: temporadas RECURRENTES (sólo MM-DD)
+    const mmdd = fecha.substring(5, 10);
+    const recurrentes = activas.filter(t => !t.es_exacta);
+    // Ordenar: alta > media > baja
+    const prioridad = { alta: 0, media: 1, baja: 2 };
+    recurrentes.sort((a, b) => (prioridad[a.tipo] ?? 3) - (prioridad[b.tipo] ?? 3));
+
+    for (const temp of recurrentes) {
+      const inicio = temp.mes_dia_inicio;
+      const fin    = temp.mes_dia_fin;
+      let coincide;
+      if (inicio <= fin) {
+        // Rango normal (ej. 02-15 a 03-15)
+        coincide = mmdd >= inicio && mmdd <= fin;
+      } else {
+        // Cruza año nuevo (ej. 12-15 a 01-15)
+        coincide = mmdd >= inicio || mmdd <= fin;
+      }
+      if (coincide) {
+        return res.json({ tipo: temp.tipo, nombre: temp.nombre, id: temp.id, exacta: false });
+      }
     }
+
+    // Default: baja
+    res.json({ tipo: 'baja', nombre: 'Temporada Baja (por defecto)', id: null, exacta: false });
   } catch (error) {
     console.error('Error al detectar temporada:', error);
     res.status(500).json({ error: 'Error al detectar temporada' });
@@ -62,29 +63,49 @@ const detectarTemporada = async (req, res) => {
 
 // ─── Crear temporada ────────────────────────────────────────────────────────
 const createTemporada = async (req, res) => {
-  const { nombre, tipo, fecha_inicio, fecha_fin, activo } = req.body;
+  const { nombre, tipo, fecha_inicio, fecha_fin, activo, es_exacta } = req.body;
 
-  if (!nombre || !tipo || !fecha_inicio || !fecha_fin) {
-    return res.status(400).json({ error: 'Faltan campos requeridos: nombre, tipo, fecha_inicio, fecha_fin' });
+  if (!nombre || !tipo) {
+    return res.status(400).json({ error: 'Faltan campos requeridos: nombre, tipo' });
   }
-
   if (!['alta', 'media', 'baja'].includes(tipo)) {
     return res.status(400).json({ error: 'El tipo debe ser: alta, media o baja' });
   }
 
   try {
-    const mes_dia_inicio = fecha_inicio.substring(5, 10);
-    const mes_dia_fin = fecha_fin.substring(5, 10);
+    const esExacta = es_exacta === true || es_exacta === 'true';
+    let data;
 
-    const nueva = await prisma.temporada.create({
-      data: {
-        nombre,
-        tipo,
-        mes_dia_inicio,
-        mes_dia_fin,
-        activo: activo !== undefined ? activo : true
+    if (esExacta) {
+      // Temporada exacta: guardar fecha completa
+      if (!fecha_inicio || !fecha_fin) {
+        return res.status(400).json({ error: 'Las temporadas exactas requieren fecha_inicio y fecha_fin con año' });
       }
-    });
+      data = {
+        nombre, tipo,
+        es_exacta: true,
+        fecha_exacta_inicio: fecha_inicio,
+        fecha_exacta_fin: fecha_fin,
+        // mes_dia de fallback extraídos de las fechas exactas
+        mes_dia_inicio: fecha_inicio.substring(5, 10),
+        mes_dia_fin:    fecha_fin.substring(5, 10),
+        activo: activo !== undefined ? activo : true
+      };
+    } else {
+      // Temporada recurrente: solo MM-DD
+      if (!fecha_inicio || !fecha_fin) {
+        return res.status(400).json({ error: 'Faltan campos requeridos: fecha_inicio, fecha_fin' });
+      }
+      data = {
+        nombre, tipo,
+        es_exacta: false,
+        mes_dia_inicio: fecha_inicio.length === 5 ? fecha_inicio : fecha_inicio.substring(5, 10),
+        mes_dia_fin:    fecha_fin.length   === 5 ? fecha_fin   : fecha_fin.substring(5, 10),
+        activo: activo !== undefined ? activo : true
+      };
+    }
+
+    const nueva = await prisma.temporada.create({ data });
     res.status(201).json(nueva);
   } catch (error) {
     console.error('Error al crear temporada:', error);
@@ -95,20 +116,31 @@ const createTemporada = async (req, res) => {
 // ─── Actualizar temporada ───────────────────────────────────────────────────
 const updateTemporada = async (req, res) => {
   const { id } = req.params;
-  const { nombre, tipo, fecha_inicio, fecha_fin, activo } = req.body;
+  const { nombre, tipo, fecha_inicio, fecha_fin, activo, es_exacta } = req.body;
 
   try {
     const data = {};
-    if (nombre !== undefined) data.nombre = nombre;
-    if (tipo !== undefined) data.tipo = tipo;
-    if (activo !== undefined) data.activo = activo;
-    if (fecha_inicio !== undefined) data.mes_dia_inicio = fecha_inicio.substring(5, 10);
-    if (fecha_fin !== undefined) data.mes_dia_fin = fecha_fin.substring(5, 10);
+    if (nombre    !== undefined) data.nombre  = nombre;
+    if (tipo      !== undefined) data.tipo    = tipo;
+    if (activo    !== undefined) data.activo  = activo;
+    if (es_exacta !== undefined) {
+      const esExacta = es_exacta === true || es_exacta === 'true';
+      data.es_exacta = esExacta;
+      if (esExacta) {
+        if (fecha_inicio) { data.fecha_exacta_inicio = fecha_inicio; data.mes_dia_inicio = fecha_inicio.substring(5, 10); }
+        if (fecha_fin)    { data.fecha_exacta_fin    = fecha_fin;    data.mes_dia_fin    = fecha_fin.substring(5, 10); }
+      } else {
+        data.fecha_exacta_inicio = null;
+        data.fecha_exacta_fin    = null;
+        if (fecha_inicio) data.mes_dia_inicio = fecha_inicio.length === 5 ? fecha_inicio : fecha_inicio.substring(5, 10);
+        if (fecha_fin)    data.mes_dia_fin    = fecha_fin.length   === 5 ? fecha_fin   : fecha_fin.substring(5, 10);
+      }
+    } else {
+      if (fecha_inicio !== undefined) data.mes_dia_inicio = fecha_inicio.length === 5 ? fecha_inicio : fecha_inicio.substring(5, 10);
+      if (fecha_fin    !== undefined) data.mes_dia_fin    = fecha_fin.length   === 5 ? fecha_fin   : fecha_fin.substring(5, 10);
+    }
 
-    const updated = await prisma.temporada.update({
-      where: { id: parseInt(id) },
-      data
-    });
+    const updated = await prisma.temporada.update({ where: { id: parseInt(id) }, data });
     res.json(updated);
   } catch (error) {
     console.error('Error al actualizar temporada:', error);
