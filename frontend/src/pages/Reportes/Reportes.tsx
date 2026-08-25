@@ -9,8 +9,9 @@ import {
   CalendarDays, Table2, FileText
 } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 import { apiFetch } from '../../utils/apiFetch';
 import './Reportes.css';
 
@@ -565,7 +566,7 @@ ${td(String(totales.numReservas),`${S.b};background:#E4F2E4;color:#4B5F73;font-w
                     <tbody>
                       {pnl.ingresos.detalle.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((d:any,i:number)=>(
                         <tr key={i}>
-                          <td>{d.fecha?format(parseISO(d.fecha),'d MMM',{locale:es}):'—'}</td>
+                          <td>{d.fecha?dayjs(d.fecha).format('D MMM'):'—'}</td>
                           <td><span className={`rep-tipo-badge ${d.tipo==='Hospedaje'?'hospedaje':'consumo'}`}>{d.tipo}</span></td>
                           <td style={{fontSize:'0.83rem'}}>{d.descripcion}</td>
                           <td style={{textAlign:'right',fontWeight:600}}>${fmt(d.monto)}</td>

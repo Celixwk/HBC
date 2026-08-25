@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { addDays, format, subDays, startOfToday } from 'date-fns';
-import { es } from 'date-fns/locale';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 import { ChevronLeft, ChevronRight, Plus, Loader2, Tag } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { TimelineCalendar } from '../../components/TimelineCalendar/TimelineCalendar';
@@ -21,10 +22,11 @@ export const Reservations: React.FC = () => {
       const d = new Date(saved);
       if (!isNaN(d.getTime())) return d;
     }
-    return startOfToday();
+    return dayjs().startOf('day').toDate();
   });
   const [rooms, setRooms] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReserva, setEditingReserva] = useState<any | null>(null);
@@ -33,9 +35,9 @@ export const Reservations: React.FC = () => {
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   const goTo = (d: Date) => { setCurrentDate(d); saveDate(d); };
-  const handlePrevDay = () => goTo(subDays(currentDate, 1));
-  const handleNextDay = () => goTo(addDays(currentDate, 1));
-  const handleToday  = () => goTo(startOfToday());
+  const handlePrevDay = () => goTo(dayjs(currentDate).subtract(1, 'day').toDate());
+  const handleNextDay = () => goTo(dayjs(currentDate).add(1, 'day').toDate());
+  const handleToday  = () => goTo(dayjs().startOf('day').toDate());
 
   const handleMonthClick = () => {
     // Intentar abrir el picker nativo; si no, el input ya es clicable vía overlay
@@ -55,15 +57,19 @@ export const Reservations: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [resEspacios, resReservas] = await Promise.all([
+      const [resEspacios, resReservas, resConfig] = await Promise.all([
         apiFetch('/espacios'),
-        apiFetch('/reservas')
+        apiFetch('/reservas'),
+        apiFetch('/configuracion')
       ]);
       if (resEspacios.ok && resReservas.ok) {
         const espaciosData = await resEspacios.json();
         const reservasData = await resReservas.json();
         setRooms(espaciosData.filter((e: any) => e.activo));
         setReservations(reservasData);
+      }
+      if (resConfig.ok) {
+        setConfig(await resConfig.json());
       }
     } catch (error) {
       console.error('Error fetching reservations data:', error);
@@ -98,7 +104,7 @@ export const Reservations: React.FC = () => {
                 ref={dateInputRef}
                 type="date"
                 className="res-date-picker-hidden"
-                value={format(currentDate, 'yyyy-MM-dd')}
+                value={dayjs(currentDate).format('YYYY-MM-DD')}
                 onChange={(e) => {
                   if (e.target.value) {
                     const [year, month, day] = e.target.value.split('-');
@@ -108,7 +114,7 @@ export const Reservations: React.FC = () => {
                 tabIndex={-1}
               />
               <span className="res-date-text text-capitalize">
-                {format(currentDate, "MMMM yyyy", { locale: es })}
+                {dayjs(currentDate).format('MMMM YYYY')}
               </span>
             </span>
             <Button variant="ghost" onClick={handleNextDay} className="icon-btn">
@@ -139,6 +145,7 @@ export const Reservations: React.FC = () => {
             rooms={rooms} 
             reservations={reservations} 
             onReservationClick={setEditingReserva}
+            config={config}
           />
         )}
       </div>

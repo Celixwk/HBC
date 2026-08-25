@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@types/react-signature-canvas": "^1.0.7",
-    "date-fns": "^4.1.0",
+    "dayjs": "^1.11.23",
     "exceljs": "^4.4.0",
     "framer-motion": "^12.38.0",
     "jspdf": "^4.2.1",

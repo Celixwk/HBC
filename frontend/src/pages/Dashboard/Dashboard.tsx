@@ -1,4 +1,12 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import 'dayjs/locale/es';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale('es');
 import { motion } from 'framer-motion';
 import {
   BedDouble, Users, DoorOpen, LogOut, Loader2, ArrowUpRight, ArrowDownRight,
@@ -46,19 +54,23 @@ const KpiCard: React.FC<KpiCardProps> = ({ icon, label, value, sub, color, delay
 
 export const Dashboard: React.FC = () => {
   const [stats, setStats]   = useState<any>(null);
+  const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [ahora, setAhora]   = useState(new Date());
+  const [ahora, setAhora]   = useState(dayjs());
 
   // Reloj en tiempo real — se actualiza cada 30 s
   useEffect(() => {
-    const id = setInterval(() => setAhora(new Date()), 30_000);
+    const id = setInterval(() => setAhora(dayjs()), 30_000);
     return () => clearInterval(id);
   }, []);
 
+  const [coHour, coMin] = (config?.hora_check_out || '13:00').split(':').map(Number);
+  const [ciHour, ciMin] = (config?.hora_check_in || '15:00').split(':').map(Number);
+
   // Flags de tiempo calculados en el cliente (no dependen del momento de carga)
-  const minActual    = ahora.getHours() * 60 + ahora.getMinutes();
-  const pasoCheckOut = minActual >= 13 * 60; // 1:00 PM → hora de salida
-  const pasoCheckIn  = minActual >= 15 * 60; // 3:00 PM → hora de entrada
+  const minActual    = ahora.hour() * 60 + ahora.minute();
+  const pasoCheckOut = minActual >= (coHour * 60 + (coMin || 0));
+  const pasoCheckIn  = minActual >= (ciHour * 60 + (ciMin || 0));
 
   // Cuando el reloj cruza la hora de check-out, refetch para que el backend
   // ejecute el auto-marcado y devuelva las cifras actualizadas (in-house, etc.)
@@ -75,8 +87,12 @@ export const Dashboard: React.FC = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await apiFetch('/dashboard/stats');
-      if (response.ok) setStats(await response.json());
+      const [resStats, resConfig] = await Promise.all([
+        apiFetch('/dashboard/stats'),
+        apiFetch('/configuracion')
+      ]);
+      if (resStats.ok) setStats(await resStats.json());
+      if (resConfig.ok) setConfig(await resConfig.json());
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     } finally {
@@ -85,8 +101,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const formatSimpleDate = (dateStr: string) => {
-    const d = new Date(dateStr + "T00:00:00");
-    return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+    return dayjs.tz(dateStr, 'America/Bogota').format('DD MMM');
   };
 
   if (loading) {
@@ -140,7 +155,7 @@ export const Dashboard: React.FC = () => {
           icon={<LogOut size={24} />}
           label="Salidas"
           value={estadisticas.salidasHoy}
-          sub={pasoCheckOut ? 'Salidas del día completadas · 1:00 PM' : 'Check-outs programados hoy'}
+          sub={pasoCheckOut ? `Salidas del día completadas · ${config?.hora_check_out || '13:00'}` : 'Check-outs programados hoy'}
           color="rgba(245, 158, 11, 0.2)"
           delay={0.1}
         />
@@ -151,7 +166,7 @@ export const Dashboard: React.FC = () => {
           sub={checkInsPendientes.length > 0
             ? `${checkInsPendientes.length} pendiente(s) de firma`
             : pasoCheckIn
-              ? 'Llegadas del día completadas · 3:00 PM'
+              ? `Llegadas del día completadas · ${config?.hora_check_in || '15:00'}`
               : 'Check-ins programados hoy'}
           color="rgba(16, 185, 129, 0.2)"
           delay={0.2}

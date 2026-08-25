@@ -136,7 +136,7 @@ export const Guests: React.FC = () => {
     if (!dateStr) return '-';
     try {
       const date = isLocal ? parseLocalDate(dateStr) : new Date(dateStr);
-      return format(date, "d MMM yyyy", { locale: es });
+      return dayjs(date).format('D MMM YYYY');
     } catch {
       return '-';
     }

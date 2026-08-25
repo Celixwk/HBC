@@ -143,7 +143,7 @@ export const TemporadasSettings: React.FC = () => {
     if (!md) return '';
     const [m, d] = md.split('-');
     const date = new Date(2000, parseInt(m) - 1, parseInt(d));
-    return format(date, 'd MMM', { locale: es });
+    return dayjs(date).format('D MMM');
   };
 
   const formatRango = (t: Temporada) => {

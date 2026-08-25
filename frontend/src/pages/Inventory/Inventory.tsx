@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Loader2, Edit2, ArrowDownCircle, ArrowUpCircle, AlertTriangle, Tags, Trash2 } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 import { apiFetch } from '../../utils/apiFetch';
 import './Inventory.css';
 
@@ -342,7 +343,7 @@ export const Inventory: React.FC = () => {
                   {movimientos.map((m: any) => (
                     <tr key={m.id_movimiento}>
                       <td className="text-muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                        {format(new Date(m.fecha), 'd MMM yyyy HH:mm', { locale: es })}
+                        <span className="text-sm">{dayjs(m.fecha).format('D MMM YYYY HH:mm')}</span>
                       </td>
                       <td style={{ fontWeight: 500 }}>{m.producto?.nombre}</td>
                       <td><span className="cat-badge">{m.producto?.categoria}</span></td>

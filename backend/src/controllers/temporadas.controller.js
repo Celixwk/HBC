@@ -30,6 +30,26 @@ const detectarTemporada = async (req, res) => {
       }
     }
 
+    // 2) Novedad Automática: Festivos y Semana Santa usando colombian-holidays
+    const anio = parseInt(fecha.substring(0, 4));
+    if (!isNaN(anio)) {
+      try {
+        const { getHolidaysByYear } = await import('colombian-holidays/getHolidaysByYear');
+        const festivos = getHolidaysByYear(anio);
+        const esFestivo = festivos.find(f => f.date === fecha);
+        if (esFestivo) {
+          return res.json({ 
+            tipo: 'alta', 
+            nombre: `Festivo / Semana Santa: ${esFestivo.name}`, 
+            id: null, 
+            exacta: true 
+          });
+        }
+      } catch (err) {
+        console.error('No se pudo cargar colombian-holidays:', err);
+      }
+    }
+
     // 2) Fallback: temporadas RECURRENTES (sólo MM-DD)
     const mmdd = fecha.substring(5, 10);
     const recurrentes = activas.filter(t => !t.es_exacta);

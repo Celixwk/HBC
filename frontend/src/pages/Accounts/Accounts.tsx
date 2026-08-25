@@ -4,8 +4,9 @@ import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
 import { Receipt } from '../../components/Receipt/Receipt';
 import { PersonaReceipt } from '../../components/PersonaReceipt/PersonaReceipt';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 import './Accounts.css';
 import { ProductPickerModal } from './ProductPickerModal';
 import { apiFetch } from '../../utils/apiFetch';
@@ -161,8 +162,8 @@ function EditableRow<T extends { [key: string]: any }>({
     <tr>
       {fields.map(f => (
         <td key={f.name} className={f.name.includes('total') ? 'font-bold text-gradient' : f.name === 'fecha_registro' || f.name === 'fecha_vencimiento' ? 'text-muted text-sm' : ''}>
-          {f.name === 'fecha_registro' || f.name === 'fecha_vencimiento'
-            ? item[f.name] ? format(parseISO(String(item[f.name]).slice(0, 10)), "d MMM yyyy", { locale: es }) : 'Sin venc.'
+          {f.type === 'date'
+            ? item[f.name] ? dayjs(String(item[f.name]).slice(0, 10)).format('D MMM YYYY') : 'Sin venc.'
             : f.name.includes('valor') || f.name.includes('precio')
               ? `$${parseFloat(item[f.name] || 0).toLocaleString()}`
               : item[f.name]}
@@ -198,7 +199,6 @@ function EditableRow<T extends { [key: string]: any }>({
 
 // ─── Cargos a Habitación ──────────────────────────────────────────────────────
 
-// Modal de pago interno (evita window.prompt/confirm que Electron bloquea)
 type PayModalState = {
   mode: 'pago_habitacion' | 'pago_todo' | 'pago_item' | 'anular_todo' | 'finalizar' | 'extender' | null;
   reserva: any;
@@ -251,7 +251,6 @@ const CargosEspacio: React.FC = () => {
       setPayMetodo('Efectivo');
       setPayModal({ mode: 'pago_todo', reserva, items: itemsToUpdate, totalPendiente: 0 });
     } else {
-      // Anular: sin modal, directo
       setLoading(true);
       try {
         const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
@@ -278,7 +277,6 @@ const CargosEspacio: React.FC = () => {
       setPayMetodo('Efectivo');
       setPayModal({ mode: 'pago_habitacion', reserva, items: [], totalPendiente: montoTotal });
     } else {
-      // Anular directo sin modal
       setLoading(true);
       apiFetch(`/reservas/${idReserva}/pago`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -309,7 +307,6 @@ const CargosEspacio: React.FC = () => {
     setPayModal({ mode: 'extender', reserva, items: [], totalPendiente: 0 });
   };
 
-  // Ejecutar la acción confirmada desde el modal
   const executeModalAction = async () => {
     const { mode, reserva, items: modalItems, totalPendiente } = payModal;
     setPayModal(p => ({ ...p, mode: null }));
@@ -382,14 +379,12 @@ const CargosEspacio: React.FC = () => {
     else grouped[item.id_reserva] = { reserva: item.reserva, items: [item] };
   });
 
-  const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const today = new Date().toLocaleDateString('en-CA');
   const entries = Object.values(grouped)
     .filter(g => g.reserva)
     .filter(g => {
       const r = g.reserva;
-      // Siempre visibles: en_uso y completada
       if (['en_uso', 'completada'].includes(r.estado_reserva)) return true;
-      // Para activa/confirmada: solo mostrar si el check_in ya llegó o es hoy
       const checkIn = (r.check_in || '').slice(0, 10);
       return checkIn <= today;
     });
@@ -407,7 +402,6 @@ const CargosEspacio: React.FC = () => {
         const totalPendiente = roomItems.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0) + roomPendiente;
         const totalPagado = roomItems.filter(i => i.estado === 'pagado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0) + roomPagado;
         
-        // El count ahora incluye el cargo de la habitación implícito
         const totalCargosCount = roomItems.length + (roomPrice > 0 ? 1 : 0);
 
         return (
@@ -470,13 +464,11 @@ const CargosEspacio: React.FC = () => {
                       size="sm" 
                       onClick={async (e: React.MouseEvent) => {
                         e.stopPropagation();
-                        // 1. Activar la reserva (en_uso)
                         await apiFetch(`/reservas/${reserva.id_reserva}/estado`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ estado_reserva: 'en_uso' })
                         });
-                        // 2. Registrar ingreso del huésped automáticamente (sin necesidad de ir a Huéspedes)
                         await apiFetch(`/huespedes/${reserva.id_huesped}/firma`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
@@ -518,14 +510,13 @@ const CargosEspacio: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Fila virtual para el Alojamiento */}
                     {parseFloat(reserva.monto_total || 0) > 0 && (
                       <tr>
                         <td className="font-medium">Alojamiento (Hab. {reserva.espacio?.numero})</td>
                         <td>-</td>
                         <td>${parseFloat(reserva.monto_total).toLocaleString()}</td>
                         <td className="font-bold text-gradient">${parseFloat(reserva.monto_total).toLocaleString()}</td>
-                        <td className="text-muted text-sm">{format(parseISO(String(reserva.fecha_creacion || reserva.check_in).slice(0, 10)), "d MMM yyyy", { locale: es })}</td>
+                        <td className="text-muted text-sm">{dayjs(String(reserva.fecha_creacion || reserva.check_in).slice(0, 10)).format('D MMM YYYY')}</td>
                         <td>
                           <span className={`status-badge status-${reserva.estado_pago?.toLowerCase() || 'pendiente'}`}>
                             {reserva.estado_pago || 'Pendiente'}
@@ -553,7 +544,6 @@ const CargosEspacio: React.FC = () => {
                       </tr>
                     )}
 
-                    {/* Consumos */}
                     {roomItems.map((item: any) => (
                       <EditableRow key={item.id_item} item={item} idKey="id_item" apiPath="espacio" onDone={fetchItems}
                         onPay={(it) => setPayModal({ mode: 'pago_item', reserva, items: [it], totalPendiente: 0 })}
@@ -562,7 +552,7 @@ const CargosEspacio: React.FC = () => {
                           { name: 'cantidad', label: 'Cant.' },
                           { name: 'valor_unitario', label: 'Precio' },
                           { name: 'valor_total', label: 'Total' },
-                          { name: 'fecha_registro', label: 'Fecha' },
+                          { name: 'fecha_registro', label: 'Fecha', type: 'date' },
                         ]} />
                     ))}
                     {reserva.estado_reserva === 'en_uso' ? (
@@ -590,7 +580,6 @@ const CargosEspacio: React.FC = () => {
       })}
       {entries.length === 0 && <p className="text-muted text-center p-8">No hay reservas. Crea una reserva primero.</p>}
 
-      {/* Modal de Pago / Acciones (sin window.confirm/prompt) */}
       {payModal.mode && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex',
@@ -645,7 +634,6 @@ const CargosEspacio: React.FC = () => {
         </div>
       )}
 
-      {/* Mini-modal para editar método de pago en reservas ya pagadas */}
       {editMetodoModal.isOpen && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border-light)', borderRadius: '16px', padding: '28px 32px', minWidth: '360px', maxWidth: '440px', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
@@ -676,7 +664,6 @@ const CargosEspacio: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Impresión */}
       {receiptData && (
         <Receipt 
           isOpen={true} 
@@ -862,7 +849,7 @@ const CargosPersona: React.FC = () => {
                           { name: 'cantidad', label: 'Cant.' },
                           { name: 'valor_unitario', label: 'Precio' },
                           { name: 'valor_total', label: 'Total' },
-                          { name: 'fecha_registro', label: 'Fecha' },
+                          { name: 'fecha_registro', label: 'Fecha', type: 'date' },
                         ]} />
                     ))}
                     <AddRowForm
@@ -1031,7 +1018,7 @@ const InventarioMinibar: React.FC<{ espacios: any[] }> = ({ espacios }) => {
                           { name: 'nombre_producto', label: 'Producto' },
                           { name: 'cantidad', label: 'Cant.' },
                           { name: 'precio_unitario', label: 'Precio' },
-                          { name: 'fecha_vencimiento', label: 'Vencimiento' },
+                          { name: 'fecha_vencimiento', label: 'Vencimiento', type: 'date' },
                         ]} />
                     ))}
                     <AddRowForm
@@ -1109,7 +1096,7 @@ const HistorialPersonas: React.FC = () => {
                   <tbody>
                     {persona.cargos.map((c: any) => (
                       <tr key={c.id} style={{ opacity: c.estado === 'anulado' ? 0.5 : 1, textDecoration: c.estado === 'anulado' ? 'line-through' : 'none' }}>
-                        <td className="text-muted" style={{ fontSize: '12px' }}>{format(parseISO(String(c.fecha_registro).slice(0, 10)), 'd MMM yyyy', { locale: es })}</td>
+                        <td className="text-muted" style={{ fontSize: '12px' }}>{dayjs(String(c.fecha_registro).slice(0, 10)).format('D MMM YYYY')}</td>
                         <td>{c.descripcion}</td>
                         <td>{c.cantidad}</td>
                         <td className="text-muted" style={{ fontSize: '12px' }}>${c.valor_unitario.toLocaleString()}</td>
@@ -1198,7 +1185,7 @@ const HistorialHabitaciones: React.FC = () => {
                   <div className="text-muted" style={{ fontSize: '12px' }}>
                     {r.tipo_ocupacion}
                     {' • '}
-                    {format(parseISO(String(r.check_in).slice(0, 10)), 'd MMM', { locale: es })} → {format(parseISO(String(r.check_out).slice(0, 10)), 'd MMM yyyy', { locale: es })}
+                    {dayjs(String(r.check_in).slice(0, 10)).format('D MMM')} → {dayjs(String(r.check_out).slice(0, 10)).format('D MMM YYYY')}
                   </div>
                 </div>
               </div>

@@ -1,35 +1,51 @@
 import React from 'react';
-import { addDays, format, isSameDay, startOfDay } from 'date-fns';
-import { es } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
+import 'dayjs/locale/es';
 import './TimelineCalendar.css';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(isSameOrBefore);
+dayjs.locale('es');
 
 interface TimelineCalendarProps {
   startDate: Date;
   rooms: any[];
   reservations: any[];
   onReservationClick?: (reservation: any) => void;
+  config?: { hora_check_in?: string; hora_check_out?: string } | null;
 }
 
 // ── Determina color según estado + firma + fechas + hora actual ───────────
-const getReservationColor = (res: any) => {
+const getReservationColor = (res: any, config: any) => {
   const estado = res.estado_reserva?.toLowerCase();
   // firma ahora está en reserva, no en huesped
   const tieneFirma = !!res.firma;
-  const ahora = new Date();
-  const hoy = startOfDay(ahora);
-  const minActual = ahora.getHours() * 60 + ahora.getMinutes();
-  const pasoCheckOut = minActual >= 13 * 60; // 1:00 PM
+  const ahora = dayjs();
+  const hoy = ahora.startOf('day');
+  
+  // Extraer hora de check out de config o usar 13:00 por defecto
+  const [coHour, coMin] = (config?.hora_check_out || '13:00').split(':').map(Number);
+  
+  const minActual = ahora.hour() * 60 + ahora.minute();
+  const pasoCheckOut = minActual >= (coHour * 60 + (coMin || 0));
 
-  const checkIn  = startOfDay(new Date(res.check_in));
-  const checkOut = startOfDay(new Date(res.check_out));
+  const ciDatePart = res.check_in.split('T')[0];
+  const coDatePart = res.check_out.split('T')[0];
+  
+  const checkIn = dayjs.tz(ciDatePart, 'America/Bogota').startOf('day');
+  const checkOut = dayjs.tz(coDatePart, 'America/Bogota').startOf('day');
 
   // Completada si: marcada en BD, checkout anterior a hoy,
-  // o es día de checkout y ya pasó la 1 PM
+  // o es día de checkout y ya pasó la hora límite
   if (
     estado === 'completada' ||
-    checkOut < hoy ||
-    (isSameDay(checkOut, hoy) && pasoCheckOut)
+    checkOut.isBefore(hoy) ||
+    (checkOut.isSame(hoy, 'day') && pasoCheckOut)
   ) {
     return { bg: 'rgba(139,92,246,0.18)', border: '#8b5cf655', text: '#c4b5fd', label: 'Completada' };
   }
@@ -46,7 +62,8 @@ const getReservationColor = (res: any) => {
 
   // Verde si firmó — incluso si firmó antes de la fecha de llegada (pre-registrado)
   if (tieneFirma) {
-    const enCasa = checkIn <= hoy && checkOut >= hoy;
+    const enCasa = (checkIn.isSame(hoy, 'day') || checkIn.isBefore(hoy, 'day')) && 
+                   (checkOut.isSame(hoy, 'day') || checkOut.isAfter(hoy, 'day'));
     return {
       bg: 'rgba(16,185,129,0.18)',
       border: '#10b98155',
@@ -62,22 +79,18 @@ const getReservationColor = (res: any) => {
 // ── Tipo de bloque para una celda de día ─────────────────────────────────
 type BlockType = 'start' | 'mid' | 'checkout' | 'full' | null;
 
-const parseLocalDate = (isoString: string) => {
-  if (!isoString) return new Date();
-  const datePart = isoString.split('T')[0];
-  const [year, month, day] = datePart.split('-').map(Number);
-  return new Date(year, month - 1, day);
-};
+const getDayBlock = (res: any, day: any): BlockType => {
+  const ciDatePart = res.check_in.split('T')[0];
+  const coDatePart = res.check_out.split('T')[0];
+  
+  const ci = dayjs.tz(ciDatePart, 'America/Bogota').startOf('day');
+  const co = dayjs.tz(coDatePart, 'America/Bogota').startOf('day');
+  const d  = dayjs(day).startOf('day');
 
-const getDayBlock = (res: any, day: Date): BlockType => {
-  const ci = startOfDay(parseLocalDate(res.check_in));
-  const co = startOfDay(parseLocalDate(res.check_out));
-  const d  = startOfDay(day);
+  if (d.isBefore(ci, 'day') || d.isAfter(co, 'day')) return null;
 
-  if (d < ci || d > co) return null;
-
-  const isCI = isSameDay(d, ci);
-  const isCO = isSameDay(d, co);
+  const isCI = d.isSame(ci, 'day');
+  const isCO = d.isSame(co, 'day');
 
   if (isCI && isCO) return 'full';
   if (isCI)  return 'start';
@@ -86,9 +99,6 @@ const getDayBlock = (res: any, day: Date): BlockType => {
 };
 
 // ── Posicionamiento absoluto según tipo de bloque ─────────────────────────
-//  checkout → mitad izquierda  (left: 0   → right: 50%)
-//  start    → mitad derecha    (left: 50% → right: 0)
-//  mid/full → celda completa   (left: 0   → right: 0)
 const blockPosition = (blockType: BlockType) => {
   switch (blockType) {
     case 'checkout': return { left: '0',    right: '50%' };
@@ -108,11 +118,11 @@ const blockRadius = (blockType: BlockType) => {
 };
 
 export const TimelineCalendar: React.FC<TimelineCalendarProps> = ({
-  startDate, rooms, reservations, onReservationClick
+  startDate, rooms, reservations, onReservationClick, config
 }) => {
   const daysToShow = 14;
-  const days = Array.from({ length: daysToShow }).map((_, i) => addDays(startDate, i));
-  const today = startOfDay(new Date());
+  const days = Array.from({ length: daysToShow }).map((_, i) => dayjs(startDate).add(i, 'day'));
+  const today = dayjs().startOf('day');
 
   // Solo ocultar canceladas — no_show se muestra en rojo para que el staff actúe
   const visibleReservations = reservations.filter(r => {
@@ -128,9 +138,9 @@ export const TimelineCalendar: React.FC<TimelineCalendarProps> = ({
           <div className="timeline-corner">Habitación</div>
           <div className="timeline-days" style={{ gridTemplateColumns: `repeat(${daysToShow}, 1fr)` }}>
             {days.map((day, i) => (
-              <div key={i} className={`timeline-day-header ${isSameDay(day, today) ? 'today' : ''}`}>
-                <span className="day-name">{format(day, 'EEE', { locale: es })}</span>
-                <span className="day-number">{format(day, 'd')}</span>
+              <div key={i} className={`timeline-day-header ${day.isSame(today, 'day') ? 'today' : ''}`}>
+                <span className="day-name">{day.format('ddd').charAt(0).toUpperCase() + day.format('ddd').slice(1)}</span>
+                <span className="day-number">{day.format('D')}</span>
               </div>
             ))}
           </div>
@@ -173,10 +183,10 @@ export const TimelineCalendar: React.FC<TimelineCalendarProps> = ({
                     return (
                       <div
                         key={di}
-                        className={`cal-cell ${isSameDay(day, today) ? 'cal-cell-today' : ''}`}
+                        className={`cal-cell ${day.isSame(today, 'day') ? 'cal-cell-today' : ''}`}
                       >
                         {dayBlocks.map(({ res, blockType }) => {
-                          const colors = getReservationColor(res);
+                          const colors = getReservationColor(res, config);
                           const pos    = blockPosition(blockType);
                           const radius = blockRadius(blockType);
                           const showName = blockType === 'start' || blockType === 'full';

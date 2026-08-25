@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Modal } from '../Modal/Modal';
 import { Button } from '../Button/Button';
-import { differenceInDays } from 'date-fns';
+import dayjs from 'dayjs';
 import { User, Calendar, BedDouble, Users, FileText, Info, Clock, CheckSquare, Search, X } from 'lucide-react';
 import './NewReservationModal.css';
 import { apiFetch } from '../../utils/apiFetch';
@@ -118,7 +118,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
     if (!formData.check_in || !formData.check_out || formData.id_espacios.length === 0) {
       setMontoTotal(0); setNoches(0); return;
     }
-    const nights = differenceInDays(new Date(formData.check_out), new Date(formData.check_in));
+    const nights = dayjs(formData.check_out).diff(dayjs(formData.check_in), 'day');
     setNoches(nights > 0 ? nights : 0);
     if (nights <= 0) { setMontoTotal(0); return; }
 

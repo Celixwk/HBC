@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '../Modal/Modal';
 import { Button } from '../Button/Button';
 import { Calendar, Trash2, Save, BedDouble, Users, FileText, CreditCard, Clock, UserCog, Search } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
+import dayjs from 'dayjs';
 import '../NewReservationModal/NewReservationModal.css';
 import './EditReservationModal.css';
 import { apiFetch } from '../../utils/apiFetch';
@@ -106,7 +106,7 @@ export const EditReservationModal: React.FC<EditReservationModalProps> = ({
     if (!checkIn || !checkOut || !selectedRoom) return { montoTotal: 0, noches: 0, precioNoche: 0 };
     const ci = new Date(checkIn);
     const co = new Date(checkOut);
-    const n  = differenceInDays(co, ci);
+    const n  = dayjs(co).diff(dayjs(ci), 'day');
     if (n <= 0) return { montoTotal: 0, noches: 0, precioNoche: 0 };
 
     if (isSalon) {

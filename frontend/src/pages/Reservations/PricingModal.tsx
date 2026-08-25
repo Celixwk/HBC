@@ -1,8 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { X, Tag, Loader2, AlertCircle } from 'lucide-react';
 import { apiFetch } from '../../utils/apiFetch';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 
 interface PricingModalProps {
   isOpen: boolean;
@@ -24,7 +25,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose, fec
       setLoading(true);
       setError('');
       try {
-        const fechaStr = format(fecha, 'yyyy-MM-dd');
+        const fechaStr = dayjs(fecha).format('YYYY-MM-DD');
         const [resTemp, resTipos] = await Promise.all([
           apiFetch(`/temporadas/detectar?fecha=${fechaStr}`),
           apiFetch('/espacios/config/tipos'),
@@ -84,7 +85,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ isOpen, onClose, fec
               <span style={{ fontWeight: 700, fontSize: '16px' }}>Precios Actuales</span>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
-              {format(fecha, "EEEE d 'de' MMMM yyyy", { locale: es })}
+              {dayjs(fecha).format('dddd D \'de\' MMMM YYYY')}
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer',
