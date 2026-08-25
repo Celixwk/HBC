@@ -8,7 +8,7 @@ echo      LIMPIANDO ARCHIVOS ANTERIORES
 echo ==========================================
 if exist "frontend\dist" rmdir /s /q "frontend\dist"
 if exist "backend\dist" rmdir /s /q "backend\dist"
-if exist "backend\release" rmdir /s /q "backend\release"
+if exist "backend\release2" rmdir /s /q "backend\release2"
 if exist "backend\frontend-build" rmdir /s /q "backend\frontend-build"
 
 echo.
@@ -49,5 +49,5 @@ cd ..
 echo.
 echo ==========================================
 echo      CONSTRUCCION COMPLETADA CON EXITO
-echo      El instalador esta en backend/release
+echo      El instalador esta en backend/release2
 echo ==========================================
