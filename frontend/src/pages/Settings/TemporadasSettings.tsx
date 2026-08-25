@@ -3,8 +3,9 @@ import { CalendarDays, Plus, Trash2, Save, Loader2, X, Info } from 'lucide-react
 import { Button } from '../../components/Button/Button';
 import { apiFetch } from '../../utils/apiFetch';
 import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 
 type TipoTemporada = 'alta' | 'media' | 'baja';
 

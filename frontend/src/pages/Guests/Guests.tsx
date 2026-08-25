@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Loader2, PenLine, CheckCircle, Edit2, Trash2, UserX, ClipboardList, RotateCcw } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import dayjs from 'dayjs';
+import 'dayjs/locale/es';
+dayjs.locale('es');
 import { SignatureModal } from '../../components/SignatureModal/SignatureModal';
 import { EditGuestModal } from '../../components/EditGuestModal/EditGuestModal';
 import { GuestRegistry } from '../../components/GuestRegistry/GuestRegistry';
@@ -234,7 +235,7 @@ export const Guests: React.FC = () => {
                     <td>{row.telefono || '-'}</td>
                     <td>{row.procedencia || '-'}</td>
                     <td className="text-muted">{res ? formatDate(res.fecha_creacion, false) : '-'}</td>
-                    <td className="text-muted">{res ? formatDate(res.check_in, true) : '-'}</td>
+                    <td className="text-muted" style={{ fontSize: '12px' }}>{res ? dayjs(parseLocalDate(res.check_in)).format('D MMM YYYY') : '-'}</td>
                     <td className="text-muted">{res ? formatDate(res.check_out, true) : '-'}</td>
                     <td>
                       <div className="flex gap-2">

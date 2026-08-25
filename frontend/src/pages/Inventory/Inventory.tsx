@@ -343,7 +343,7 @@ export const Inventory: React.FC = () => {
                   {movimientos.map((m: any) => (
                     <tr key={m.id_movimiento}>
                       <td className="text-muted" style={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                        <span className="text-sm">{dayjs(m.fecha).format('D MMM YYYY HH:mm')}</span>
+                        {dayjs(m.fecha).format('D MMM YYYY HH:mm')}
                       </td>
                       <td style={{ fontWeight: 500 }}>{m.producto?.nombre}</td>
                       <td><span className="cat-badge">{m.producto?.categoria}</span></td>
