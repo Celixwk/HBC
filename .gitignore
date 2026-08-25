@@ -6,6 +6,7 @@ build/
 *.log
 release/
 backend/release/
+backend/release2/
 backend/postgres-portable/pgdata_prod/
 backend/postgres-portable/pgdata_dev/
 frontend-build/
