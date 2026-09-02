@@ -31,7 +31,7 @@ export const Providers: React.FC = () => {
   const [editing, setEditing] = useState<Proveedor | null>(null);
   const [form, setForm] = useState({ ...EMPTY });
   const [saving, setSaving] = useState(false);
-  const { dialog, close, showConfirm } = useConfirmDialog();
+  const { dialog, close, showConfirm, showAlert } = useConfirmDialog();
   const [showInactivos, setShowInactivos] = useState(false);
 
   useEffect(() => { fetchProveedores(); }, []);
@@ -53,7 +53,7 @@ export const Providers: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!form.nombre.trim()) return alert('El nombre es obligatorio');
+    if (!form.nombre.trim()) { showAlert('El nombre del proveedor es obligatorio.', 'Campo requerido'); return; }
     setSaving(true);
     try {
       const res = editing
@@ -62,7 +62,7 @@ export const Providers: React.FC = () => {
       if (!res.ok) throw new Error();
       setModalOpen(false);
       fetchProveedores();
-    } catch { alert('Error al guardar'); }
+    } catch { showAlert('Ocurrió un error al guardar el proveedor.', 'Error'); }
     finally { setSaving(false); }
   };
 

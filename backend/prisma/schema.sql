@@ -228,6 +228,7 @@ CREATE TABLE IF NOT EXISTS "producto_inventario" (
     "stock_actual" DECIMAL(12,3) NOT NULL DEFAULT 0,
     "stock_minimo" DECIMAL(12,3) NOT NULL DEFAULT 0,
     "id_proveedor" INTEGER,
+    "fecha_vencimiento" DATE,
     "activo" BOOLEAN NOT NULL DEFAULT true,
     "fecha_creacion" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -473,3 +474,43 @@ EXCEPTION WHEN duplicate_column THEN NULL; END $$;
 DO $$ BEGIN
   ALTER TABLE "temporada" ADD COLUMN "fecha_exacta_fin" VARCHAR(10);
 EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+
+-- ── Tabla de configuración del hotel ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS "configuracion_hotel" (
+    "id"                  SERIAL NOT NULL,
+    "nombre_hotel"        VARCHAR(200) DEFAULT 'Hotel Boutique',
+    "direccion"           VARCHAR(300),
+    "telefono"            VARCHAR(50),
+    "nit"                 VARCHAR(50),
+    "email"               VARCHAR(100),
+    "ciudad"              VARCHAR(100),
+    "hora_check_in"       VARCHAR(5)   DEFAULT '15:00',
+    "hora_check_out"      VARCHAR(5)   DEFAULT '13:00',
+    "fecha_actualizacion" TIMESTAMP    DEFAULT now(),
+
+    CONSTRAINT "configuracion_hotel_pkey" PRIMARY KEY ("id")
+);
+
+-- Insertar fila por defecto si la tabla está vacía
+INSERT INTO "configuracion_hotel" ("nombre_hotel", "hora_check_in", "hora_check_out")
+SELECT 'Hotel Boutique', '15:00', '13:00'
+WHERE NOT EXISTS (SELECT 1 FROM "configuracion_hotel");
+
+-- Agregar columnas si ya existe la tabla sin ellas (instalaciones previas)
+DO $$ BEGIN
+  ALTER TABLE "configuracion_hotel" ADD COLUMN "hora_check_in" VARCHAR(5) DEFAULT '15:00';
+EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+
+DO $$ BEGIN
+  ALTER TABLE "configuracion_hotel" ADD COLUMN "hora_check_out" VARCHAR(5) DEFAULT '13:00';
+EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+
+-- Rellenar valores si las columnas existían pero estaban en NULL
+UPDATE "configuracion_hotel" SET "hora_check_in" = '15:00' WHERE "hora_check_in" IS NULL;
+UPDATE "configuracion_hotel" SET "hora_check_out" = '13:00' WHERE "hora_check_out" IS NULL;
+
+-- Agregar columna fecha_vencimiento a producto_inventario (migración)
+DO $$ BEGIN
+  ALTER TABLE "producto_inventario" ADD COLUMN "fecha_vencimiento" DATE;
+EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+

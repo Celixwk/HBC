@@ -407,12 +407,16 @@ async function createWindow() {
             const choice = dialog.showMessageBoxSync(mainWindow, {
                 type: 'question',
                 buttons: ['Sí', 'No'],
+                defaultId: 0,
+                cancelId: 1,
                 title: 'Confirmar Salida',
                 message: '¿Seguro que quieres salir de la aplicación?'
             });
             if (choice === 1) {
+                // "No" → cancelar el cierre
                 e.preventDefault();
             }
+            // "Sí" → no se llama e.preventDefault(), la ventana se cierra normalmente
         });
 
         mainWindow.on('closed', () => {

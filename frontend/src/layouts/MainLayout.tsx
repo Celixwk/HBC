@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { CalendarDays, Home, Users, BedDouble, FileText, Settings, LogOut, Truck, Package, Receipt, BarChart2 } from 'lucide-react';
+import { CalendarDays, Home, Users, BedDouble, FileText, Settings, LogOut, Truck, Package, Receipt, BarChart2, DollarSign } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './MainLayout.css';
 
@@ -53,6 +53,11 @@ const MainLayout: React.FC = () => {
           <NavLink to="/gastos" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <Receipt className="nav-icon" size={20} />
             <span>Gastos</span>
+          </NavLink>
+
+          <NavLink to="/caja" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <DollarSign className="nav-icon" size={20} />
+            <span>Caja</span>
           </NavLink>
 
           <NavLink to="/reportes" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>

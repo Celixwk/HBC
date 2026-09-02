@@ -238,7 +238,7 @@ export const Dashboard: React.FC = () => {
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
               <Clock size={13} />
-              {ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })}
+              {ahora.format('hh:mm A')}
             </span>
           </h3>
 

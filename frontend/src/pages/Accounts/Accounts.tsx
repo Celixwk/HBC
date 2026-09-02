@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Loader2, ChevronDown, ChevronUp, Pencil, Trash2, Check, X, Printer, Search } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import { Modal } from '../../components/Modal/Modal';
-import { Receipt } from '../../components/Receipt/Receipt';
-import { PersonaReceipt } from '../../components/PersonaReceipt/PersonaReceipt';
+import { TicketPrinter } from '../../components/TicketPrinter/TicketPrinter';
 import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 dayjs.locale('es');
@@ -402,8 +401,14 @@ const CargosEspacio: React.FC = () => {
       {entries.map(({ reserva, items: roomItems }) => {
         const isCollapsed = collapsed[reserva.id_reserva];
         const roomPrice = parseFloat(reserva.monto_total || 0);
-        const roomPendiente = (reserva.estado_pago !== 'pagado' && reserva.estado_pago !== 'anulado') ? roomPrice : 0;
-        const roomPagado = reserva.estado_pago === 'pagado' ? roomPrice : 0;
+        const montoPagadoHabitacion = parseFloat(reserva.monto_pagado || 0);
+        // Si ya estaba pagado, no hay pendiente. Si fue ampliada, solo se debe lo nuevo (total - ya pagado)
+        const roomPendiente = (reserva.estado_pago !== 'pagado' && reserva.estado_pago !== 'anulado')
+          ? Math.max(0, roomPrice - montoPagadoHabitacion)
+          : 0;
+        const roomPagado = reserva.estado_pago === 'pagado'
+          ? roomPrice
+          : montoPagadoHabitacion; // lo que ya fue abonado parcialmente
 
         const totalPendiente = roomItems.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0) + roomPendiente;
         const totalPagado = roomItems.filter(i => i.estado === 'pagado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0) + roomPagado;
@@ -525,7 +530,16 @@ const CargosEspacio: React.FC = () => {
                         <td className="font-medium">Alojamiento (Hab. {reserva.espacio?.numero})</td>
                         <td>-</td>
                         <td>${parseFloat(reserva.monto_total).toLocaleString()}</td>
-                        <td className="font-bold text-gradient">${parseFloat(reserva.monto_total).toLocaleString()}</td>
+                        <td className="font-bold text-gradient" style={{ verticalAlign: 'middle' }}>
+                          ${parseFloat(reserva.monto_total).toLocaleString()}
+                          {montoPagadoHabitacion > 0 && reserva.estado_pago !== 'pagado' && reserva.estado_pago !== 'anulado' && (
+                            <div style={{ fontSize: '0.75rem', fontWeight: 500, lineHeight: 1.3, marginTop: '4px' }}>
+                              <span style={{ color: '#10b981' }}>- ${montoPagadoHabitacion.toLocaleString()} abonado</span>
+                              <br/>
+                              <span style={{ color: '#ef4444' }}>= ${roomPendiente.toLocaleString()} rest.</span>
+                            </div>
+                          )}
+                        </td>
                         <td className="text-muted text-sm">{dayjs(String(reserva.fecha_creacion || reserva.check_in).slice(0, 10)).format('D MMM YYYY')}</td>
                         <td>
                           <span className={`status-badge status-${reserva.estado_pago?.toLowerCase() || 'pendiente'}`}>
@@ -679,11 +693,11 @@ const CargosEspacio: React.FC = () => {
 
       {/* Modal de Impresión */}
       {receiptData && (
-        <Receipt 
-          isOpen={true} 
+        <TicketPrinter 
           onClose={() => setReceiptData(null)} 
           reserva={receiptData.reserva} 
           items={receiptData.items} 
+          paperSize="80mm"
         />
       )}
     </div>
@@ -884,11 +898,11 @@ const CargosPersona: React.FC = () => {
       {Object.keys(grouped).length === 0 && <p className="text-muted text-center p-8">No hay cargos. Crea una nueva persona para comenzar.</p>}
 
       {receiptPersona && (
-        <PersonaReceipt
-          isOpen={true}
+        <TicketPrinter
           onClose={() => setReceiptPersona(null)}
-          nombre={receiptPersona.nombre}
+          reserva={{ huesped: { nombre_completo: receiptPersona.nombre } }}
           items={receiptPersona.items}
+          paperSize="80mm"
         />
       )}
 
@@ -1062,6 +1076,7 @@ const HistorialPersonas: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [receiptData, setReceiptData] = useState<any>(null);
 
   useEffect(() => {
     apiFetch('/cuentas/historial/personas')
@@ -1097,6 +1112,16 @@ const HistorialPersonas: React.FC = () => {
                   <span style={{ color: '#10b981', fontSize: '13px', fontWeight: 600 }}>✓ Todo pagado (${persona.total_pagado.toLocaleString()})</span>
                 )}
                 <span className="text-muted text-sm">{persona.cargos.length} cargo{persona.cargos.length !== 1 ? 's' : ''}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={(e: React.MouseEvent) => { e.stopPropagation(); setReceiptData({ nombre: persona.nombre, items: persona.cargos }); }}
+                  className="text-info flex items-center gap-1"
+                  title="Imprimir Historial"
+                  style={{ padding: '4px 8px' }}
+                >
+                  <Printer size={16} /> Imprimir
+                </Button>
                 {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
               </div>
             </div>
@@ -1146,6 +1171,14 @@ const HistorialPersonas: React.FC = () => {
         );
       })}
       {items.length === 0 && <p className="text-muted text-center p-8">No hay historial de cargos por persona.</p>}
+      {receiptData && (
+        <TicketPrinter
+          onClose={() => setReceiptData(null)}
+          reserva={{ huesped: { nombre_completo: receiptData.nombre } }}
+          items={receiptData.items}
+          paperSize="80mm"
+        />
+      )}
     </div>
   );
 };
@@ -1156,6 +1189,7 @@ const HistorialHabitaciones: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+  const [receiptData, setReceiptData] = useState<any>(null);
 
   const fetchItems = () => {
     setLoading(true);
@@ -1238,6 +1272,27 @@ const HistorialHabitaciones: React.FC = () => {
                     ↩ Reactivar
                   </Button>
                 )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={(e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    const reservaData = {
+                      id_reserva: r.id_reserva,
+                      espacio: { numero: r.numero_habitacion },
+                      huesped: { nombre_completo: r.huesped },
+                      monto_total: r.monto_habitacion,
+                      estado_pago: r.estado_pago,
+                      monto_pagado: r.monto_habitacion // Assuming full payment in history
+                    };
+                    setReceiptData({ reserva: reservaData, items: r.extras || [] });
+                  }}
+                  className="text-info flex items-center gap-1"
+                  title="Imprimir Historial"
+                  style={{ padding: '4px 8px' }}
+                >
+                  <Printer size={16} /> Imprimir
+                </Button>
                 {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
               </div>
             </div>
@@ -1294,6 +1349,15 @@ const HistorialHabitaciones: React.FC = () => {
         );
       })}
       {items.length === 0 && <p className="text-muted text-center p-8">No hay historial de habitaciones registrado.</p>}
+      
+      {receiptData && (
+        <TicketPrinter
+          onClose={() => setReceiptData(null)}
+          reserva={receiptData.reserva}
+          items={receiptData.items}
+          paperSize="80mm"
+        />
+      )}
     </div>
   );
 };

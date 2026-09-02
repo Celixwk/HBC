@@ -1,0 +1,125 @@
+/* Overlay only visible on screen, hidden when printing */
+@media screen {
+  .ticket-printer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+}
+
+.ticket-container {
+  background: white;
+  color: black;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* 58mm paper width approx */
+.paper-58mm {
+  width: 58mm;
+  font-size: 11px;
+}
+
+/* 80mm paper width approx */
+.paper-80mm {
+  width: 80mm;
+  font-size: 13px;
+}
+
+.ticket-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.ticket-header h2 {
+  margin: 0 0 5px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.ticket-header p {
+  margin: 2px 0;
+}
+
+.divider {
+  border-top: 1px dashed black;
+  margin: 8px 0;
+}
+
+.ticket-items {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ticket-items th {
+  text-align: left;
+  border-bottom: 1px solid black;
+  padding-bottom: 4px;
+}
+
+.ticket-items td {
+  padding: 4px 0;
+  vertical-align: top;
+}
+
+.ticket-totals {
+  margin-top: 10px;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-bottom: 4px;
+}
+
+.total-row.sub {
+  font-weight: normal;
+  font-size: 1em;
+}
+
+.ticket-footer {
+  text-align: center;
+  margin-top: 15px;
+  font-size: 0.9em;
+}
+
+.ticket-footer p {
+  margin: 2px 0;
+}
+
+/* Print specific styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .ticket-printer-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 0;
+    margin: 0;
+  }
+
+  .ticket-printer-overlay, .ticket-printer-overlay * {
+    visibility: visible;
+  }
+  
+  .ticket-container {
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Force page size if supported by browser */
+  @page {
+    margin: 0;
+  }
+}

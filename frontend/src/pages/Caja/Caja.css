@@ -1,0 +1,103 @@
+.caja-container {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.caja-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.caja-loading {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px;
+}
+
+/* Alert */
+.caja-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideDown 0.3s ease;
+}
+.caja-alert-ok  { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+.caja-alert-err { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Open-caja panel */
+.caja-open-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 24px;
+  text-align: center;
+}
+.caja-open-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+}
+.caja-open-form label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+/* Status icon */
+.caja-status-icon {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.caja-closed {
+  background: rgba(239,68,68,0.12);
+  color: #ef4444;
+}
+.caja-open {
+  background: rgba(16,185,129,0.12);
+  color: #10b981;
+}
+
+/* Active panel */
+.caja-active-panel { display: flex; flex-direction: column; gap: 20px; }
+.caja-active-header { display: flex; align-items: center; gap: 16px; }
+
+/* Summary grid */
+.caja-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+.caja-summary-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.caja-summary-card span:first-child { font-size: 0.78rem; }
+
+.caja-amount { font-size: 1.25rem; font-weight: 700; }
+.caja-green { color: #10b981; }
+.caja-blue  { color: #60a5fa; }
+
+.caja-total-card {
+  border-color: rgba(99,102,241,0.4);
+  background: rgba(99,102,241,0.06);
+}
+.caja-total { color: #818cf8; font-size: 1.4rem; }

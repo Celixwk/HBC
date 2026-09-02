@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../../components/Button/Button';
 import { Plus, Trash2, Edit2, CreditCard } from 'lucide-react';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 
 export const MetodosPagoSettings = () => {
   const [metodos, setMetodos] = useState<string[]>([]);
   const [nuevoMetodo, setNuevoMetodo] = useState('');
   const [editando, setEditando] = useState<{ index: number, valor: string } | null>(null);
+  const { dialog, close, showAlert } = useConfirmDialog();
 
   useEffect(() => {
     const guardados = localStorage.getItem('hbc_metodos_pago');
@@ -24,7 +26,7 @@ export const MetodosPagoSettings = () => {
     if (!nuevoMetodo.trim()) return;
     
     if (metodos.includes(nuevoMetodo.trim())) {
-      alert('Este método de pago ya existe.');
+      showAlert('Este método de pago ya existe.', 'Método duplicado');
       return;
     }
 
@@ -123,6 +125,8 @@ export const MetodosPagoSettings = () => {
           )}
         </div>
       </div>
+
+      <ConfirmDialog {...dialog} onCancel={close} />
     </div>
   );
 };

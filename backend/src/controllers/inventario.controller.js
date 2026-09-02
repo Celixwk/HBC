@@ -83,7 +83,7 @@ const getProductos = async (req, res) => {
 };
 
 const createProducto = async (req, res) => {
-  const { nombre, descripcion, categoria, unidad_medida, precio_costo, precio_venta, stock_actual, stock_minimo, id_proveedor } = req.body;
+  const { nombre, descripcion, categoria, unidad_medida, precio_costo, precio_venta, stock_actual, stock_minimo, id_proveedor, fecha_vencimiento } = req.body;
   try {
     if (!nombre || !categoria) return res.status(400).json({ error: 'Nombre y categoría son obligatorios' });
     const nuevo = await prisma.producto_inventario.create({
@@ -96,7 +96,8 @@ const createProducto = async (req, res) => {
         precio_venta: parseFloat(precio_venta) || 0,
         stock_actual: parseFloat(stock_actual) || 0,
         stock_minimo: parseFloat(stock_minimo) || 0,
-        id_proveedor: id_proveedor ? parseInt(id_proveedor) : null
+        id_proveedor: id_proveedor ? parseInt(id_proveedor) : null,
+        fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento) : null
       },
       include: { proveedor: { select: { id_proveedor: true, nombre: true } } }
     });
@@ -109,7 +110,7 @@ const createProducto = async (req, res) => {
 
 const updateProducto = async (req, res) => {
   const { id } = req.params;
-  const { nombre, descripcion, categoria, unidad_medida, precio_costo, precio_venta, stock_minimo, id_proveedor } = req.body;
+  const { nombre, descripcion, categoria, unidad_medida, precio_costo, precio_venta, stock_minimo, id_proveedor, fecha_vencimiento } = req.body;
   try {
     const updated = await prisma.producto_inventario.update({
       where: { id_producto: parseInt(id) },
@@ -118,7 +119,8 @@ const updateProducto = async (req, res) => {
         precio_costo: parseFloat(precio_costo) || 0,
         precio_venta: parseFloat(precio_venta) || 0,
         stock_minimo: parseFloat(stock_minimo) || 0,
-        id_proveedor: id_proveedor ? parseInt(id_proveedor) : null
+        id_proveedor: id_proveedor ? parseInt(id_proveedor) : null,
+        fecha_vencimiento: fecha_vencimiento ? new Date(fecha_vencimiento) : null
       },
       include: { proveedor: { select: { id_proveedor: true, nombre: true } } }
     });
@@ -177,7 +179,7 @@ const getMovimientos = async (req, res) => {
 };
 
 const registrarEntrada = async (req, res) => {
-  const { id_producto, cantidad, precio_unitario, notas } = req.body;
+  const { id_producto, cantidad, precio_unitario, notas, fecha_vencimiento } = req.body;
   try {
     if (!id_producto || !cantidad) return res.status(400).json({ error: 'Producto y cantidad son obligatorios' });
     const cantNum = parseFloat(cantidad);
@@ -188,6 +190,11 @@ const registrarEntrada = async (req, res) => {
 
     const stockAntes = Number(producto.stock_actual);
     const stockDespues = stockAntes + cantNum;
+
+    let dataUpdateProducto = { stock_actual: stockDespues };
+    if (fecha_vencimiento) {
+      dataUpdateProducto.fecha_vencimiento = new Date(fecha_vencimiento);
+    }
 
     const [movimiento] = await prisma.$transaction([
       prisma.movimiento_inventario.create({
@@ -205,7 +212,7 @@ const registrarEntrada = async (req, res) => {
       }),
       prisma.producto_inventario.update({
         where: { id_producto: parseInt(id_producto) },
-        data: { stock_actual: stockDespues }
+        data: dataUpdateProducto
       })
     ]);
 

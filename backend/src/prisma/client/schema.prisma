@@ -158,13 +158,17 @@ model tipo_espacio_config {
 }
 
 model temporada {
-  id             Int      @id @default(autoincrement())
-  nombre         String   @db.VarChar(100)
-  tipo           String   @db.VarChar(10) // "alta", "media", "baja"
-  mes_dia_inicio String   @db.VarChar(5) // "MM-DD"
-  mes_dia_fin    String   @db.VarChar(5) // "MM-DD"
-  activo         Boolean  @default(true)
-  fecha_creacion DateTime @default(now()) @db.Timestamp(6)
+  id                  Int      @id @default(autoincrement())
+  nombre              String   @db.VarChar(100)
+  tipo                String   @db.VarChar(10) // "alta", "media", "baja"
+  mes_dia_inicio      String   @db.VarChar(5) // "MM-DD" (para recurrentes)
+  mes_dia_fin         String   @db.VarChar(5) // "MM-DD" (para recurrentes)
+  activo              Boolean  @default(true)
+  fecha_creacion      DateTime @default(now()) @db.Timestamp(6)
+  // Campos para temporadas exactas (año específico, ej. Semana Santa)
+  es_exacta           Boolean  @default(false)
+  fecha_exacta_inicio String?  @db.VarChar(10) // "YYYY-MM-DD"
+  fecha_exacta_fin    String?  @db.VarChar(10) // "YYYY-MM-DD"
 
   @@index([mes_dia_inicio], map: "idx_temporada_inicio")
   @@index([mes_dia_fin], map: "idx_temporada_fin")
@@ -193,20 +197,21 @@ model proveedor {
 }
 
 model producto_inventario {
-  id_producto    Int                     @id @default(autoincrement())
-  nombre         String                  @db.VarChar(200)
-  descripcion    String?
-  categoria      String                  @db.VarChar(50)
-  unidad_medida  String                  @default("unidad") @db.VarChar(30)
-  precio_costo   Decimal                 @default(0) @db.Decimal(12, 2)
-  precio_venta   Decimal                 @default(0) @db.Decimal(12, 2)
-  stock_actual   Decimal                 @default(0) @db.Decimal(12, 3)
-  stock_minimo   Decimal                 @default(0) @db.Decimal(12, 3)
-  id_proveedor   Int?
-  activo         Boolean                 @default(true)
-  fecha_creacion DateTime                @default(now()) @db.Timestamp(6)
-  proveedor      proveedor?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: SetNull)
-  movimientos    movimiento_inventario[]
+  id_producto       Int                     @id @default(autoincrement())
+  nombre            String                  @db.VarChar(200)
+  descripcion       String?
+  categoria         String                  @db.VarChar(50)
+  unidad_medida     String                  @default("unidad") @db.VarChar(30)
+  precio_costo      Decimal                 @default(0) @db.Decimal(12, 2)
+  precio_venta      Decimal                 @default(0) @db.Decimal(12, 2)
+  stock_actual      Decimal                 @default(0) @db.Decimal(12, 3)
+  stock_minimo      Decimal                 @default(0) @db.Decimal(12, 3)
+  id_proveedor      Int?
+  fecha_vencimiento DateTime?               @db.Date
+  activo            Boolean                 @default(true)
+  fecha_creacion    DateTime                @default(now()) @db.Timestamp(6)
+  proveedor         proveedor?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: SetNull)
+  movimientos       movimiento_inventario[]
 
   @@index([categoria], map: "idx_producto_categoria")
   @@index([id_proveedor], map: "idx_producto_proveedor")
@@ -253,4 +258,61 @@ model categoria_gasto {
   id     Int     @id @default(autoincrement())
   nombre String  @unique @db.VarChar(60)
   activo Boolean @default(true)
+}
+
+// ─── SISTEMA DE USUARIOS Y ROLES ──────────────────────────────────────────────
+
+model usuario {
+  id_usuario      Int      @id @default(autoincrement())
+  nombre_completo String   @db.VarChar(150)
+  username        String   @unique @db.VarChar(80)
+  password_hash   String   @db.VarChar(255)
+  rol             String   @default("recepcionista") @db.VarChar(20) // 'admin' | 'recepcionista'
+  activo          Boolean  @default(true)
+  fecha_creacion  DateTime @default(now()) @db.Timestamp(6)
+
+  audit_logs  audit_log[]
+  turnos_caja turno_caja[]
+
+  @@index([username], map: "idx_usuario_username")
+}
+
+// ─── REGISTRO DE AUDITORÍA ────────────────────────────────────────────────────
+
+model audit_log {
+  id_log      Int      @id @default(autoincrement())
+  id_usuario  Int?
+  username    String   @db.VarChar(80)
+  accion      String   @db.VarChar(60) // 'LOGIN', 'PAGO_REGISTRADO', 'RESERVA_CREADA', etc.
+  descripcion String?  @db.Text
+  entidad     String?  @db.VarChar(40) // 'reserva', 'usuario', 'caja', etc.
+  entidad_id  Int?
+  ip          String?  @db.VarChar(45)
+  fecha       DateTime @default(now()) @db.Timestamp(6)
+
+  usuario usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull)
+
+  @@index([fecha], map: "idx_audit_fecha")
+  @@index([id_usuario], map: "idx_audit_usuario")
+  @@index([accion], map: "idx_audit_accion")
+}
+
+// ─── CONTROL DE CAJA (TURNOS) ─────────────────────────────────────────────────
+
+model turno_caja {
+  id_turno       Int       @id @default(autoincrement())
+  id_usuario     Int
+  fecha_apertura DateTime  @default(now()) @db.Timestamp(6)
+  monto_apertura Decimal   @default(0) @db.Decimal(12, 2)
+  fecha_cierre   DateTime? @db.Timestamp(6)
+  monto_sistema  Decimal?  @db.Decimal(12, 2) // calculado por el sistema
+  monto_real     Decimal?  @db.Decimal(12, 2) // contado por el cajero
+  diferencia     Decimal?  @db.Decimal(12, 2)
+  estado         String    @default("abierto") @db.VarChar(20) // 'abierto' | 'cerrado'
+  notas          String?   @db.Text
+
+  usuario usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction)
+
+  @@index([id_usuario], map: "idx_caja_usuario")
+  @@index([estado], map: "idx_caja_estado")
 }

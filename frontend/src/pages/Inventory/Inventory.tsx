@@ -13,7 +13,7 @@ type TabType = 'productos' | 'movimientos' | 'entrada';
 const MOTIVOS_SALIDA = ['ajuste', 'merma', 'devolucion', 'consumo_habitacion', 'consumo_persona'];
 
 const EMPTY_PROD = { nombre: '', descripcion: '', categoria: '', unidad_medida: 'unidad',
-  precio_costo: '', precio_venta: '', stock_actual: '', stock_minimo: '', id_proveedor: '' };
+  precio_costo: '', precio_venta: '', stock_actual: '', stock_minimo: '', id_proveedor: '', fecha_vencimiento: '' };
 
 export const Inventory: React.FC = () => {
   const [tab, setTab] = useState<TabType>('productos');
@@ -48,7 +48,7 @@ export const Inventory: React.FC = () => {
   const [movFechaHasta, setMovFechaHasta] = useState('');
 
   // Entrada rápida
-  const [entradaForm, setEntradaForm] = useState({ id_producto: '', cantidad: '', precio_unitario: '', notas: '' });
+  const [entradaForm, setEntradaForm] = useState({ id_producto: '', cantidad: '', precio_unitario: '', notas: '', fecha_vencimiento: '' });
   const [savingEntrada, setSavingEntrada] = useState(false);
 
   // Salida manual modal
@@ -126,7 +126,8 @@ export const Inventory: React.FC = () => {
     setProdForm({ nombre: p.nombre, descripcion: p.descripcion || '', categoria: p.categoria,
       unidad_medida: p.unidad_medida, precio_costo: String(p.precio_costo),
       precio_venta: String(p.precio_venta), stock_actual: String(p.stock_actual),
-      stock_minimo: String(p.stock_minimo), id_proveedor: p.id_proveedor ? String(p.id_proveedor) : '' });
+      stock_minimo: String(p.stock_minimo), id_proveedor: p.id_proveedor ? String(p.id_proveedor) : '',
+      fecha_vencimiento: p.fecha_vencimiento ? p.fecha_vencimiento.slice(0, 10) : '' });
     setProdModal(true);
   };
 
@@ -162,7 +163,7 @@ export const Inventory: React.FC = () => {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entradaForm)
       });
       if (!res.ok) throw new Error();
-      setEntradaForm({ id_producto: '', cantidad: '', precio_unitario: '', notas: '' });
+      setEntradaForm({ id_producto: '', cantidad: '', precio_unitario: '', notas: '', fecha_vencimiento: '' });
       fetchProductos();
       showAlert('Entrada registrada correctamente', 'Éxito');
     } catch { showAlert('Error al registrar entrada', 'Error'); }
@@ -193,6 +194,12 @@ export const Inventory: React.FC = () => {
   const stockBajoCount = productos.filter(p => p.stock_bajo).length;
   const fmt = (n: any) => '$' + Number(n).toLocaleString('es-CO');
 
+  // Helpers de vencimiento
+  const today = dayjs().startOf('day');
+  const isVencido = (fecha?: string | null) => fecha ? dayjs(fecha).isBefore(today) : false;
+  const isProxVencer = (fecha?: string | null) => fecha && !isVencido(fecha) ? dayjs(fecha).diff(today, 'day') <= 30 : false;
+  const vencimientoCount = productos.filter(p => isVencido(p.fecha_vencimiento) || isProxVencer(p.fecha_vencimiento)).length;
+
   return (
     <div className="inventory-container">
       <div className="inventory-header">
@@ -203,7 +210,13 @@ export const Inventory: React.FC = () => {
             {stockBajoCount > 0 && (
               <span style={{ marginLeft: '10px', color: '#ef4444', fontWeight: 600, fontSize: '0.8rem' }}>
                 <AlertTriangle size={13} style={{ display: 'inline', marginRight: '3px' }} />
-                {stockBajoCount} con stock bajo
+                {stockBajoCount} stock bajo
+              </span>
+            )}
+            {vencimientoCount > 0 && (
+              <span style={{ marginLeft: '10px', color: '#f59e0b', fontWeight: 600, fontSize: '0.8rem' }}>
+                <AlertTriangle size={13} style={{ display: 'inline', marginRight: '3px' }} />
+                {vencimientoCount} próx. vencer / vencidos
               </span>
             )}
           </p>
@@ -258,39 +271,60 @@ export const Inventory: React.FC = () => {
                     <th>P. Venta</th>
                     <th>Stock Actual</th>
                     <th>Mínimo</th>
+                    <th>Vencimiento</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {prodFiltered.map((p: any) => (
-                    <tr key={p.id_producto} className={p.stock_bajo ? 'stock-low' : 'stock-ok'}>
-                      <td style={{ fontWeight: 500 }}>
-                        {p.stock_bajo && <AlertTriangle size={13} style={{ color: '#ef4444', marginRight: '5px', display: 'inline' }} />}
-                        {p.nombre}
-                      </td>
-                      <td><span className="cat-badge">{p.categoria}</span></td>
-                      <td className="text-muted">{p.unidad_medida}</td>
-                      <td className="text-muted" style={{ fontSize: '0.8rem' }}>{p.proveedor?.nombre || '—'}</td>
-                      <td>{fmt(p.precio_costo)}</td>
-                      <td>{fmt(p.precio_venta)}</td>
-                      <td><span className="stock-val">{Number(p.stock_actual)}</span></td>
-                      <td className="text-muted">{Number(p.stock_minimo)}</td>
-                      <td>
-                        <div style={{ display: 'flex', gap: '4px' }}>
-                          <button onClick={() => openEditProd(p)} title="Editar"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '3px' }}>
-                            <Edit2 size={14} />
-                          </button>
-                          <button onClick={() => deleteProd(p.id_producto, p.nombre)} title="Desactivar"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '3px', opacity: 0.7 }}>
-                            ✕
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {prodFiltered.map((p: any) => {
+                    const venc = p.fecha_vencimiento ? p.fecha_vencimiento.slice(0, 10) : null;
+                    const vencido = isVencido(venc);
+                    const proxVencer = isProxVencer(venc);
+                    const diasParaVencer = venc ? dayjs(venc).diff(today, 'day') : null;
+                    return (
+                      <tr key={p.id_producto} className={p.stock_bajo ? 'stock-low' : 'stock-ok'}>
+                        <td style={{ fontWeight: 500 }}>
+                          {p.stock_bajo && <AlertTriangle size={13} style={{ color: '#ef4444', marginRight: '5px', display: 'inline' }} />}
+                          {vencido && <AlertTriangle size={13} style={{ color: '#ef4444', marginRight: '5px', display: 'inline' }} title="Producto vencido" />}
+                          {proxVencer && !vencido && <AlertTriangle size={13} style={{ color: '#f59e0b', marginRight: '5px', display: 'inline' }} title="Próximo a vencer" />}
+                          {p.nombre}
+                        </td>
+                        <td><span className="cat-badge">{p.categoria}</span></td>
+                        <td className="text-muted">{p.unidad_medida}</td>
+                        <td className="text-muted" style={{ fontSize: '0.8rem' }}>{p.proveedor?.nombre || '—'}</td>
+                        <td>{fmt(p.precio_costo)}</td>
+                        <td>{fmt(p.precio_venta)}</td>
+                        <td><span className="stock-val">{Number(p.stock_actual)}</span></td>
+                        <td className="text-muted">{Number(p.stock_minimo)}</td>
+                        <td>
+                          {venc ? (
+                            <span className={vencido ? 'badge-pulse-danger' : proxVencer ? 'badge-pulse-warning' : ''} style={{
+                              fontSize: '0.78rem', fontWeight: 600, padding: '3px 8px', borderRadius: '10px',
+                              background: vencido ? 'rgba(239,68,68,0.15)' : proxVencer ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.12)',
+                              color: vencido ? '#ef4444' : proxVencer ? '#f59e0b' : '#10b981',
+                              whiteSpace: 'nowrap', display: 'inline-block'
+                            }}>
+                              {vencido ? '¡Vencido!' : proxVencer ? `${diasParaVencer}d para vencer` : dayjs(venc).format('D MMM YY')}
+                            </span>
+                          ) : <span className="text-muted" style={{ fontSize: '0.8rem' }}>—</span>}
+                        </td>
+                        <td>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            <button onClick={() => openEditProd(p)} title="Editar"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '3px' }}>
+                              <Edit2 size={14} />
+                            </button>
+                            <button onClick={() => deleteProd(p.id_producto, p.nombre)} title="Desactivar"
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '3px', opacity: 0.7 }}>
+                              ✕
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {prodFiltered.length === 0 && (
-                    <tr><td colSpan={9} style={{ textAlign: 'center', padding: '28px', color: 'var(--text-muted)' }}>
+                    <tr><td colSpan={10} style={{ textAlign: 'center', padding: '28px', color: 'var(--text-muted)' }}>
                       {catFilter || stockBajoOnly ? 'No hay productos con esos filtros.' : 'Aún no hay productos. Crea el primero.'}
                     </td></tr>
                   )}
@@ -402,6 +436,10 @@ export const Inventory: React.FC = () => {
               <label>Notas</label>
               <input className="form-input" value={entradaForm.notas} onChange={ef('notas')} placeholder="Ej: Factura #001 — Proveedor X" />
             </div>
+            <div className="form-group">
+              <label>Fecha de vencimiento <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span></label>
+              <input className="form-input" type="date" value={entradaForm.fecha_vencimiento} onChange={ef('fecha_vencimiento')} />
+            </div>
             <div className="form-actions">
               <Button variant="primary" onClick={saveEntrada} isLoading={savingEntrada}>
                 <ArrowDownCircle size={16} /> Registrar Entrada
@@ -442,6 +480,10 @@ export const Inventory: React.FC = () => {
               <input className="form-input" type="number" min="0" step="0.001" value={prodForm.stock_actual} onChange={pf('stock_actual')} placeholder="0" />
             </div>
           )}
+          <div className="form-group">
+            <label>Fecha de Vencimiento</label>
+            <input className="form-input" type="date" value={prodForm.fecha_vencimiento || ''} onChange={pf('fecha_vencimiento')} />
+          </div>
           <div className="form-group">
             <label>Stock mínimo (alerta)</label>
             <input className="form-input" type="number" min="0" step="0.001" value={prodForm.stock_minimo} onChange={pf('stock_minimo')} placeholder="0" />
@@ -531,7 +573,7 @@ export const Inventory: React.FC = () => {
             <label>Notas</label>
             <input className="form-input" value={salidaForm.notas} onChange={sf('notas')} placeholder="Observaciones" />
           </div>
-        <div className="form-actions" style={{ marginTop: '24px' }}>
+          <div className="form-actions" style={{ marginTop: '24px' }}>
             <Button variant="ghost" onClick={() => setSalidaModal(false)}>Cancelar</Button>
             <Button variant="danger" onClick={saveSalida} disabled={savingSalida}>
               {savingSalida ? 'Registrando...' : 'Registrar Salida'}

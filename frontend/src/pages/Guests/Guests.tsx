@@ -6,6 +6,7 @@ dayjs.locale('es');
 import { SignatureModal } from '../../components/SignatureModal/SignatureModal';
 import { EditGuestModal } from '../../components/EditGuestModal/EditGuestModal';
 import { GuestRegistry } from '../../components/GuestRegistry/GuestRegistry';
+import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import './Guests.css';
 import { apiFetch } from '../../utils/apiFetch';
 
@@ -47,6 +48,7 @@ export const Guests: React.FC = () => {
   const [page, setPage] = useState(1);
   const [showRegistry, setShowRegistry] = useState(false);
   const [usarFirma, setUsarFirma] = useState(() => localStorage.getItem('hbc_usar_firma') === '1');
+  const { dialog: confirmDlg, close: closeConfirm, showDanger } = useConfirmDialog();
 
   useEffect(() => {
     fetchGuests();
@@ -95,20 +97,29 @@ export const Guests: React.FC = () => {
     }
   };
 
-  const handleDeleteRow = async (row: GuestRow) => {
-    try {
-      let res;
-      if (row._reserva?.id_reserva) {
-        res = await apiFetch(`/reservas/${row._reserva.id_reserva}`, { method: 'DELETE' });
-      } else {
-        res = await apiFetch(`/huespedes/${row.id_huesped}`, { method: 'DELETE' });
-      }
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
-      fetchGuests();
-    } catch (err: any) {
-      console.error(err.message);
-    }
+  const handleDeleteRow = (row: GuestRow) => {
+    const label = row._reserva
+      ? `la estadía en hab. ${row._reserva.espacio?.numero || row._reserva.id_reserva}`
+      : `el huésped "${row.nombre_completo}"`;
+    showDanger(
+      `¿Eliminar ${label}? Esta acción no se puede deshacer.`,
+      async () => {
+        try {
+          let res;
+          if (row._reserva?.id_reserva) {
+            res = await apiFetch(`/reservas/${row._reserva.id_reserva}`, { method: 'DELETE' });
+          } else {
+            res = await apiFetch(`/huespedes/${row.id_huesped}`, { method: 'DELETE' });
+          }
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Error al eliminar');
+          fetchGuests();
+        } catch (err: any) {
+          console.error(err.message);
+        }
+      },
+      'Eliminar estadía'
+    );
   };
 
   // Aplanar: una fila por reserva (o una fila si no tiene reservas)
@@ -386,6 +397,8 @@ export const Guests: React.FC = () => {
         onClose={() => setShowRegistry(false)}
         rows={filteredRows}
       />
+
+      <ConfirmDialog {...confirmDlg} onCancel={closeConfirm} />
     </div>
   );
 };

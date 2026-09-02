@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Building2, MapPin, Mail, Loader2, CheckCircle, Lock, CreditCard, Database, Globe } from 'lucide-react';
+import { Save, Building2, MapPin, Mail, Loader2, CheckCircle, Lock, CreditCard, Database, Globe, Users, Shield, Link2 } from 'lucide-react';
 import { Button } from '../../components/Button/Button';
 import './Settings.css';
 import { apiFetch } from '../../utils/apiFetch';
@@ -9,6 +9,9 @@ import { SecuritySettings } from './SecuritySettings';
 import { BackupRestoreSettings } from './BackupRestoreSettings';
 import { MetodosPagoSettings } from './MetodosPagoSettings';
 import { OrigenesSettings } from './OrigenesSettings';
+import { UsuariosSettings } from './UsuariosSettings';
+import { AuditoriaSettings } from './AuditoriaSettings';
+import { ICalSettings } from './ICalSettings';
 
 interface ConfigData {
   nombre_hotel: string;
@@ -23,6 +26,8 @@ interface ConfigData {
 
 export const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('general');
+  const rol = localStorage.getItem('hb_rol') || 'recepcionista';
+  const isAdmin = rol === 'admin';
   const [form, setForm] = useState<ConfigData>({
     nombre_hotel: '', direccion: '', telefono: '', nit: '', email: '', ciudad: '', hora_check_in: '15:00', hora_check_out: '13:00'
   });
@@ -118,6 +123,19 @@ export const Settings: React.FC = () => {
         </button>
         <button className={`settings-tab ${activeTab === 'backup' ? 'active' : ''}`} onClick={() => setActiveTab('backup')}>
           <Database size={15} /> Respaldo
+        </button>
+        {isAdmin && (
+          <button className={`settings-tab ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
+            <Users size={15} /> Usuarios
+          </button>
+        )}
+        {isAdmin && (
+          <button className={`settings-tab ${activeTab === 'auditoria' ? 'active' : ''}`} onClick={() => setActiveTab('auditoria')}>
+            <Shield size={15} /> Auditoría
+          </button>
+        )}
+        <button className={`settings-tab ${activeTab === 'ical' ? 'active' : ''}`} onClick={() => setActiveTab('ical')}>
+          <Link2 size={15} /> iCal / Booking
         </button>
       </div>
 
@@ -226,6 +244,9 @@ export const Settings: React.FC = () => {
         {activeTab === 'pagos' && <MetodosPagoSettings />}
         {activeTab === 'seguridad' && <SecuritySettings />}
         {activeTab === 'backup' && <BackupRestoreSettings />}
+        {activeTab === 'usuarios' && isAdmin && <UsuariosSettings />}
+        {activeTab === 'auditoria' && isAdmin && <AuditoriaSettings />}
+        {activeTab === 'ical' && <ICalSettings />}
       </div>
     </div>
   );

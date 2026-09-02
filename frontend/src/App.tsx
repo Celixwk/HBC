@@ -12,6 +12,7 @@ import { Providers } from './pages/Providers/Providers';
 import { Inventory } from './pages/Inventory/Inventory';
 import { Gastos } from './pages/Gastos/Gastos';
 import { Reportes } from './pages/Reportes/Reportes';
+import { Caja } from './pages/Caja/Caja';
 
 const ProtectedRoutes = () => {
   const { isAuthenticated } = useAuth();
@@ -28,6 +29,7 @@ const ProtectedRoutes = () => {
         <Route path="proveedores" element={<Providers />} />
         <Route path="inventario" element={<Inventory />} />
         <Route path="gastos" element={<Gastos />} />
+        <Route path="caja" element={<Caja />} />
         <Route path="reportes" element={<Reportes />} />
       </Route>
     </Routes>

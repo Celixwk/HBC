@@ -3,18 +3,46 @@ import { Download, Upload, AlertTriangle, CheckCircle, Database } from 'lucide-r
 import { Button } from '../../components/Button/Button';
 import { ConfirmDialog, useConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog';
 import { useAuth } from '../../context/AuthContext';
+import { apiFetch } from '../../utils/apiFetch';
 
 export const BackupRestoreSettings: React.FC = () => {
   const { logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [restoring, setRestoring] = useState(false);
+  const [backing, setBacking] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { dialog, close, showDanger } = useConfirmDialog();
 
-  const handleDownloadBackup = () => {
-    // Open the download URL in a new tab to trigger the browser's download
-    window.open('http://127.0.0.1:5001/api/configuracion/backup', '_blank');
+  const handleDownloadBackup = async () => {
+    setBacking(true);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await apiFetch('/configuracion/backup');
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Error al generar el respaldo');
+      }
+
+      // Convertir la respuesta a blob y disparar la descarga sin abrir ventana
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const fecha = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `hotel_boutique_backup_${fecha}.sql`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setSuccess('Respaldo descargado correctamente.');
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'No se pudo descargar el respaldo');
+    } finally {
+      setBacking(false);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,11 +76,9 @@ export const BackupRestoreSettings: React.FC = () => {
     try {
       const sqlContent = await file.text();
       
-      const res = await fetch('http://127.0.0.1:5001/api/configuracion/restore', {
+      const res = await apiFetch('/configuracion/restore', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
+        headers: { 'Content-Type': 'text/plain' },
         body: sqlContent
       });
 
@@ -111,8 +137,8 @@ export const BackupRestoreSettings: React.FC = () => {
           <p className="text-sm text-gray-500 mb-6 flex-grow">
             Descarga un archivo .sql con toda la información actual de tu base de datos.
           </p>
-          <Button variant="primary" onClick={handleDownloadBackup} className="w-full justify-center">
-            Descargar Respaldo
+          <Button variant="primary" onClick={handleDownloadBackup} disabled={backing} className="w-full justify-center">
+            {backing ? 'Generando...' : 'Descargar Respaldo'}
           </Button>
         </div>
 
@@ -142,10 +168,6 @@ export const BackupRestoreSettings: React.FC = () => {
           >
             {restoring ? 'Restaurando...' : 'Subir Archivo y Restaurar'}
           </Button>
-          
-          <AlertTriangle className="text-warning mb-4" size={48} />
-          <h2 className="text-xl font-bold mb-2">Peligro: Pérdida de Datos</h2>
-          <p className="text-muted mb-4">Restaurar una copia de seguridad sobrescribirá toda la base de datos actual. Asegúrate de tener una copia reciente antes de proceder.</p>
         </div>
       </div>
       

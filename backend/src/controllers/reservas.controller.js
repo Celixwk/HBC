@@ -279,20 +279,36 @@ const updateReservaFull = async (req, res) => {
       return res.status(400).json({ error: 'La habitación no está disponible en las fechas seleccionadas.' });
     }
 
+    // Leer el estado de pago actual para decidir si hay que revertirlo
+    const reservaActual = await prisma.reserva.findUnique({
+      where: { id_reserva: idReserva },
+      select: { monto_pagado: true, estado_pago: true }
+    });
+
+    const nuevoMonto = parseFloat(monto_total) || 0;
+    const montoPagado = reservaActual ? parseFloat(reservaActual.monto_pagado || 0) : 0;
+
+    // Si el nuevo total supera lo ya pagado, el estado de pago debe volver a pendiente
+    const nuevoEstadoPago = (nuevoMonto > montoPagado) ? 'pendiente' : undefined;
+
+    const dataUpdate = {
+      id_espacio: idEspacio,
+      check_in: parsedCheckIn,
+      check_out: parsedCheckOut,
+      cantidad_adultos: parseInt(cantidad_adultos) || 1,
+      cantidad_ninos: parseInt(cantidad_ninos) || 0,
+      monto_total: nuevoMonto,
+      anotaciones: anotaciones || null,
+      fecha_evento: fecha_evento ? new Date(fecha_evento) : null,
+      hora_inicio: hora_inicio || null,
+      hora_fin: hora_fin || null
+    };
+
+    if (nuevoEstadoPago) dataUpdate.estado_pago = nuevoEstadoPago;
+
     const updated = await prisma.reserva.update({
       where: { id_reserva: idReserva },
-      data: {
-        id_espacio: idEspacio,
-        check_in: parsedCheckIn,
-        check_out: parsedCheckOut,
-        cantidad_adultos: parseInt(cantidad_adultos) || 1,
-        cantidad_ninos: parseInt(cantidad_ninos) || 0,
-        monto_total: parseFloat(monto_total) || 0,
-        anotaciones: anotaciones || null,
-        fecha_evento: fecha_evento ? new Date(fecha_evento) : null,
-        hora_inicio: hora_inicio || null,
-        hora_fin: hora_fin || null
-      },
+      data: dataUpdate,
       include: { espacio: true, huesped: true }
     });
 
@@ -347,14 +363,27 @@ const extenderReserva = async (req, res) => {
 
     const [y, m, d] = check_out.split('-');
     const parsedCheckOut = new Date(Date.UTC(y, m - 1, d));
+    const idReserva = parseInt(id);
 
     const data = { check_out: parsedCheckOut };
+
     if (monto_total !== undefined && monto_total !== null && monto_total !== '') {
-      data.monto_total = parseFloat(monto_total);
+      const nuevoMonto = parseFloat(monto_total);
+      data.monto_total = nuevoMonto;
+
+      // Si el nuevo total supera lo ya pagado, revertir estado de pago a pendiente
+      const reservaActual = await prisma.reserva.findUnique({
+        where: { id_reserva: idReserva },
+        select: { monto_pagado: true, estado_pago: true }
+      });
+      const montoPagado = reservaActual ? parseFloat(reservaActual.monto_pagado || 0) : 0;
+      if (nuevoMonto > montoPagado) {
+        data.estado_pago = 'pendiente';
+      }
     }
 
     const updated = await prisma.reserva.update({
-      where: { id_reserva: parseInt(id) },
+      where: { id_reserva: idReserva },
       data,
       include: { espacio: true, huesped: true }
     });

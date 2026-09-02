@@ -250,7 +250,10 @@ exports.Prisma.TemporadaScalarFieldEnum = {
   mes_dia_inicio: 'mes_dia_inicio',
   mes_dia_fin: 'mes_dia_fin',
   activo: 'activo',
-  fecha_creacion: 'fecha_creacion'
+  fecha_creacion: 'fecha_creacion',
+  es_exacta: 'es_exacta',
+  fecha_exacta_inicio: 'fecha_exacta_inicio',
+  fecha_exacta_fin: 'fecha_exacta_fin'
 };
 
 exports.Prisma.Categoria_inventarioScalarFieldEnum = {
@@ -285,6 +288,7 @@ exports.Prisma.Producto_inventarioScalarFieldEnum = {
   stock_actual: 'stock_actual',
   stock_minimo: 'stock_minimo',
   id_proveedor: 'id_proveedor',
+  fecha_vencimiento: 'fecha_vencimiento',
   activo: 'activo',
   fecha_creacion: 'fecha_creacion'
 };
@@ -325,6 +329,41 @@ exports.Prisma.Categoria_gastoScalarFieldEnum = {
   activo: 'activo'
 };
 
+exports.Prisma.UsuarioScalarFieldEnum = {
+  id_usuario: 'id_usuario',
+  nombre_completo: 'nombre_completo',
+  username: 'username',
+  password_hash: 'password_hash',
+  rol: 'rol',
+  activo: 'activo',
+  fecha_creacion: 'fecha_creacion'
+};
+
+exports.Prisma.Audit_logScalarFieldEnum = {
+  id_log: 'id_log',
+  id_usuario: 'id_usuario',
+  username: 'username',
+  accion: 'accion',
+  descripcion: 'descripcion',
+  entidad: 'entidad',
+  entidad_id: 'entidad_id',
+  ip: 'ip',
+  fecha: 'fecha'
+};
+
+exports.Prisma.Turno_cajaScalarFieldEnum = {
+  id_turno: 'id_turno',
+  id_usuario: 'id_usuario',
+  fecha_apertura: 'fecha_apertura',
+  monto_apertura: 'monto_apertura',
+  fecha_cierre: 'fecha_cierre',
+  monto_sistema: 'monto_sistema',
+  monto_real: 'monto_real',
+  diferencia: 'diferencia',
+  estado: 'estado',
+  notas: 'notas'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -357,7 +396,10 @@ exports.Prisma.ModelName = {
   producto_inventario: 'producto_inventario',
   movimiento_inventario: 'movimiento_inventario',
   gasto_operativo: 'gasto_operativo',
-  categoria_gasto: 'categoria_gasto'
+  categoria_gasto: 'categoria_gasto',
+  usuario: 'usuario',
+  audit_log: 'audit_log',
+  turno_caja: 'turno_caja'
 };
 
 /**

@@ -13,6 +13,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('hb_token'));
   const [usuario, setUsuario] = useState<string | null>(() => localStorage.getItem('hb_user'));
+  const [rol, setRol] = useState<string | null>(() => localStorage.getItem('hb_rol'));
 
   const login = async (usr: string, password: string) => {
     const res = await fetch('/api/auth/login', {
@@ -24,15 +25,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!res.ok) throw new Error(data.error || 'Error al iniciar sesión');
     localStorage.setItem('hb_token', data.token);
     localStorage.setItem('hb_user', data.usuario);
+    localStorage.setItem('hb_rol', data.rol);
     setToken(data.token);
     setUsuario(data.usuario);
+    setRol(data.rol);
   };
 
   const logout = useCallback(() => {
     localStorage.removeItem('hb_token');
     localStorage.removeItem('hb_user');
+    localStorage.removeItem('hb_rol');
     setToken(null);
     setUsuario(null);
+    setRol(null);
   }, []);
 
   // Verificar sesión al arrancar

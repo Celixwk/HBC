@@ -88,16 +88,63 @@ const updateCuentaEspacio = async (req, res) => {
   const { id } = req.params;
   const { nombre_producto, cantidad, valor_unitario, anotaciones } = req.body;
   try {
+    const idItem = parseInt(id);
+    const nuevaCant = parseInt(cantidad);
+    const nuevoUnit = parseFloat(valor_unitario);
+
+    // Leer cargo anterior para calcular la diferencia de cantidad
+    const anterior = await prisma.cuenta_espacio.findUnique({
+      where: { id_item: idItem },
+      select: { cantidad: true, nombre_producto: true }
+    });
+
     const updated = await prisma.cuenta_espacio.update({
-      where: { id_item: parseInt(id) },
+      where: { id_item: idItem },
       data: {
         nombre_producto,
-        cantidad: parseInt(cantidad),
-        valor_unitario: parseFloat(valor_unitario),
-        valor_total: parseInt(cantidad) * parseFloat(valor_unitario),
+        cantidad: nuevaCant,
+        valor_unitario: nuevoUnit,
+        valor_total: nuevaCant * nuevoUnit,
         anotaciones
       }
     });
+
+    // Ajustar inventario general por la diferencia de cantidad (silencioso, no bloquea)
+    try {
+      if (anterior) {
+        const diff = nuevaCant - (anterior.cantidad || 0);
+        if (diff !== 0) {
+          const prod = await prisma.producto_inventario.findFirst({
+            where: { nombre: { equals: nombre_producto, mode: 'insensitive' }, activo: true }
+          });
+          if (prod) {
+            const stockAntes = Number(prod.stock_actual);
+            // diff > 0 → se consume más → salida; diff < 0 → se devuelve → entrada
+            const nuevoStock = Math.max(0, stockAntes - diff);
+            await prisma.$transaction([
+              prisma.producto_inventario.update({
+                where: { id_producto: prod.id_producto },
+                data: { stock_actual: nuevoStock }
+              }),
+              prisma.movimiento_inventario.create({
+                data: {
+                  id_producto: prod.id_producto,
+                  tipo: diff > 0 ? 'salida' : 'entrada',
+                  motivo: diff > 0 ? 'consumo_habitacion' : 'devolucion_habitacion',
+                  cantidad: Math.abs(diff),
+                  stock_antes: stockAntes,
+                  stock_despues: nuevoStock,
+                  precio_unitario: nuevoUnit,
+                  referencia_id: idItem,
+                  referencia_tipo: 'cuenta_espacio_edicion'
+                }
+              })
+            ]);
+          }
+        }
+      }
+    } catch (_) {}
+
     res.json(updated);
   } catch (error) {
     console.error('Error al actualizar cargo espacio:', error);
@@ -229,11 +276,18 @@ const updateCuentaPersona = async (req, res) => {
   const { id } = req.params;
   const { descripcion, cantidad, valor_unitario } = req.body;
   try {
+    const idItem = parseInt(id);
     const safeCant = parseInt(cantidad?.toString().replace(/[^\d.-]/g, '')) || 0;
     const safeUnit = parseFloat(valor_unitario?.toString().replace(/[^\d.-]/g, '')) || 0;
 
+    // Leer cargo anterior para calcular la diferencia de cantidad
+    const anterior = await prisma.cuenta_persona.findUnique({
+      where: { id_item_persona: idItem },
+      select: { cantidad: true, descripcion: true }
+    });
+
     const updated = await prisma.cuenta_persona.update({
-      where: { id_item_persona: parseInt(id) },
+      where: { id_item_persona: idItem },
       data: {
         descripcion,
         cantidad: safeCant,
@@ -241,6 +295,42 @@ const updateCuentaPersona = async (req, res) => {
         valor_total: safeCant * safeUnit
       }
     });
+
+    // Ajustar inventario general por la diferencia de cantidad (silencioso, no bloquea)
+    try {
+      if (anterior) {
+        const diff = safeCant - (anterior.cantidad || 0);
+        if (diff !== 0) {
+          const prod = await prisma.producto_inventario.findFirst({
+            where: { nombre: { equals: descripcion, mode: 'insensitive' }, activo: true }
+          });
+          if (prod) {
+            const stockAntes = Number(prod.stock_actual);
+            const nuevoStock = Math.max(0, stockAntes - diff);
+            await prisma.$transaction([
+              prisma.producto_inventario.update({
+                where: { id_producto: prod.id_producto },
+                data: { stock_actual: nuevoStock }
+              }),
+              prisma.movimiento_inventario.create({
+                data: {
+                  id_producto: prod.id_producto,
+                  tipo: diff > 0 ? 'salida' : 'entrada',
+                  motivo: diff > 0 ? 'consumo_persona' : 'devolucion_persona',
+                  cantidad: Math.abs(diff),
+                  stock_antes: stockAntes,
+                  stock_despues: nuevoStock,
+                  precio_unitario: safeUnit,
+                  referencia_id: idItem,
+                  referencia_tipo: 'cuenta_persona_edicion'
+                }
+              })
+            ]);
+          }
+        }
+      }
+    } catch (_) {}
+
     res.json(updated);
   } catch (error) {
     console.error('Error al actualizar cargo persona:', error);

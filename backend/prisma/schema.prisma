@@ -55,6 +55,7 @@ model espacio {
   estado_limpieza    String?              @default("limpia") @db.VarChar(20)
   activo             Boolean?             @default(true)
   tiene_minibar      Boolean?             @default(false)
+  url_ical           String?              @db.VarChar(500)
   inventario_minibar inventario_minibar[]
   reserva            reserva[]
 }
@@ -207,6 +208,7 @@ model producto_inventario {
   stock_actual   Decimal                 @default(0) @db.Decimal(12, 3)
   stock_minimo   Decimal                 @default(0) @db.Decimal(12, 3)
   id_proveedor   Int?
+  fecha_vencimiento DateTime?          @db.Date
   activo         Boolean                 @default(true)
   fecha_creacion DateTime                @default(now()) @db.Timestamp(6)
   proveedor      proveedor?              @relation(fields: [id_proveedor], references: [id_proveedor], onDelete: SetNull)
@@ -258,3 +260,61 @@ model categoria_gasto {
   nombre  String  @unique @db.VarChar(60)
   activo  Boolean @default(true)
 }
+
+// ─── SISTEMA DE USUARIOS Y ROLES ──────────────────────────────────────────────
+
+model usuario {
+  id_usuario      Int         @id @default(autoincrement())
+  nombre_completo String      @db.VarChar(150)
+  username        String      @unique @db.VarChar(80)
+  password_hash   String      @db.VarChar(255)
+  rol             String      @default("recepcionista") @db.VarChar(20) // 'admin' | 'recepcionista'
+  activo          Boolean     @default(true)
+  fecha_creacion  DateTime    @default(now()) @db.Timestamp(6)
+
+  audit_logs      audit_log[]
+  turnos_caja     turno_caja[]
+
+  @@index([username], map: "idx_usuario_username")
+}
+
+// ─── REGISTRO DE AUDITORÍA ────────────────────────────────────────────────────
+
+model audit_log {
+  id_log      Int      @id @default(autoincrement())
+  id_usuario  Int?
+  username    String   @db.VarChar(80)
+  accion      String   @db.VarChar(60)  // 'LOGIN', 'PAGO_REGISTRADO', 'RESERVA_CREADA', etc.
+  descripcion String?  @db.Text
+  entidad     String?  @db.VarChar(40)  // 'reserva', 'usuario', 'caja', etc.
+  entidad_id  Int?
+  ip          String?  @db.VarChar(45)
+  fecha       DateTime @default(now()) @db.Timestamp(6)
+
+  usuario     usuario? @relation(fields: [id_usuario], references: [id_usuario], onDelete: SetNull)
+
+  @@index([fecha],      map: "idx_audit_fecha")
+  @@index([id_usuario], map: "idx_audit_usuario")
+  @@index([accion],     map: "idx_audit_accion")
+}
+
+// ─── CONTROL DE CAJA (TURNOS) ─────────────────────────────────────────────────
+
+model turno_caja {
+  id_turno       Int       @id @default(autoincrement())
+  id_usuario     Int
+  fecha_apertura DateTime  @default(now()) @db.Timestamp(6)
+  monto_apertura Decimal   @default(0) @db.Decimal(12, 2)
+  fecha_cierre   DateTime? @db.Timestamp(6)
+  monto_sistema  Decimal?  @db.Decimal(12, 2)  // calculado por el sistema
+  monto_real     Decimal?  @db.Decimal(12, 2)  // contado por el cajero
+  diferencia     Decimal?  @db.Decimal(12, 2)
+  estado         String    @default("abierto") @db.VarChar(20) // 'abierto' | 'cerrado'
+  notas          String?   @db.Text
+
+  usuario        usuario   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction)
+
+  @@index([id_usuario], map: "idx_caja_usuario")
+  @@index([estado],     map: "idx_caja_estado")
+}
+
