@@ -159,7 +159,8 @@ exports.Prisma.EspacioScalarFieldEnum = {
   precio_adicional: 'precio_adicional',
   estado_limpieza: 'estado_limpieza',
   activo: 'activo',
-  tiene_minibar: 'tiene_minibar'
+  tiene_minibar: 'tiene_minibar',
+  url_ical: 'url_ical'
 };
 
 exports.Prisma.HuespedScalarFieldEnum = {

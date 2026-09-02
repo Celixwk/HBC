@@ -5197,6 +5197,7 @@ export namespace Prisma {
     estado_limpieza: string | null
     activo: boolean | null
     tiene_minibar: boolean | null
+    url_ical: string | null
   }
 
   export type EspacioMaxAggregateOutputType = {
@@ -5211,6 +5212,7 @@ export namespace Prisma {
     estado_limpieza: string | null
     activo: boolean | null
     tiene_minibar: boolean | null
+    url_ical: string | null
   }
 
   export type EspacioCountAggregateOutputType = {
@@ -5225,6 +5227,7 @@ export namespace Prisma {
     estado_limpieza: number
     activo: number
     tiene_minibar: number
+    url_ical: number
     _all: number
   }
 
@@ -5257,6 +5260,7 @@ export namespace Prisma {
     estado_limpieza?: true
     activo?: true
     tiene_minibar?: true
+    url_ical?: true
   }
 
   export type EspacioMaxAggregateInputType = {
@@ -5271,6 +5275,7 @@ export namespace Prisma {
     estado_limpieza?: true
     activo?: true
     tiene_minibar?: true
+    url_ical?: true
   }
 
   export type EspacioCountAggregateInputType = {
@@ -5285,6 +5290,7 @@ export namespace Prisma {
     estado_limpieza?: true
     activo?: true
     tiene_minibar?: true
+    url_ical?: true
     _all?: true
   }
 
@@ -5386,6 +5392,7 @@ export namespace Prisma {
     estado_limpieza: string | null
     activo: boolean | null
     tiene_minibar: boolean | null
+    url_ical: string | null
     _count: EspacioCountAggregateOutputType | null
     _avg: EspacioAvgAggregateOutputType | null
     _sum: EspacioSumAggregateOutputType | null
@@ -5419,6 +5426,7 @@ export namespace Prisma {
     estado_limpieza?: boolean
     activo?: boolean
     tiene_minibar?: boolean
+    url_ical?: boolean
     inventario_minibar?: boolean | espacio$inventario_minibarArgs<ExtArgs>
     reserva?: boolean | espacio$reservaArgs<ExtArgs>
     _count?: boolean | EspacioCountOutputTypeDefaultArgs<ExtArgs>
@@ -5436,6 +5444,7 @@ export namespace Prisma {
     estado_limpieza?: boolean
     activo?: boolean
     tiene_minibar?: boolean
+    url_ical?: boolean
   }, ExtArgs["result"]["espacio"]>
 
   export type espacioSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -5450,6 +5459,7 @@ export namespace Prisma {
     estado_limpieza?: boolean
     activo?: boolean
     tiene_minibar?: boolean
+    url_ical?: boolean
   }, ExtArgs["result"]["espacio"]>
 
   export type espacioSelectScalar = {
@@ -5464,9 +5474,10 @@ export namespace Prisma {
     estado_limpieza?: boolean
     activo?: boolean
     tiene_minibar?: boolean
+    url_ical?: boolean
   }
 
-  export type espacioOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_espacio" | "numero" | "tipo_espacio" | "tipo_habitacion" | "capacidad_personas" | "precio_persona_1" | "precio_persona_2" | "precio_adicional" | "estado_limpieza" | "activo" | "tiene_minibar", ExtArgs["result"]["espacio"]>
+  export type espacioOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id_espacio" | "numero" | "tipo_espacio" | "tipo_habitacion" | "capacidad_personas" | "precio_persona_1" | "precio_persona_2" | "precio_adicional" | "estado_limpieza" | "activo" | "tiene_minibar" | "url_ical", ExtArgs["result"]["espacio"]>
   export type espacioInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     inventario_minibar?: boolean | espacio$inventario_minibarArgs<ExtArgs>
     reserva?: boolean | espacio$reservaArgs<ExtArgs>
@@ -5493,6 +5504,7 @@ export namespace Prisma {
       estado_limpieza: string | null
       activo: boolean | null
       tiene_minibar: boolean | null
+      url_ical: string | null
     }, ExtArgs["result"]["espacio"]>
     composites: {}
   }
@@ -5929,6 +5941,7 @@ export namespace Prisma {
     readonly estado_limpieza: FieldRef<"espacio", 'String'>
     readonly activo: FieldRef<"espacio", 'Boolean'>
     readonly tiene_minibar: FieldRef<"espacio", 'Boolean'>
+    readonly url_ical: FieldRef<"espacio", 'String'>
   }
     
 
@@ -24906,7 +24919,8 @@ export namespace Prisma {
     precio_adicional: 'precio_adicional',
     estado_limpieza: 'estado_limpieza',
     activo: 'activo',
-    tiene_minibar: 'tiene_minibar'
+    tiene_minibar: 'tiene_minibar',
+    url_ical: 'url_ical'
   };
 
   export type EspacioScalarFieldEnum = (typeof EspacioScalarFieldEnum)[keyof typeof EspacioScalarFieldEnum]
@@ -25463,6 +25477,7 @@ export namespace Prisma {
     estado_limpieza?: StringNullableFilter<"espacio"> | string | null
     activo?: BoolNullableFilter<"espacio"> | boolean | null
     tiene_minibar?: BoolNullableFilter<"espacio"> | boolean | null
+    url_ical?: StringNullableFilter<"espacio"> | string | null
     inventario_minibar?: Inventario_minibarListRelationFilter
     reserva?: ReservaListRelationFilter
   }
@@ -25479,6 +25494,7 @@ export namespace Prisma {
     estado_limpieza?: SortOrderInput | SortOrder
     activo?: SortOrderInput | SortOrder
     tiene_minibar?: SortOrderInput | SortOrder
+    url_ical?: SortOrderInput | SortOrder
     inventario_minibar?: inventario_minibarOrderByRelationAggregateInput
     reserva?: reservaOrderByRelationAggregateInput
   }
@@ -25498,6 +25514,7 @@ export namespace Prisma {
     estado_limpieza?: StringNullableFilter<"espacio"> | string | null
     activo?: BoolNullableFilter<"espacio"> | boolean | null
     tiene_minibar?: BoolNullableFilter<"espacio"> | boolean | null
+    url_ical?: StringNullableFilter<"espacio"> | string | null
     inventario_minibar?: Inventario_minibarListRelationFilter
     reserva?: ReservaListRelationFilter
   }, "id_espacio" | "numero">
@@ -25514,6 +25531,7 @@ export namespace Prisma {
     estado_limpieza?: SortOrderInput | SortOrder
     activo?: SortOrderInput | SortOrder
     tiene_minibar?: SortOrderInput | SortOrder
+    url_ical?: SortOrderInput | SortOrder
     _count?: espacioCountOrderByAggregateInput
     _avg?: espacioAvgOrderByAggregateInput
     _max?: espacioMaxOrderByAggregateInput
@@ -25536,6 +25554,7 @@ export namespace Prisma {
     estado_limpieza?: StringNullableWithAggregatesFilter<"espacio"> | string | null
     activo?: BoolNullableWithAggregatesFilter<"espacio"> | boolean | null
     tiene_minibar?: BoolNullableWithAggregatesFilter<"espacio"> | boolean | null
+    url_ical?: StringNullableWithAggregatesFilter<"espacio"> | string | null
   }
 
   export type huespedWhereInput = {
@@ -27015,6 +27034,7 @@ export namespace Prisma {
     estado_limpieza?: string | null
     activo?: boolean | null
     tiene_minibar?: boolean | null
+    url_ical?: string | null
     inventario_minibar?: inventario_minibarCreateNestedManyWithoutEspacioInput
     reserva?: reservaCreateNestedManyWithoutEspacioInput
   }
@@ -27031,6 +27051,7 @@ export namespace Prisma {
     estado_limpieza?: string | null
     activo?: boolean | null
     tiene_minibar?: boolean | null
+    url_ical?: string | null
     inventario_minibar?: inventario_minibarUncheckedCreateNestedManyWithoutEspacioInput
     reserva?: reservaUncheckedCreateNestedManyWithoutEspacioInput
   }
@@ -27046,6 +27067,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
     inventario_minibar?: inventario_minibarUpdateManyWithoutEspacioNestedInput
     reserva?: reservaUpdateManyWithoutEspacioNestedInput
   }
@@ -27062,6 +27084,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
     inventario_minibar?: inventario_minibarUncheckedUpdateManyWithoutEspacioNestedInput
     reserva?: reservaUncheckedUpdateManyWithoutEspacioNestedInput
   }
@@ -27078,6 +27101,7 @@ export namespace Prisma {
     estado_limpieza?: string | null
     activo?: boolean | null
     tiene_minibar?: boolean | null
+    url_ical?: string | null
   }
 
   export type espacioUpdateManyMutationInput = {
@@ -27091,6 +27115,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type espacioUncheckedUpdateManyInput = {
@@ -27105,6 +27130,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type huespedCreateInput = {
@@ -28897,6 +28923,7 @@ export namespace Prisma {
     estado_limpieza?: SortOrder
     activo?: SortOrder
     tiene_minibar?: SortOrder
+    url_ical?: SortOrder
   }
 
   export type espacioAvgOrderByAggregateInput = {
@@ -28919,6 +28946,7 @@ export namespace Prisma {
     estado_limpieza?: SortOrder
     activo?: SortOrder
     tiene_minibar?: SortOrder
+    url_ical?: SortOrder
   }
 
   export type espacioMinOrderByAggregateInput = {
@@ -28933,6 +28961,7 @@ export namespace Prisma {
     estado_limpieza?: SortOrder
     activo?: SortOrder
     tiene_minibar?: SortOrder
+    url_ical?: SortOrder
   }
 
   export type espacioSumOrderByAggregateInput = {
@@ -31391,6 +31420,7 @@ export namespace Prisma {
     estado_limpieza?: string | null
     activo?: boolean | null
     tiene_minibar?: boolean | null
+    url_ical?: string | null
     reserva?: reservaCreateNestedManyWithoutEspacioInput
   }
 
@@ -31406,6 +31436,7 @@ export namespace Prisma {
     estado_limpieza?: string | null
     activo?: boolean | null
     tiene_minibar?: boolean | null
+    url_ical?: string | null
     reserva?: reservaUncheckedCreateNestedManyWithoutEspacioInput
   }
 
@@ -31436,6 +31467,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
     reserva?: reservaUpdateManyWithoutEspacioNestedInput
   }
 
@@ -31451,6 +31483,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
     reserva?: reservaUncheckedUpdateManyWithoutEspacioNestedInput
   }
 
@@ -31535,6 +31568,7 @@ export namespace Prisma {
     estado_limpieza?: string | null
     activo?: boolean | null
     tiene_minibar?: boolean | null
+    url_ical?: string | null
     inventario_minibar?: inventario_minibarCreateNestedManyWithoutEspacioInput
   }
 
@@ -31550,6 +31584,7 @@ export namespace Prisma {
     estado_limpieza?: string | null
     activo?: boolean | null
     tiene_minibar?: boolean | null
+    url_ical?: string | null
     inventario_minibar?: inventario_minibarUncheckedCreateNestedManyWithoutEspacioInput
   }
 
@@ -31656,6 +31691,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
     inventario_minibar?: inventario_minibarUpdateManyWithoutEspacioNestedInput
   }
 
@@ -31671,6 +31707,7 @@ export namespace Prisma {
     estado_limpieza?: NullableStringFieldUpdateOperationsInput | string | null
     activo?: NullableBoolFieldUpdateOperationsInput | boolean | null
     tiene_minibar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    url_ical?: NullableStringFieldUpdateOperationsInput | string | null
     inventario_minibar?: inventario_minibarUncheckedUpdateManyWithoutEspacioNestedInput
   }
 

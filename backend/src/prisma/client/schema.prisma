@@ -55,6 +55,7 @@ model espacio {
   estado_limpieza    String?              @default("limpia") @db.VarChar(20)
   activo             Boolean?             @default(true)
   tiene_minibar      Boolean?             @default(false)
+  url_ical           String?              @db.VarChar(500)
   inventario_minibar inventario_minibar[]
   reserva            reserva[]
 }

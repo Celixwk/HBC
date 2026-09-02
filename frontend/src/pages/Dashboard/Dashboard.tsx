@@ -140,6 +140,24 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* ── Aviso: no hay habitaciones configuradas ─── */}
+      {estadisticas.habitacionesActivas === 0 && (
+        <div style={{
+          background: 'rgba(245,158,11,0.12)',
+          border: '1px solid rgba(245,158,11,0.35)',
+          borderRadius: '12px',
+          padding: '12px 16px',
+          marginBottom: '16px',
+          color: '#f59e0b',
+          fontSize: '13px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          ⚠️ <strong>No hay habitaciones configuradas.</strong> Ve a "Habitaciones y Espacios" para agregar tus habitaciones. Las estadísticas de ocupación no estarán disponibles hasta entonces.
+        </div>
+      )}
+
       {/* ── KPIs ─────────────────────────────────────── */}
       <div className="kpi-section-title">Estado del Hotel (Hoy)</div>
       <div className="kpi-grid">

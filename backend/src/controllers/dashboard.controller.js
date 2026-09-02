@@ -122,36 +122,46 @@ const getDashboardStats = async (req, res) => {
 
     const [totalEspacios, reservasActivas, llegadasHoy, salidasHoy, reservasConFirma, reservasSinFirma] = await Promise.all([
       prisma.espacio.count({ where: { activo: true } }),
-      prisma.reserva.count({ where: { estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] } } }),
-      // Llegadas de hoy (excluye no_show — si no llegaron no cuentan como llegada activa)
+      // Solo contar reservas activas cuyo espacio todavía existe y está activo
+      prisma.reserva.count({
+        where: {
+          estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
+          espacio: { activo: true }
+        }
+      }),
+      // Llegadas de hoy — solo si el espacio sigue activo
       prisma.reserva.count({
         where: {
           estado_reserva: { notIn: ['cancelada', 'no_show'] },
-          check_in: { gte: todayStart, lte: todayEnd }
+          check_in: { gte: todayStart, lte: todayEnd },
+          espacio: { activo: true }
         }
       }),
-      // Salidas de hoy
+      // Salidas de hoy — solo si el espacio sigue activo
       prisma.reserva.count({
         where: {
           estado_reserva: { notIn: ['cancelada', 'no_show'] },
-          check_out: { gte: todayStart, lte: todayEnd }
+          check_out: { gte: todayStart, lte: todayEnd },
+          espacio: { activo: true }
         }
       }),
-      // In-House CON FIRMA en la reserva (ya llegaron y firmaron esta estadía)
+      // In-House CON FIRMA — solo reservas cuyo espacio existe y está activo
       prisma.reserva.findMany({
         where: {
           estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
           check_in: { lte: todayEnd },
-          check_out: { gte: todayStart }, // Incluir a los que salen hoy mientras la reserva siga activa
+          check_out: { gte: todayStart },
+          espacio: { activo: true }
         },
         select: { cantidad_adultos: true, cantidad_ninos: true }
       }),
-      // In-House SIN FIRMA (reservados pero aun no han llegado o no han firmado)
+      // In-House SIN FIRMA — solo reservas cuyo espacio existe y está activo
       prisma.reserva.count({
         where: {
           estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
           check_in: { gte: todayStart, lte: todayEnd },
-          firma: null
+          firma: null,
+          espacio: { activo: true }
         }
       })
     ]);
@@ -164,11 +174,13 @@ const getDashboardStats = async (req, res) => {
     const next7DaysEnd = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() + 6, 23, 59, 59, 999));
 
     const [reservasFuturas, checkInsHoyDetalle, checkOutsHoyDetalle] = await Promise.all([
+      // Solo proyectar ocupación de habitaciones que aún existen y están activas
       prisma.reserva.findMany({
         where: {
           estado_reserva: { in: ['activa', 'confirmada', 'en_uso'] },
           check_in: { lte: next7DaysEnd },
-          check_out: { gt: todayStart }
+          check_out: { gt: todayStart },
+          espacio: { activo: true }
         },
         select: { check_in: true, check_out: true }
       }),
@@ -417,15 +429,19 @@ const getDashboardStats = async (req, res) => {
       }))
     };
 
+    // Tasa de ocupación: solo calcular si hay habitaciones activas (evitar división por cero)
+    const tasaOcupacion = totalEspacios > 0 ? Math.round((ocupadasHoy / totalEspacios) * 100) : 0;
+
     res.json({
       estadisticas: {
         habitacionesActivas: totalEspacios,
-        huespedesInHouse,
-        reservasPendientesLlegada,
-        reservasActivas,
-        llegadasHoy,
-        salidasHoy,
-        ocupadasHoy,
+        tasaOcupacion,
+        huespedesInHouse: totalEspacios > 0 ? huespedesInHouse : 0,
+        reservasPendientesLlegada: totalEspacios > 0 ? reservasPendientesLlegada : 0,
+        reservasActivas: totalEspacios > 0 ? reservasActivas : 0,
+        llegadasHoy: totalEspacios > 0 ? llegadasHoy : 0,
+        salidasHoy: totalEspacios > 0 ? salidasHoy : 0,
+        ocupadasHoy: totalEspacios > 0 ? ocupadasHoy : 0,
         ingresosTotales,
         ingresosHabActual,
         ingresosHabAnterior,

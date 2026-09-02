@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { registrarLog } = require('./audit.controller');
 
 // Obtener todas las reservas (con auto-mark de no-show y completadas)
 const getReservas = async (req, res) => {
