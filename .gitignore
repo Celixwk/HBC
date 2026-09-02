@@ -20,4 +20,13 @@ frontend-build/
 coverage/
 .vscode/
 
-testsprite_tests\tmp\config.json
+# Archivos y carpetas temporales / innecesarias
+testsprite_tests/
+pg15_extracted/
+pg15.zip
+.claude/
+hotel-boutique/
+*.patch
+*.diff
+CUsers*.txt
+scratch_receipt.tsx
