@@ -1,9 +1,8 @@
--- Hotel Boutique - Schema idempotente (CREATE TABLE IF NOT EXISTS)
--- Se puede ejecutar en cualquier momento sin romper datos existentes
+-- CreateSchema
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "cuenta_espacio" (
+CREATE TABLE IF NOT EXISTS \"cuenta_espacio" (
     "id_item" SERIAL NOT NULL,
     "id_reserva" INTEGER NOT NULL,
     "nombre_producto" VARCHAR(150) NOT NULL,
@@ -19,7 +18,7 @@ CREATE TABLE IF NOT EXISTS "cuenta_espacio" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "cuenta_persona" (
+CREATE TABLE IF NOT EXISTS \"cuenta_persona" (
     "id_item_persona" SERIAL NOT NULL,
     "id_huesped" INTEGER,
     "nombre_persona" VARCHAR(150) NOT NULL,
@@ -37,7 +36,7 @@ CREATE TABLE IF NOT EXISTS "cuenta_persona" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "espacio" (
+CREATE TABLE IF NOT EXISTS \"espacio" (
     "id_espacio" SERIAL NOT NULL,
     "numero" VARCHAR(10) NOT NULL,
     "tipo_espacio" VARCHAR(20) NOT NULL,
@@ -49,12 +48,13 @@ CREATE TABLE IF NOT EXISTS "espacio" (
     "estado_limpieza" VARCHAR(20) DEFAULT 'limpia',
     "activo" BOOLEAN DEFAULT true,
     "tiene_minibar" BOOLEAN DEFAULT false,
+    "url_ical" VARCHAR(500),
 
     CONSTRAINT "espacio_pkey" PRIMARY KEY ("id_espacio")
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "huesped" (
+CREATE TABLE IF NOT EXISTS \"huesped" (
     "id_huesped" SERIAL NOT NULL,
     "nombre_completo" VARCHAR(150) NOT NULL,
     "telefono" VARCHAR(20),
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS "huesped" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "inventario_minibar" (
+CREATE TABLE IF NOT EXISTS \"inventario_minibar" (
     "id_inventario" SERIAL NOT NULL,
     "id_espacio" INTEGER NOT NULL,
     "nombre_producto" VARCHAR(150) NOT NULL,
@@ -81,19 +81,16 @@ CREATE TABLE IF NOT EXISTS "inventario_minibar" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "origen_reserva" (
+CREATE TABLE IF NOT EXISTS \"origen_reserva" (
     "id_origen" SERIAL NOT NULL,
-    "nombre" VARCHAR(50) NOT NULL UNIQUE,
+    "nombre" VARCHAR(50) NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "origen_reserva_pkey" PRIMARY KEY ("id_origen")
 );
 
--- Insert default origin
-INSERT INTO "origen_reserva" ("nombre", "activo") VALUES ('Propia', true) ON CONFLICT ("nombre") DO NOTHING;
-
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "reserva" (
+CREATE TABLE IF NOT EXISTS \"reserva" (
     "id_reserva" SERIAL NOT NULL,
     "id_huesped" INTEGER NOT NULL,
     "id_espacio" INTEGER NOT NULL,
@@ -115,54 +112,14 @@ CREATE TABLE IF NOT EXISTS "reserva" (
     "anotaciones" TEXT,
     "firma" TEXT,
     "fecha_creacion" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    "precio_noche_snapshot" DECIMAL(12,2),
+    "temporada_tipo" VARCHAR(10),
 
     CONSTRAINT "reserva_pkey" PRIMARY KEY ("id_reserva")
 );
 
--- ADD COLUMN IF NOT EXISTS logic
-DO $$ BEGIN
-  ALTER TABLE "reserva" ADD COLUMN "origen" VARCHAR(50) NOT NULL DEFAULT 'Propia';
-EXCEPTION
-  WHEN duplicate_column THEN null;
-END $$;
-
--- Temporadas updates
-DO $$ BEGIN
-  DROP TABLE IF EXISTS "temporada" CASCADE;
-END $$;
-
-CREATE TABLE "temporada" (
-    "id" SERIAL NOT NULL,
-    "nombre" VARCHAR(100) NOT NULL,
-    "tipo" VARCHAR(10) NOT NULL CHECK (tipo IN ('alta', 'media', 'baja')),
-    "mes_dia_inicio" VARCHAR(5) NOT NULL,
-    "mes_dia_fin" VARCHAR(5) NOT NULL,
-    "activo" BOOLEAN DEFAULT true,
-    "fecha_creacion" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "temporada_pkey" PRIMARY KEY ("id")
-);
-
-DO $$ BEGIN
-  ALTER TABLE "reserva" ADD COLUMN "precio_noche_snapshot" DECIMAL(12,2);
-  ALTER TABLE "reserva" ADD COLUMN "temporada_tipo" VARCHAR(10);
-EXCEPTION
-  WHEN duplicate_column THEN null;
-END $$;
-
-DO $$ BEGIN
-  ALTER TABLE "tipo_espacio_config" ADD COLUMN "precio_base_media" DECIMAL(12,2);
-  ALTER TABLE "tipo_espacio_config" ADD COLUMN "precio_base_alta" DECIMAL(12,2);
-  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_pareja_media" DECIMAL(12,2);
-  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_pareja_alta" DECIMAL(12,2);
-  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_adicional_media" DECIMAL(12,2);
-  ALTER TABLE "tipo_espacio_config" ADD COLUMN "recargo_adicional_alta" DECIMAL(12,2);
-EXCEPTION
-  WHEN duplicate_column THEN null;
-END $$;
-
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "configuracion_hotel" (
+CREATE TABLE IF NOT EXISTS \"configuracion_hotel" (
     "id" SERIAL NOT NULL,
     "nombre_hotel" VARCHAR(200),
     "direccion" VARCHAR(300),
@@ -178,19 +135,41 @@ CREATE TABLE IF NOT EXISTS "configuracion_hotel" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "tipo_espacio_config" (
+CREATE TABLE IF NOT EXISTS \"tipo_espacio_config" (
     "id" SERIAL NOT NULL,
     "nombre" VARCHAR(50) NOT NULL,
     "precio_base" DECIMAL(12,2) NOT NULL,
     "recargo_pareja" DECIMAL(12,2) NOT NULL,
     "recargo_adicional" DECIMAL(12,2) NOT NULL,
     "max_personas_adicionales" INTEGER NOT NULL DEFAULT 1,
+    "precio_base_media" DECIMAL(12,2),
+    "precio_base_alta" DECIMAL(12,2),
+    "recargo_pareja_media" DECIMAL(12,2),
+    "recargo_pareja_alta" DECIMAL(12,2),
+    "recargo_adicional_media" DECIMAL(12,2),
+    "recargo_adicional_alta" DECIMAL(12,2),
 
     CONSTRAINT "tipo_espacio_config_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "categoria_inventario" (
+CREATE TABLE IF NOT EXISTS \"temporada" (
+    "id" SERIAL NOT NULL,
+    "nombre" VARCHAR(100) NOT NULL,
+    "tipo" VARCHAR(10) NOT NULL,
+    "mes_dia_inicio" VARCHAR(5) NOT NULL,
+    "mes_dia_fin" VARCHAR(5) NOT NULL,
+    "activo" BOOLEAN NOT NULL DEFAULT true,
+    "fecha_creacion" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "es_exacta" BOOLEAN NOT NULL DEFAULT false,
+    "fecha_exacta_inicio" VARCHAR(10),
+    "fecha_exacta_fin" VARCHAR(10),
+
+    CONSTRAINT "temporada_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS \"categoria_inventario" (
     "id_categoria" SERIAL NOT NULL,
     "nombre" VARCHAR(80) NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
@@ -200,7 +179,7 @@ CREATE TABLE IF NOT EXISTS "categoria_inventario" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "proveedor" (
+CREATE TABLE IF NOT EXISTS \"proveedor" (
     "id_proveedor" SERIAL NOT NULL,
     "nombre" VARCHAR(200) NOT NULL,
     "nit" VARCHAR(30),
@@ -217,7 +196,7 @@ CREATE TABLE IF NOT EXISTS "proveedor" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "producto_inventario" (
+CREATE TABLE IF NOT EXISTS \"producto_inventario" (
     "id_producto" SERIAL NOT NULL,
     "nombre" VARCHAR(200) NOT NULL,
     "descripcion" TEXT,
@@ -236,7 +215,7 @@ CREATE TABLE IF NOT EXISTS "producto_inventario" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "movimiento_inventario" (
+CREATE TABLE IF NOT EXISTS \"movimiento_inventario" (
     "id_movimiento" SERIAL NOT NULL,
     "id_producto" INTEGER NOT NULL,
     "tipo" VARCHAR(10) NOT NULL,
@@ -254,7 +233,7 @@ CREATE TABLE IF NOT EXISTS "movimiento_inventario" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "gasto_operativo" (
+CREATE TABLE IF NOT EXISTS \"gasto_operativo" (
     "id_gasto" SERIAL NOT NULL,
     "categoria" VARCHAR(60) NOT NULL,
     "descripcion" VARCHAR(300) NOT NULL,
@@ -272,7 +251,7 @@ CREATE TABLE IF NOT EXISTS "gasto_operativo" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS "categoria_gasto" (
+CREATE TABLE IF NOT EXISTS \"categoria_gasto" (
     "id" SERIAL NOT NULL,
     "nombre" VARCHAR(60) NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
@@ -280,237 +259,164 @@ CREATE TABLE IF NOT EXISTS "categoria_gasto" (
     CONSTRAINT "categoria_gasto_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex (IF NOT EXISTS safe via DO blocks)
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_cuenta_espacio_reserva') THEN
-    CREATE INDEX "idx_cuenta_espacio_reserva" ON "cuenta_espacio"("id_reserva");
-  END IF;
-END $$;
+-- CreateTable
+CREATE TABLE IF NOT EXISTS \"usuario" (
+    "id_usuario" SERIAL NOT NULL,
+    "nombre_completo" VARCHAR(150) NOT NULL,
+    "username" VARCHAR(80) NOT NULL,
+    "password_hash" VARCHAR(255) NOT NULL,
+    "rol" VARCHAR(20) NOT NULL DEFAULT 'recepcionista',
+    "activo" BOOLEAN NOT NULL DEFAULT true,
+    "fecha_creacion" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_cuenta_persona_huesped') THEN
-    CREATE INDEX "idx_cuenta_persona_huesped" ON "cuenta_persona"("id_huesped");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_cuenta_persona_reserva') THEN
-    CREATE INDEX "idx_cuenta_persona_reserva" ON "cuenta_persona"("id_reserva");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'espacio_numero_key') THEN
-    CREATE UNIQUE INDEX "espacio_numero_key" ON "espacio"("numero");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_minibar_espacio') THEN
-    CREATE INDEX "idx_minibar_espacio" ON "inventario_minibar"("id_espacio");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_reserva_checkin') THEN
-    CREATE INDEX "idx_reserva_checkin" ON "reserva"("check_in");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_reserva_checkout') THEN
-    CREATE INDEX "idx_reserva_checkout" ON "reserva"("check_out");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_reserva_espacio') THEN
-    CREATE INDEX "idx_reserva_espacio" ON "reserva"("id_espacio");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_reserva_estado') THEN
-    CREATE INDEX "idx_reserva_estado" ON "reserva"("estado_reserva");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_reserva_huesped') THEN
-    CREATE INDEX "idx_reserva_huesped" ON "reserva"("id_huesped");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'tipo_espacio_config_nombre_key') THEN
-    CREATE UNIQUE INDEX "tipo_espacio_config_nombre_key" ON "tipo_espacio_config"("nombre");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'categoria_inventario_nombre_key') THEN
-    CREATE UNIQUE INDEX "categoria_inventario_nombre_key" ON "categoria_inventario"("nombre");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_producto_categoria') THEN
-    CREATE INDEX "idx_producto_categoria" ON "producto_inventario"("categoria");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_producto_proveedor') THEN
-    CREATE INDEX "idx_producto_proveedor" ON "producto_inventario"("id_proveedor");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_movimiento_producto') THEN
-    CREATE INDEX "idx_movimiento_producto" ON "movimiento_inventario"("id_producto");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_movimiento_fecha') THEN
-    CREATE INDEX "idx_movimiento_fecha" ON "movimiento_inventario"("fecha");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_gasto_fecha') THEN
-    CREATE INDEX "idx_gasto_fecha" ON "gasto_operativo"("fecha");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_gasto_categoria') THEN
-    CREATE INDEX "idx_gasto_categoria" ON "gasto_operativo"("categoria");
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'categoria_gasto_nombre_key') THEN
-    CREATE UNIQUE INDEX "categoria_gasto_nombre_key" ON "categoria_gasto"("nombre");
-  END IF;
-END $$;
-
--- AddForeignKey (safe)
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'cuenta_espacio_id_reserva_fkey') THEN
-    ALTER TABLE "cuenta_espacio" ADD CONSTRAINT "cuenta_espacio_id_reserva_fkey" FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'cuenta_persona_id_huesped_fkey') THEN
-    ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_huesped_fkey" FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'cuenta_persona_id_reserva_fkey') THEN
-    ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_reserva_fkey" FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'inventario_minibar_id_espacio_fkey') THEN
-    ALTER TABLE "inventario_minibar" ADD CONSTRAINT "inventario_minibar_id_espacio_fkey" FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'reserva_id_espacio_fkey') THEN
-    ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_espacio_fkey" FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'reserva_id_huesped_fkey') THEN
-    ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_huesped_fkey" FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'producto_inventario_id_proveedor_fkey') THEN
-    ALTER TABLE "producto_inventario" ADD CONSTRAINT "producto_inventario_id_proveedor_fkey" FOREIGN KEY ("id_proveedor") REFERENCES "proveedor"("id_proveedor") ON DELETE SET NULL ON UPDATE CASCADE;
-  END IF;
-END $$;
-
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'movimiento_inventario_id_producto_fkey') THEN
-    ALTER TABLE "movimiento_inventario" ADD CONSTRAINT "movimiento_inventario_id_producto_fkey" FOREIGN KEY ("id_producto") REFERENCES "producto_inventario"("id_producto") ON DELETE CASCADE ON UPDATE CASCADE;
-  END IF;
-END $$;
-
--- ── Tabla de temporadas (agnóstica al año, persiste entre actualizaciones) ─────
-CREATE TABLE IF NOT EXISTS "temporada" (
-    "id"              SERIAL NOT NULL,
-    "nombre"          VARCHAR(100) NOT NULL,
-    "tipo"            VARCHAR(10)  NOT NULL,
-    "mes_dia_inicio"  VARCHAR(5)   NOT NULL DEFAULT '01-01',
-    "mes_dia_fin"     VARCHAR(5)   NOT NULL DEFAULT '12-31',
-    "activo"          BOOLEAN      NOT NULL DEFAULT true,
-    "created_at"      TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-    -- Campos para temporadas exactas (con año específico, ej. Semana Santa 2026)
-    "es_exacta"            BOOLEAN NOT NULL DEFAULT false,
-    "fecha_exacta_inicio"  VARCHAR(10),
-    "fecha_exacta_fin"     VARCHAR(10),
-
-    CONSTRAINT "temporada_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "temporada_tipo_check" CHECK ("tipo" IN ('alta', 'media', 'baja'))
+    CONSTRAINT "usuario_pkey" PRIMARY KEY ("id_usuario")
 );
 
--- Agregar columnas si ya existe la tabla (para actualizaciones)
-DO $$ BEGIN
-  ALTER TABLE "temporada" ADD COLUMN "es_exacta" BOOLEAN NOT NULL DEFAULT false;
-EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+-- CreateTable
+CREATE TABLE IF NOT EXISTS \"audit_log" (
+    "id_log" SERIAL NOT NULL,
+    "id_usuario" INTEGER,
+    "username" VARCHAR(80) NOT NULL,
+    "accion" VARCHAR(60) NOT NULL,
+    "descripcion" TEXT,
+    "entidad" VARCHAR(40),
+    "entidad_id" INTEGER,
+    "ip" VARCHAR(45),
+    "fecha" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-DO $$ BEGIN
-  ALTER TABLE "temporada" ADD COLUMN "fecha_exacta_inicio" VARCHAR(10);
-EXCEPTION WHEN duplicate_column THEN NULL; END $$;
-
-DO $$ BEGIN
-  ALTER TABLE "temporada" ADD COLUMN "fecha_exacta_fin" VARCHAR(10);
-EXCEPTION WHEN duplicate_column THEN NULL; END $$;
-
--- ── Tabla de configuración del hotel ─────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS "configuracion_hotel" (
-    "id"                  SERIAL NOT NULL,
-    "nombre_hotel"        VARCHAR(200) DEFAULT 'Hotel Boutique',
-    "direccion"           VARCHAR(300),
-    "telefono"            VARCHAR(50),
-    "nit"                 VARCHAR(50),
-    "email"               VARCHAR(100),
-    "ciudad"              VARCHAR(100),
-    "hora_check_in"       VARCHAR(5)   DEFAULT '15:00',
-    "hora_check_out"      VARCHAR(5)   DEFAULT '13:00',
-    "fecha_actualizacion" TIMESTAMP    DEFAULT now(),
-
-    CONSTRAINT "configuracion_hotel_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "audit_log_pkey" PRIMARY KEY ("id_log")
 );
 
--- Insertar fila por defecto si la tabla está vacía
-INSERT INTO "configuracion_hotel" ("nombre_hotel", "hora_check_in", "hora_check_out")
-SELECT 'Hotel Boutique', '15:00', '13:00'
-WHERE NOT EXISTS (SELECT 1 FROM "configuracion_hotel");
+-- CreateTable
+CREATE TABLE IF NOT EXISTS \"turno_caja" (
+    "id_turno" SERIAL NOT NULL,
+    "id_usuario" INTEGER NOT NULL,
+    "fecha_apertura" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "monto_apertura" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "fecha_cierre" TIMESTAMP(6),
+    "monto_sistema" DECIMAL(12,2),
+    "monto_real" DECIMAL(12,2),
+    "diferencia" DECIMAL(12,2),
+    "estado" VARCHAR(20) NOT NULL DEFAULT 'abierto',
+    "notas" TEXT,
 
--- Agregar columnas si ya existe la tabla sin ellas (instalaciones previas)
-DO $$ BEGIN
-  ALTER TABLE "configuracion_hotel" ADD COLUMN "hora_check_in" VARCHAR(5) DEFAULT '15:00';
-EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+    CONSTRAINT "turno_caja_pkey" PRIMARY KEY ("id_turno")
+);
 
-DO $$ BEGIN
-  ALTER TABLE "configuracion_hotel" ADD COLUMN "hora_check_out" VARCHAR(5) DEFAULT '13:00';
-EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_cuenta_espacio_reserva" ON "cuenta_espacio"("id_reserva");
 
--- Rellenar valores si las columnas existían pero estaban en NULL
-UPDATE "configuracion_hotel" SET "hora_check_in" = '15:00' WHERE "hora_check_in" IS NULL;
-UPDATE "configuracion_hotel" SET "hora_check_out" = '13:00' WHERE "hora_check_out" IS NULL;
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_cuenta_persona_huesped" ON "cuenta_persona"("id_huesped");
 
--- Agregar columna fecha_vencimiento a producto_inventario (migración)
-DO $$ BEGIN
-  ALTER TABLE "producto_inventario" ADD COLUMN "fecha_vencimiento" DATE;
-EXCEPTION WHEN duplicate_column THEN NULL; END $$;
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_cuenta_persona_reserva" ON "cuenta_persona"("id_reserva");
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS \"espacio_numero_key" ON "espacio"("numero");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_minibar_espacio" ON "inventario_minibar"("id_espacio");
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS \"origen_reserva_nombre_key" ON "origen_reserva"("nombre");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_reserva_checkin" ON "reserva"("check_in");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_reserva_checkout" ON "reserva"("check_out");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_reserva_espacio" ON "reserva"("id_espacio");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_reserva_estado" ON "reserva"("estado_reserva");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_reserva_huesped" ON "reserva"("id_huesped");
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS \"tipo_espacio_config_nombre_key" ON "tipo_espacio_config"("nombre");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_temporada_inicio" ON "temporada"("mes_dia_inicio");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_temporada_fin" ON "temporada"("mes_dia_fin");
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS \"categoria_inventario_nombre_key" ON "categoria_inventario"("nombre");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_producto_categoria" ON "producto_inventario"("categoria");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_producto_proveedor" ON "producto_inventario"("id_proveedor");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_movimiento_producto" ON "movimiento_inventario"("id_producto");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_movimiento_fecha" ON "movimiento_inventario"("fecha");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_gasto_fecha" ON "gasto_operativo"("fecha");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_gasto_categoria" ON "gasto_operativo"("categoria");
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS \"categoria_gasto_nombre_key" ON "categoria_gasto"("nombre");
+
+-- CreateIndex
+CREATE UNIQUE INDEX IF NOT EXISTS \"usuario_username_key" ON "usuario"("username");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_usuario_username" ON "usuario"("username");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_audit_fecha" ON "audit_log"("fecha");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_audit_usuario" ON "audit_log"("id_usuario");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_audit_accion" ON "audit_log"("accion");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_caja_usuario" ON "turno_caja"("id_usuario");
+
+-- CreateIndex
+CREATE INDEX IF NOT EXISTS \"idx_caja_estado" ON "turno_caja"("estado");
+
+-- AddForeignKey
+ALTER TABLE "cuenta_espacio" ADD CONSTRAINT "cuenta_espacio_id_reserva_fkey" FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_huesped_fkey" FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_reserva_fkey" FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "inventario_minibar" ADD CONSTRAINT "inventario_minibar_id_espacio_fkey" FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_espacio_fkey" FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_huesped_fkey" FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE "producto_inventario" ADD CONSTRAINT "producto_inventario_id_proveedor_fkey" FOREIGN KEY ("id_proveedor") REFERENCES "proveedor"("id_proveedor") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "movimiento_inventario" ADD CONSTRAINT "movimiento_inventario_id_producto_fkey" FOREIGN KEY ("id_producto") REFERENCES "producto_inventario"("id_producto") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_id_usuario_fkey" FOREIGN KEY ("id_usuario") REFERENCES "usuario"("id_usuario") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "turno_caja" ADD CONSTRAINT "turno_caja_id_usuario_fkey" FOREIGN KEY ("id_usuario") REFERENCES "usuario"("id_usuario") ON DELETE NO ACTION ON UPDATE CASCADE;
 
