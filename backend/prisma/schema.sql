@@ -2,7 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"cuenta_espacio" (
+CREATE TABLE IF NOT EXISTS "cuenta_espacio" (
     "id_item" SERIAL NOT NULL,
     "id_reserva" INTEGER NOT NULL,
     "nombre_producto" VARCHAR(150) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS \"cuenta_espacio" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"cuenta_persona" (
+CREATE TABLE IF NOT EXISTS "cuenta_persona" (
     "id_item_persona" SERIAL NOT NULL,
     "id_huesped" INTEGER,
     "nombre_persona" VARCHAR(150) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS \"cuenta_persona" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"espacio" (
+CREATE TABLE IF NOT EXISTS "espacio" (
     "id_espacio" SERIAL NOT NULL,
     "numero" VARCHAR(10) NOT NULL,
     "tipo_espacio" VARCHAR(20) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS \"espacio" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"huesped" (
+CREATE TABLE IF NOT EXISTS "huesped" (
     "id_huesped" SERIAL NOT NULL,
     "nombre_completo" VARCHAR(150) NOT NULL,
     "telefono" VARCHAR(20),
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS \"huesped" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"inventario_minibar" (
+CREATE TABLE IF NOT EXISTS "inventario_minibar" (
     "id_inventario" SERIAL NOT NULL,
     "id_espacio" INTEGER NOT NULL,
     "nombre_producto" VARCHAR(150) NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS \"inventario_minibar" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"origen_reserva" (
+CREATE TABLE IF NOT EXISTS "origen_reserva" (
     "id_origen" SERIAL NOT NULL,
     "nombre" VARCHAR(50) NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS \"origen_reserva" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"reserva" (
+CREATE TABLE IF NOT EXISTS "reserva" (
     "id_reserva" SERIAL NOT NULL,
     "id_huesped" INTEGER NOT NULL,
     "id_espacio" INTEGER NOT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS \"reserva" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"configuracion_hotel" (
+CREATE TABLE IF NOT EXISTS "configuracion_hotel" (
     "id" SERIAL NOT NULL,
     "nombre_hotel" VARCHAR(200),
     "direccion" VARCHAR(300),
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS \"configuracion_hotel" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"tipo_espacio_config" (
+CREATE TABLE IF NOT EXISTS "tipo_espacio_config" (
     "id" SERIAL NOT NULL,
     "nombre" VARCHAR(50) NOT NULL,
     "precio_base" DECIMAL(12,2) NOT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS \"tipo_espacio_config" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"temporada" (
+CREATE TABLE IF NOT EXISTS "temporada" (
     "id" SERIAL NOT NULL,
     "nombre" VARCHAR(100) NOT NULL,
     "tipo" VARCHAR(10) NOT NULL,
@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS \"temporada" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"categoria_inventario" (
+CREATE TABLE IF NOT EXISTS "categoria_inventario" (
     "id_categoria" SERIAL NOT NULL,
     "nombre" VARCHAR(80) NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
@@ -179,7 +179,7 @@ CREATE TABLE IF NOT EXISTS \"categoria_inventario" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"proveedor" (
+CREATE TABLE IF NOT EXISTS "proveedor" (
     "id_proveedor" SERIAL NOT NULL,
     "nombre" VARCHAR(200) NOT NULL,
     "nit" VARCHAR(30),
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS \"proveedor" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"producto_inventario" (
+CREATE TABLE IF NOT EXISTS "producto_inventario" (
     "id_producto" SERIAL NOT NULL,
     "nombre" VARCHAR(200) NOT NULL,
     "descripcion" TEXT,
@@ -215,7 +215,7 @@ CREATE TABLE IF NOT EXISTS \"producto_inventario" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"movimiento_inventario" (
+CREATE TABLE IF NOT EXISTS "movimiento_inventario" (
     "id_movimiento" SERIAL NOT NULL,
     "id_producto" INTEGER NOT NULL,
     "tipo" VARCHAR(10) NOT NULL,
@@ -233,7 +233,7 @@ CREATE TABLE IF NOT EXISTS \"movimiento_inventario" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"gasto_operativo" (
+CREATE TABLE IF NOT EXISTS "gasto_operativo" (
     "id_gasto" SERIAL NOT NULL,
     "categoria" VARCHAR(60) NOT NULL,
     "descripcion" VARCHAR(300) NOT NULL,
@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS \"gasto_operativo" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"categoria_gasto" (
+CREATE TABLE IF NOT EXISTS "categoria_gasto" (
     "id" SERIAL NOT NULL,
     "nombre" VARCHAR(60) NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS \"categoria_gasto" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"usuario" (
+CREATE TABLE IF NOT EXISTS "usuario" (
     "id_usuario" SERIAL NOT NULL,
     "nombre_completo" VARCHAR(150) NOT NULL,
     "username" VARCHAR(80) NOT NULL,
@@ -273,7 +273,7 @@ CREATE TABLE IF NOT EXISTS \"usuario" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"audit_log" (
+CREATE TABLE IF NOT EXISTS "audit_log" (
     "id_log" SERIAL NOT NULL,
     "id_usuario" INTEGER,
     "username" VARCHAR(80) NOT NULL,
@@ -288,7 +288,7 @@ CREATE TABLE IF NOT EXISTS \"audit_log" (
 );
 
 -- CreateTable
-CREATE TABLE IF NOT EXISTS \"turno_caja" (
+CREATE TABLE IF NOT EXISTS "turno_caja" (
     "id_turno" SERIAL NOT NULL,
     "id_usuario" INTEGER NOT NULL,
     "fecha_apertura" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -304,91 +304,91 @@ CREATE TABLE IF NOT EXISTS \"turno_caja" (
 );
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_cuenta_espacio_reserva" ON "cuenta_espacio"("id_reserva");
+CREATE INDEX IF NOT EXISTS "idx_cuenta_espacio_reserva" ON "cuenta_espacio"("id_reserva");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_cuenta_persona_huesped" ON "cuenta_persona"("id_huesped");
+CREATE INDEX IF NOT EXISTS "idx_cuenta_persona_huesped" ON "cuenta_persona"("id_huesped");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_cuenta_persona_reserva" ON "cuenta_persona"("id_reserva");
+CREATE INDEX IF NOT EXISTS "idx_cuenta_persona_reserva" ON "cuenta_persona"("id_reserva");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS \"espacio_numero_key" ON "espacio"("numero");
+CREATE UNIQUE INDEX IF NOT EXISTS "espacio_numero_key" ON "espacio"("numero");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_minibar_espacio" ON "inventario_minibar"("id_espacio");
+CREATE INDEX IF NOT EXISTS "idx_minibar_espacio" ON "inventario_minibar"("id_espacio");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS \"origen_reserva_nombre_key" ON "origen_reserva"("nombre");
+CREATE UNIQUE INDEX IF NOT EXISTS "origen_reserva_nombre_key" ON "origen_reserva"("nombre");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_reserva_checkin" ON "reserva"("check_in");
+CREATE INDEX IF NOT EXISTS "idx_reserva_checkin" ON "reserva"("check_in");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_reserva_checkout" ON "reserva"("check_out");
+CREATE INDEX IF NOT EXISTS "idx_reserva_checkout" ON "reserva"("check_out");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_reserva_espacio" ON "reserva"("id_espacio");
+CREATE INDEX IF NOT EXISTS "idx_reserva_espacio" ON "reserva"("id_espacio");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_reserva_estado" ON "reserva"("estado_reserva");
+CREATE INDEX IF NOT EXISTS "idx_reserva_estado" ON "reserva"("estado_reserva");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_reserva_huesped" ON "reserva"("id_huesped");
+CREATE INDEX IF NOT EXISTS "idx_reserva_huesped" ON "reserva"("id_huesped");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS \"tipo_espacio_config_nombre_key" ON "tipo_espacio_config"("nombre");
+CREATE UNIQUE INDEX IF NOT EXISTS "tipo_espacio_config_nombre_key" ON "tipo_espacio_config"("nombre");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_temporada_inicio" ON "temporada"("mes_dia_inicio");
+CREATE INDEX IF NOT EXISTS "idx_temporada_inicio" ON "temporada"("mes_dia_inicio");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_temporada_fin" ON "temporada"("mes_dia_fin");
+CREATE INDEX IF NOT EXISTS "idx_temporada_fin" ON "temporada"("mes_dia_fin");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS \"categoria_inventario_nombre_key" ON "categoria_inventario"("nombre");
+CREATE UNIQUE INDEX IF NOT EXISTS "categoria_inventario_nombre_key" ON "categoria_inventario"("nombre");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_producto_categoria" ON "producto_inventario"("categoria");
+CREATE INDEX IF NOT EXISTS "idx_producto_categoria" ON "producto_inventario"("categoria");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_producto_proveedor" ON "producto_inventario"("id_proveedor");
+CREATE INDEX IF NOT EXISTS "idx_producto_proveedor" ON "producto_inventario"("id_proveedor");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_movimiento_producto" ON "movimiento_inventario"("id_producto");
+CREATE INDEX IF NOT EXISTS "idx_movimiento_producto" ON "movimiento_inventario"("id_producto");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_movimiento_fecha" ON "movimiento_inventario"("fecha");
+CREATE INDEX IF NOT EXISTS "idx_movimiento_fecha" ON "movimiento_inventario"("fecha");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_gasto_fecha" ON "gasto_operativo"("fecha");
+CREATE INDEX IF NOT EXISTS "idx_gasto_fecha" ON "gasto_operativo"("fecha");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_gasto_categoria" ON "gasto_operativo"("categoria");
+CREATE INDEX IF NOT EXISTS "idx_gasto_categoria" ON "gasto_operativo"("categoria");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS \"categoria_gasto_nombre_key" ON "categoria_gasto"("nombre");
+CREATE UNIQUE INDEX IF NOT EXISTS "categoria_gasto_nombre_key" ON "categoria_gasto"("nombre");
 
 -- CreateIndex
-CREATE UNIQUE INDEX IF NOT EXISTS \"usuario_username_key" ON "usuario"("username");
+CREATE UNIQUE INDEX IF NOT EXISTS "usuario_username_key" ON "usuario"("username");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_usuario_username" ON "usuario"("username");
+CREATE INDEX IF NOT EXISTS "idx_usuario_username" ON "usuario"("username");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_audit_fecha" ON "audit_log"("fecha");
+CREATE INDEX IF NOT EXISTS "idx_audit_fecha" ON "audit_log"("fecha");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_audit_usuario" ON "audit_log"("id_usuario");
+CREATE INDEX IF NOT EXISTS "idx_audit_usuario" ON "audit_log"("id_usuario");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_audit_accion" ON "audit_log"("accion");
+CREATE INDEX IF NOT EXISTS "idx_audit_accion" ON "audit_log"("accion");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_caja_usuario" ON "turno_caja"("id_usuario");
+CREATE INDEX IF NOT EXISTS "idx_caja_usuario" ON "turno_caja"("id_usuario");
 
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS \"idx_caja_estado" ON "turno_caja"("estado");
+CREATE INDEX IF NOT EXISTS "idx_caja_estado" ON "turno_caja"("estado");
 
 -- AddForeignKey
 ALTER TABLE "cuenta_espacio" ADD CONSTRAINT "cuenta_espacio_id_reserva_fkey" FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
