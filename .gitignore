@@ -7,13 +7,13 @@ build/
 release/
 backend/release/
 backend/release2/
+backend/frontend-build/
 backend/postgres-portable/pgdata_prod/
 backend/postgres-portable/pgdata_dev/
 frontend-build/
 # Ignorar ejecutables en la raiz o releases, pero permitir los de postgres
 *.exe
 !backend/postgres-portable/bin/*.exe
-*.zip
 *.msi
 *.asar
 .prisma/
@@ -30,3 +30,12 @@ hotel-boutique/
 *.diff
 CUsers*.txt
 scratch_receipt.tsx
+
+# Carpetas de datos de PostgreSQL (NUNCA en git)
+backend/pgdata*/
+backend/pgdata_backup/
+backend/appdata_backup/
+backend/extract_*/
+**/pgdata/
+**/pgdata_prod*/
+**/pgdata_dev*/
