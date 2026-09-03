@@ -1,7 +1,9 @@
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
 const fs = require('fs');
+const { createWriteStream, createReadStream } = require('fs');
+const archiver = require('archiver');
 
 let mainWindow;
 let serverProcess;
@@ -22,7 +24,8 @@ if (!gotTheLock) {
 }
 
 const userDataPath = app.getPath('userData');
-const pgDataDir = path.join(userDataPath, isDev ? 'pgdata_dev' : 'pgdata_prod_v3');
+const pgDataDir = path.join(userDataPath, isDev ? 'pgdata_dev' : 'pgdata');
+const backupsDir = path.join(userDataPath, 'backups');
 const settingsPath = path.join(userDataPath, 'settings.json');
 let userSettings = { adminUser: 'admin', adminPass: 'hotel2026' };
 try {
@@ -74,6 +77,60 @@ function findAvailablePort(startPort, maxTries = 20) {
 }
 
 let isFirstInstall = false;
+
+// ─────────────────────────────────────────────────────────────
+// BACKUP AUTOMÁTICO DIARIO
+// Crea una copia ZIP de la base de datos al iniciar el sistema.
+// Conserva los últimos 7 backups y borra los más antiguos.
+// ─────────────────────────────────────────────────────────────
+async function createDailyBackup() {
+    if (!fs.existsSync(pgDataDir)) {
+        console.log('⚠️ Backup omitido: pgDataDir aún no existe.');
+        return;
+    }
+
+    try {
+        if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
+
+        const now = new Date();
+        const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        const zipName = `backup_${stamp}.zip`;
+        const zipPath = path.join(backupsDir, zipName);
+
+        // Si ya existe el backup de hoy, no duplicamos
+        if (fs.existsSync(zipPath)) {
+            console.log(`✅ Backup del día ya existe: ${zipName}`);
+            return;
+        }
+
+        console.log(`📦 Creando backup automático: ${zipName}`);
+
+        await new Promise((resolve, reject) => {
+            const output = createWriteStream(zipPath);
+            const archive = archiver('zip', { zlib: { level: 6 } });
+            archive.on('error', (err) => { fs.unlinkSync(zipPath); reject(err); });
+            output.on('close', resolve);
+            archive.pipe(output);
+            archive.directory(pgDataDir, 'pgdata');
+            archive.finalize();
+        });
+
+        console.log(`✅ Backup creado: ${zipName}`);
+
+        // Borrar backups más antiguos (conservar solo los últimos 7)
+        const allBackups = fs.readdirSync(backupsDir)
+            .filter(f => f.startsWith('backup_') && f.endsWith('.zip'))
+            .sort();
+        if (allBackups.length > 7) {
+            const toDelete = allBackups.slice(0, allBackups.length - 7);
+            toDelete.forEach(f => {
+                try { fs.unlinkSync(path.join(backupsDir, f)); console.log(`🗑️ Backup antiguo eliminado: ${f}`); } catch(e) {}
+            });
+        }
+    } catch (err) {
+        console.error('❌ Error creando backup automático:', err.message);
+    }
+}
 
 async function startPostgres() {
     console.log('📍 startPostgres - Verificando directorio pgData:', pgDataDir);
@@ -375,6 +432,9 @@ async function createWindow() {
             : path.join(process.resourcesPath, 'app');
         await runMigrationsAndSeed(appRootPath);
 
+        // Crear backup automático DESPUÉS de que la BD está lista y migrada
+        createDailyBackup().catch(e => console.error('Backup falló:', e.message));
+
         // Find a free port dynamically
         EXPRESS_PORT = await findAvailablePort(5001);
         console.log(`✅ Puerto disponible encontrado: ${EXPRESS_PORT}`);
@@ -428,6 +488,59 @@ async function createWindow() {
         app.quit();
     }
 }
+
+// ─────────────────────────────────────────────────────────────
+// IPC: BACKUP MANUAL desde la UI
+// ─────────────────────────────────────────────────────────────
+ipcMain.handle('backup:create', async () => {
+    if (!fs.existsSync(pgDataDir)) {
+        return { success: false, message: 'No hay base de datos para respaldar.' };
+    }
+    try {
+        if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
+
+        const now = new Date();
+        const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+        const zipName = `backup_manual_${stamp}.zip`;
+        const zipPath = path.join(backupsDir, zipName);
+
+        await new Promise((resolve, reject) => {
+            const output = createWriteStream(zipPath);
+            const archive = archiver('zip', { zlib: { level: 6 } });
+            archive.on('error', (err) => { try { fs.unlinkSync(zipPath); } catch(e) {} reject(err); });
+            output.on('close', resolve);
+            archive.pipe(output);
+            archive.directory(pgDataDir, 'pgdata');
+            archive.finalize();
+        });
+
+        return { success: true, message: `✅ Backup creado: ${zipName}`, filename: zipName };
+    } catch (err) {
+        return { success: false, message: `❌ Error: ${err.message}` };
+    }
+});
+
+ipcMain.handle('backup:list', async () => {
+    try {
+        if (!fs.existsSync(backupsDir)) return [];
+        return fs.readdirSync(backupsDir)
+            .filter(f => f.endsWith('.zip'))
+            .map(f => {
+                const stats = fs.statSync(path.join(backupsDir, f));
+                return { name: f, size: Math.round(stats.size / 1024 / 1024 * 10) / 10, date: stats.mtime };
+            })
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+    } catch (err) {
+        return [];
+    }
+});
+
+ipcMain.handle('backup:openFolder', async () => {
+    if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
+    const { shell } = require('electron');
+    shell.openPath(backupsDir);
+    return { success: true };
+});
 
 app.whenReady().then(createWindow);
 

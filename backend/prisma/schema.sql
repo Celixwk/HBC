@@ -390,33 +390,53 @@ CREATE INDEX IF NOT EXISTS "idx_caja_usuario" ON "turno_caja"("id_usuario");
 -- CreateIndex
 CREATE INDEX IF NOT EXISTS "idx_caja_estado" ON "turno_caja"("estado");
 
--- AddForeignKey
-ALTER TABLE "cuenta_espacio" ADD CONSTRAINT "cuenta_espacio_id_reserva_fkey" FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
+-- AddForeignKey (safe: ignora si ya existe la constraint)
+DO $$ BEGIN
+  ALTER TABLE "cuenta_espacio" ADD CONSTRAINT "cuenta_espacio_id_reserva_fkey"
+    FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_huesped_fkey" FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
+DO $$ BEGIN
+  ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_huesped_fkey"
+    FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_reserva_fkey" FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
+DO $$ BEGIN
+  ALTER TABLE "cuenta_persona" ADD CONSTRAINT "cuenta_persona_id_reserva_fkey"
+    FOREIGN KEY ("id_reserva") REFERENCES "reserva"("id_reserva") ON DELETE NO ACTION ON UPDATE NO ACTION;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "inventario_minibar" ADD CONSTRAINT "inventario_minibar_id_espacio_fkey" FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
+DO $$ BEGIN
+  ALTER TABLE "inventario_minibar" ADD CONSTRAINT "inventario_minibar_id_espacio_fkey"
+    FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_espacio_fkey" FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
+DO $$ BEGIN
+  ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_espacio_fkey"
+    FOREIGN KEY ("id_espacio") REFERENCES "espacio"("id_espacio") ON DELETE NO ACTION ON UPDATE NO ACTION;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_huesped_fkey" FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
+DO $$ BEGIN
+  ALTER TABLE "reserva" ADD CONSTRAINT "reserva_id_huesped_fkey"
+    FOREIGN KEY ("id_huesped") REFERENCES "huesped"("id_huesped") ON DELETE NO ACTION ON UPDATE NO ACTION;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "producto_inventario" ADD CONSTRAINT "producto_inventario_id_proveedor_fkey" FOREIGN KEY ("id_proveedor") REFERENCES "proveedor"("id_proveedor") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "producto_inventario" ADD CONSTRAINT "producto_inventario_id_proveedor_fkey"
+    FOREIGN KEY ("id_proveedor") REFERENCES "proveedor"("id_proveedor") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "movimiento_inventario" ADD CONSTRAINT "movimiento_inventario_id_producto_fkey" FOREIGN KEY ("id_producto") REFERENCES "producto_inventario"("id_producto") ON DELETE CASCADE ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "movimiento_inventario" ADD CONSTRAINT "movimiento_inventario_id_producto_fkey"
+    FOREIGN KEY ("id_producto") REFERENCES "producto_inventario"("id_producto") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_id_usuario_fkey" FOREIGN KEY ("id_usuario") REFERENCES "usuario"("id_usuario") ON DELETE SET NULL ON UPDATE CASCADE;
+DO $$ BEGIN
+  ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_id_usuario_fkey"
+    FOREIGN KEY ("id_usuario") REFERENCES "usuario"("id_usuario") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
--- AddForeignKey
-ALTER TABLE "turno_caja" ADD CONSTRAINT "turno_caja_id_usuario_fkey" FOREIGN KEY ("id_usuario") REFERENCES "usuario"("id_usuario") ON DELETE NO ACTION ON UPDATE CASCADE;
-
+DO $$ BEGIN
+  ALTER TABLE "turno_caja" ADD CONSTRAINT "turno_caja_id_usuario_fkey"
+    FOREIGN KEY ("id_usuario") REFERENCES "usuario"("id_usuario") ON DELETE NO ACTION ON UPDATE CASCADE;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;

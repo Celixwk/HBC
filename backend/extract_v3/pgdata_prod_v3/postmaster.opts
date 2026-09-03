@@ -1,0 +1,1 @@
+C:/Program Files/Hotel Boutique/resources/postgres-portable/bin/postgres.exe "-D" "C:/Users/jccpp/Documents/hotel-boutique/backend/extract_v3/pgdata_prod_v3" "-p" "54402" "-k" "C:\Users\jccpp\AppData\Local\Temp\pgsock_v3"

@@ -26,6 +26,7 @@ const usuariosRoutes     = require('./routes/usuarios.routes');
 const auditoriaRoutes    = require('./routes/auditoria.routes');
 const cajaRoutes         = require('./routes/caja.routes');
 const apiPublicaRoutes = require('./routes/api_publica.routes');
+const backupRoutes     = require('./routes/backup.routes');
 const { sincronizarTodosLosICal } = require('./controllers/ical.controller');
 
 const { verifyToken } = require('./middleware/auth.middleware');
@@ -93,6 +94,7 @@ app.use('/api/usuarios',      usuariosRoutes);    // roles internos
 app.use('/api/auditoria',     auditoriaRoutes);   // solo admin
 app.use('/api/caja',          cajaRoutes);        // control de caja
 app.use('/api/public',        apiPublicaRoutes);  // Web Pública y iCal
+app.use('/api/backup',        backupRoutes);      // backups de la base de datos
 
 // ── Serve frontend static files ──────────────────────────────────────────────
 const path = require('path');
