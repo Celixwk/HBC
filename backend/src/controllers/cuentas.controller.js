@@ -156,7 +156,7 @@ const cambiarEstadoCuentaEspacio = async (req, res) => {
   const { id } = req.params;
   const { estado, metodo_pago } = req.body;
   try {
-    if (!['pendiente', 'pagado', 'anulado'].includes(estado)) {
+    if (!['pendiente', 'pagado', 'anulado', 'finalizado'].includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
     const updated = await prisma.cuenta_espacio.update({
@@ -191,11 +191,11 @@ const getCuentasPersona = async (req, res) => {
       orderBy: { fecha_registro: 'desc' }
     });
 
-    // Identificar a las personas que tienen al menos un cargo pendiente
+    // Identificar a las personas activas
     const personasActivas = new Set();
     todos.forEach(c => {
-      // Consideramos pendiente si el estado es 'pendiente', null, o vacío.
-      if (c.estado === 'pendiente' || !c.estado) {
+      // Consideramos activa si hay algún cargo que NO esté finalizado ni anulado
+      if (c.estado !== 'finalizado' && c.estado !== 'anulado') {
         if (c.nombre_persona) personasActivas.add(c.nombre_persona);
       }
     });
@@ -342,7 +342,7 @@ const cambiarEstadoCuentaPersona = async (req, res) => {
   const { id } = req.params;
   const { estado, metodo_pago } = req.body;
   try {
-    if (!['pendiente', 'pagado', 'anulado'].includes(estado)) {
+    if (!['pendiente', 'pagado', 'anulado', 'finalizado'].includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
     const updated = await prisma.cuenta_persona.update({

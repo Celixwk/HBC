@@ -749,8 +749,11 @@ const CargosPersona: React.FC = () => {
     
     setLoading(true);
     try {
-      const pending = itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
-      for (const item of pending) {
+      const itemsToModify = estado === 'finalizado' 
+        ? itemsToUpdate.filter(i => i.estado === 'pagado')
+        : itemsToUpdate.filter(i => i.estado === 'pendiente' || !i.estado);
+        
+      for (const item of itemsToModify) {
         await apiFetch(`/cuentas/persona/${item.id_item_persona}/estado`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -810,8 +813,8 @@ const CargosPersona: React.FC = () => {
       </div>
       {Object.entries(grouped).map(([nombre, personItems]) => {
         const isCollapsed = collapsed[nombre];
-        const totalPendiente = personItems.filter(i => i.estado !== 'pagado' && i.estado !== 'anulado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0);
-        const totalPagado = personItems.filter(i => i.estado === 'pagado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0);
+        const totalPendiente = personItems.filter(i => i.estado !== 'pagado' && i.estado !== 'finalizado' && i.estado !== 'anulado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0);
+        const totalPagado = personItems.filter(i => i.estado === 'pagado' || i.estado === 'finalizado').reduce((acc, i) => acc + parseFloat(i.valor_total || 0), 0);
         return (
           <div key={nombre} className="room-section glass-panel">
             <div className="room-section-header" onClick={() => setCollapsed(c => ({ ...c, [nombre]: !c[nombre] }))}>
@@ -852,7 +855,7 @@ const CargosPersona: React.FC = () => {
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleBulkStatus(e, personItems, 'pagado', nombre); }}
+                      onClick={(e: React.MouseEvent) => { e.stopPropagation(); handleBulkStatus(e, personItems, 'finalizado', nombre); }}
                       style={{ padding: '4px 12px' }}
                     >
                       Finalizar

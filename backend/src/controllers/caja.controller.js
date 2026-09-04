@@ -45,7 +45,7 @@ const getCajaActiva = async (req, res) => {
         SUM(valor_total) as total
       FROM cuenta_espacio
       WHERE fecha_registro >= ${turno.fecha_apertura}
-        AND estado = 'pagado'
+        AND estado IN ('pagado', 'finalizado')
       GROUP BY metodo_pago
       UNION ALL
       SELECT
@@ -53,7 +53,7 @@ const getCajaActiva = async (req, res) => {
         SUM(valor_total) as total
       FROM cuenta_persona
       WHERE fecha_registro >= ${turno.fecha_apertura}
-        AND estado = 'pagado'
+        AND estado IN ('pagado', 'finalizado')
       GROUP BY metodo_pago
     `;
     res.json({ ...turno, pagos_detalle: pagosDuranteTurno });
@@ -77,10 +77,10 @@ const cerrarCaja = async (req, res) => {
     const [efectivoResult] = await prisma.$queryRaw`
       SELECT COALESCE(SUM(valor_total), 0) as total FROM (
         SELECT valor_total FROM cuenta_espacio
-          WHERE fecha_registro >= ${turno.fecha_apertura} AND estado = 'pagado' AND metodo_pago ILIKE '%efectivo%'
+          WHERE fecha_registro >= ${turno.fecha_apertura} AND estado IN ('pagado', 'finalizado') AND metodo_pago ILIKE '%efectivo%'
         UNION ALL
         SELECT valor_total FROM cuenta_persona
-          WHERE fecha_registro >= ${turno.fecha_apertura} AND estado = 'pagado' AND metodo_pago ILIKE '%efectivo%'
+          WHERE fecha_registro >= ${turno.fecha_apertura} AND estado IN ('pagado', 'finalizado') AND metodo_pago ILIKE '%efectivo%'
       ) sub
     `;
     const montoSistema = parseFloat(turno.monto_apertura) + parseFloat(efectivoResult?.total || 0);
