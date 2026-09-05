@@ -55,14 +55,18 @@ const verifySession = (req, res) => {
 };
 
 /**
- * Cambiar contraseña del propio usuario autenticado.
+ * Cambiar credenciales del propio usuario autenticado.
  */
-const updateMyPassword = async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
+const updateMyCredentials = async (req, res) => {
+  const { currentPassword, newUsuario, newPassword } = req.body;
   const id_usuario = req.user.id_usuario;
 
-  if (!currentPassword || !newPassword) {
-    return res.status(400).json({ error: 'Se requieren contraseña actual y nueva.' });
+  if (!currentPassword) {
+    return res.status(400).json({ error: 'Se requiere la contraseña actual para guardar cambios.' });
+  }
+
+  if (!newUsuario && !newPassword) {
+    return res.status(400).json({ error: 'Debes ingresar un nuevo usuario o una nueva contraseña.' });
   }
 
   try {
@@ -72,14 +76,31 @@ const updateMyPassword = async (req, res) => {
       return res.status(401).json({ error: 'La contraseña actual es incorrecta.' });
     }
 
-    const hash = await bcrypt.hash(newPassword, 10);
-    await prisma.usuario.update({ where: { id_usuario }, data: { password_hash: hash } });
-    await registrarLog(req, 'CONTRASENA_CAMBIADA', `El usuario cambió su propia contraseña`, 'usuario', id_usuario);
-    res.json({ success: true, message: 'Contraseña actualizada correctamente.' });
+    const dataToUpdate = {};
+    if (newUsuario && newUsuario.trim() !== '') {
+      // Verificar si el username ya existe
+      if (newUsuario.trim() !== user.username) {
+        const existe = await prisma.usuario.findUnique({ where: { username: newUsuario.trim() } });
+        if (existe) return res.status(400).json({ error: 'El nombre de usuario ya está en uso.' });
+        dataToUpdate.username = newUsuario.trim();
+      }
+    }
+
+    if (newPassword && newPassword.trim() !== '') {
+      dataToUpdate.password_hash = await bcrypt.hash(newPassword, 10);
+    }
+
+    if (Object.keys(dataToUpdate).length === 0) {
+       return res.status(400).json({ error: 'No hay cambios para aplicar.' });
+    }
+
+    await prisma.usuario.update({ where: { id_usuario }, data: dataToUpdate });
+    await registrarLog(req, 'CREDENCIALES_CAMBIADAS', `El usuario actualizó sus credenciales`, 'usuario', id_usuario);
+    res.json({ success: true, message: 'Credenciales actualizadas correctamente.' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al actualizar contraseña.' });
+    res.status(500).json({ error: 'Error al actualizar credenciales.' });
   }
 };
 
-module.exports = { login, verifySession, updateMyPassword };
+module.exports = { login, verifySession, updateMyCredentials };

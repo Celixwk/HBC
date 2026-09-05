@@ -75,10 +75,10 @@ export const SecuritySettings: React.FC = () => {
 
       <div className="settings-grid">
         <div className="form-group settings-full-col">
-          <label htmlFor="newUsuario">Nuevo Nombre de Usuario *</label>
+          <label htmlFor="newUsuario">Nuevo Nombre de Usuario (Opcional)</label>
           <input type="text" id="newUsuario" name="newUsuario"
             value={form.newUsuario} onChange={handleChange}
-            className="form-input" placeholder="admin" required />
+            className="form-input" placeholder="admin" />
         </div>
 
         <div className="form-group settings-full-col">
@@ -89,17 +89,17 @@ export const SecuritySettings: React.FC = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="newPassword">Nueva Contraseña *</label>
+          <label htmlFor="newPassword">Nueva Contraseña (Opcional)</label>
           <input type="password" id="newPassword" name="newPassword"
             value={form.newPassword} onChange={handleChange}
-            className="form-input" placeholder="Nueva contraseña" required minLength={6} />
+            className="form-input" placeholder="Nueva contraseña" minLength={6} />
         </div>
 
         <div className="form-group">
-          <label htmlFor="confirmPassword">Confirmar Nueva Contraseña *</label>
+          <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
           <input type="password" id="confirmPassword" name="confirmPassword"
             value={form.confirmPassword} onChange={handleChange}
-            className="form-input" placeholder="Repite la nueva contraseña" required minLength={6} />
+            className="form-input" placeholder="Repite la nueva contraseña" minLength={6} />
         </div>
       </div>
 
